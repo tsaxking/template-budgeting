@@ -370,6 +370,7 @@ export class ServerRequest<T = unknown> {
                 let last: string | undefined;
                 reader.read().then(function process({ done, value }) {
                     if (done) {
+                        console.log('Stream complete, received', i, 'chunks');
                         emitter.emit('complete', output);
                         return;
                     }
@@ -399,6 +400,7 @@ export class ServerRequest<T = unknown> {
                             }
                         }
                     }
+                    i++;
                     return reader.read().then(process);
                 });
             })

@@ -10,9 +10,6 @@
         pages: [{
             name: 'dashboard',
             icon: 'home'
-        },{
-            name: 'account',
-            icon: 'person'
         }]
     }];
 
@@ -31,12 +28,20 @@
         // 'contact',
         // null
     ];
+
+    export let bucketId: string = '';
+
+    let fromDate: Date = new Date();
+    let toDate: Date = new Date();
+    toDate.setMonth(toDate.getMonth() + 1);
+
+    $: from = new Date(fromDate).toLocaleDateString().split('/').reverse().join('-');
+    $: to = new Date(toDate).toLocaleDateString().split('/').reverse().join('-');
 </script>
 
 
 
 
-<Main title="Team Tators" {groups} on:openPage={openPage} {active} {navItems} {accountLinks}>
-    <Page {active} {domain} title='dashboard'><Dashboard></Dashboard></Page>
-    <Page {active} {domain} title='account'><Account></Account></Page>
+<Main title="Budgeting" {groups} on:openPage={openPage} {active} {navItems} {accountLinks}>
+    <Page {active} {domain} title='dashboard'><Dashboard bind:from={from} bind:to={to} bind:active={bucketId}></Dashboard></Page>
 </Main>
