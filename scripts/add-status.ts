@@ -112,6 +112,7 @@ export type StatusMessage = {
     code: StatusCode;
     instructions: string;
     redirect?: string;
+    sleep?: string;
 }
 
 

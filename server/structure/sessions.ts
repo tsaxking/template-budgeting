@@ -284,7 +284,9 @@ export class Session {
      * @param {Account} account
      */
     signIn(account: Account) {
+        // console.log('Signing in: ', account);
         this.accountId = account.id;
+        // console.log('Signed in: ', this);
         this.save();
     }
 
@@ -310,6 +312,7 @@ export class Session {
      * @date 10/12/2023 - 3:13:57 PM
      */
     save() {
+        console.log('saving: ', this);
         this.account?.save();
 
         const s = DB.get('sessions/get', { id: this.id });
