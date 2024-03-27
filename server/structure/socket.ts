@@ -1,92 +1,111 @@
-import { Server, Socket } from "npm:socket.io";
-import { parseCookie } from "../../shared/cookie.ts";
+import { App } from './app/app';
+import { EventEmitter } from '../../shared/event-emitter';
+import { Server } from 'socket.io';
+import { parseCookie } from '../../shared/cookie';
 
-type SocketMetadata = {
-    time: number;
-}
-
-type SocketQueue = { 
-    event: string, 
-    args: any[], 
-    room?: string, 
-    metadata: SocketMetadata 
-}
-
+/**
+ * Wrapper class around the socket.io server
+ * @date 3/8/2024 - 6:04:16 AM
+ *
+ * @export
+ * @class SocketWrapper
+ * @typedef {SocketWrapper}
+ */
 export class SocketWrapper {
-    static sockets: {
-        [key: string]: SocketWrapper
-    } = {};
+    /**
+     * A map of all the sockets
+     * @date 3/8/2024 - 6:04:16 AM
+     *
+     * @public
+     * @static
+     * @readonly
+     * @type {*}
+     */
+    public static readonly sockets = new Map<string, SocketWrapper>();
 
+    /**
+     * Event emitter for the socket
+     * @date 3/8/2024 - 6:04:16 AM
+     *
+     * @private
+     * @readonly
+     * @type {*}
+     */
+    private readonly em = new EventEmitter();
+    /**
+     * Creates an instance of SocketWrapper.
+     * @date 3/8/2024 - 6:04:16 AM
+     *
+     * @constructor
+     * @param {App} app
+     * @param {Server} io
+     */
+    constructor(
+        private readonly app: App,
+        private readonly io: Server
+    ) {
+        io.on('connection', socket => {
+            console.log('connected');
 
-    queue: SocketQueue[] = [];
-    numTries = 0;
+            const cookie = socket.handshake.headers.cookie;
+            if (cookie) {
+                const { ssid } = parseCookie(cookie);
 
-    constructor(private readonly socket: Socket) {
-        // get cookie from socket
-        const { cookie } = socket.handshake.headers;
-        const { tab } = parseCookie(cookie || '');
-        if (!tab) return;
-
-        if (SocketWrapper.sockets[tab]) {
-            const { queue } = SocketWrapper.sockets[tab];
-            for (const q of queue) {
-                if (q.room) {
-                    socket.to(q.room).emit(q.event, q.metadata, ...q.args);
-                } else {
-                    socket.emit(q.event, q.metadata, ...q.args);
+                if (ssid) {
+                    socket.join(ssid);
+                    SocketWrapper.sockets.set(ssid, this);
                 }
             }
 
-            SocketWrapper.sockets[tab].socket.disconnect();
-        }
-
-        SocketWrapper.sockets[tab] = this;
-    }
-
-    emit(event: string, ...args: any[]) {
-        console.log('Emitting', event, 'with', args);
-        if (!this.socket.connected) return this.queue.push({
-            event,
-            args,
-            metadata: {
-                time: Date.now()
-            }
+            socket.on('disconnect', () => {
+                console.log('disconnected');
+            });
         });
-
-        this.socket.emit(event, 
-            // {
-            //     time: Date.now()
-            // }, 
-        ...args);
     }
 
-    to(room: string) {
-        return {
-            emit: (event: string, ...args: any[]) => {
-                if (!this.socket.connected) return this.queue.push({
-                    event,
-                    args,
-                    room,
-                    metadata: {
-                        time: Date.now()
-                    }
-                });
+    /**
+     * Emits an event to all the sockets
+     * @date 3/8/2024 - 6:04:16 AM
+     *
+     * @param {string} event
+     * @param {?unknown} [data]
+     */
+    emit(event: string, data?: unknown) {
+        this.io.emit(event, data);
+    }
 
-                this.socket.to(room).emit(event, {
-                    time: Date.now()
-                }, ...args);
-            }
-        }
+    /**
+     * Listens for an event
+     * @date 3/8/2024 - 6:04:16 AM
+     *
+     * @param {string} event
+     * @param {(data?: unknown) => void} fn
+     * @returns {void) => void}
+     */
+    on(event: string, fn: (data?: unknown) => void) {
+        this.em.on(event, fn);
+    }
+
+    /**
+     * Stops listening for an event
+     * @date 3/8/2024 - 6:04:16 AM
+     *
+     * @param {string} event
+     * @param {(data?: unknown) => void} fn
+     * @returns {void) => void}
+     */
+    off(event: string, fn: (data?: unknown) => void) {
+        this.em.off(event, fn);
+    }
+
+    /**
+     * Emits an event to a specific room
+     * @date 3/8/2024 - 6:04:16 AM
+     *
+     * @param {string} room
+     * @returns {*}
+     */
+    to(room: string) {
+        return this.io.to(room);
     }
 }
-
-
-export var io: Server|null = null;
-
-export const initSocket = (server: Server) => {
-    io = server;
-    io.on('connection', (socket) => {
-        console.log('a user connected');
-        // Session.addSocket(socket);
-    });
-};

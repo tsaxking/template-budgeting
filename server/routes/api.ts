@@ -1,4 +1,4 @@
-import { Route } from "../structure/app/app.ts";
+import { Route } from '../structure/app/app';
 
 export const router = new Route();
 

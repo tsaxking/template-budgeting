@@ -1,19 +1,26 @@
-import Filter from 'npm:bad-words';
-import { Status } from '../utilities/status.ts';
-import { Next, ServerFunction } from "../structure/app/app.ts";
-import { Req } from "../structure/app/req.ts";
-import { Res } from "../structure/app/res.ts";
+import Filter from 'bad-words';
+import { ServerFunction } from '../structure/app/app';
 
+/**
+ * Bad word filter
+ * @date 1/9/2024 - 1:19:08 PM
+ *
+ * @type {*}
+ */
 const filter = new Filter();
 
-
-export const detect = (...keys: string[]): ServerFunction<any> => {
-    return (req: Req, res: Res, next: Next) => {
+/**
+ * Returns a middleware function that checks if the body keys contain profanity
+ * @date 1/9/2024 - 1:19:08 PM
+ */
+export const detect = (...keys: string[]): ServerFunction => {
+    return (req, res, next) => {
         for (const key of keys) {
-            if (filter.isProfane(req.body[key])) {
-                return res.sendStatus('profanity');
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            if (filter.isProfane(req.body ? (req.body as any)[key] : '')) {
+                return res.sendStatus('profanity:detected');
             }
         }
         next();
-    }
-}
+    };
+};
