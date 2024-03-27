@@ -1,99 +1,223 @@
-import * as esbuild from 'https://deno.land/x/esbuild@v0.11.12/mod.js'
-import { log } from "./utilities/terminal-logging.ts";
-import { typescript, sveltePlugin } from "./build/esbuild-svelte.ts";
-import { EventEmitter } from "../shared/event-emitter.ts";
-import { getTemplateSync, saveTemplateSync } from "./utilities/files.ts";
-import env, { __root, __templates, resolve, relative } from "./utilities/env.ts";
+// This file is responsible for building the client
 
-log('Deno version:', Deno.version.deno);
-log('Typescript version:', Deno.version.typescript);
-log('V8 version:', Deno.version.v8);
+import esbuild from 'esbuild';
+import sveltePlugin from 'esbuild-svelte';
+import { typescript } from 'svelte-preprocess-esbuild';
+// import preprocess from 'svelte-preprocess';
+import fs from 'fs';
+import path from 'path';
+import env, { __entries, __root, __templates } from './utilities/env';
+import {
+    getTemplate,
+    getTemplateSync,
+    saveTemplate,
+    saveTemplateSync
+} from './utilities/files';
+import { attempt, attemptAsync } from '../shared/check';
+import { EventEmitter } from '../shared/event-emitter';
 
-/**
- * Description placeholder
- * @date 10/12/2023 - 3:26:56 PM
- */
-const readDir = (dirPath: string): string[] => {
-    const entries = Array.from(Deno.readDirSync(dirPath));
-    return entries.flatMap(e => {
-        if (!e.isFile) return readDir(`${dirPath}/${e.name}`);
+{
+    // clear the dist folder
 
-        const file = dirPath.split('/').slice(2).join('/') + '/' + e.name.replace('.ts', '.html');
+    attempt(() => fs.rmSync(path.resolve(__root, 'dist'), { recursive: true }));
+    attempt(() => fs.mkdirSync(path.resolve(__root, 'dist')));
 
-        saveTemplateSync(
-            '/' + file,
-            getTemplateSync('index', {
-                script: relative(
-                    resolve(__templates, file),
-                    resolve(__root, 'dist', dirPath.split('/').slice(3).join('/'), e.name.replace('.ts', '.js'))
-                ),
-                style: relative(
-                    resolve(__templates, file),
-                    resolve(__root, 'dist', dirPath.split('/').slice(3).join('/'), e.name.replace('.ts', '.css'))
-                ),
-                title: env.TITLE || 'Untitled'
-            })
-        );
-
-        return `${dirPath}/${e.name}`;
-    });
+    // remove the /public/templates/entries folder
+    attempt(() =>
+        fs.rmSync(path.resolve(__templates, 'entries'), { recursive: true })
+    );
+    attempt(() => fs.mkdirSync(path.resolve(__templates, 'entries')));
 }
 
 /**
- * Description placeholder
- * @date 10/12/2023 - 3:26:56 PM
+ * Reads the directory and returns a shallow array of all the files
+ * @date 3/8/2024 - 6:01:24 AM
  *
- * @type {{}}
+ * @async
+ * @param {string} dirPath
+ * @returns {Promise<string[]>}
  */
-let entries: string[] = [];
+const readDir = async (dirPath: string): Promise<string[]> => {
+    // console.log('Reading:', dirPath);
+    const entries = await fs.promises.readdir(dirPath);
+    // console.log('Entries:', entries);
 
-entries = readDir('./client/entries');
+    return (
+        await Promise.all(
+            entries.map(async e => {
+                const fullpath = path.resolve(dirPath, e);
 
-/**
- * Description placeholder
- * @date 10/12/2023 - 3:26:56 PM
- *
- * @typedef {BuildEventData}
- */
-type BuildEventData = {
-    'build': any;
-    'error': Error;
+                // if it's a file, save the template then return the path
+                if ((await fs.promises.stat(fullpath)).isFile()) {
+                    const templateFilePath = path
+                        .resolve(
+                            __templates,
+                            'entries',
+                            path.relative(__entries, fullpath)
+                        )
+                        .replace('.ts', '.html');
+
+                    const index = await getTemplate('index', {
+                        script: path
+                            .relative(
+                                templateFilePath,
+                                path.resolve(
+                                    __root,
+                                    'dist',
+                                    path.relative(__entries, fullpath)
+                                )
+                            )
+                            .replace('.ts', '.js'),
+                        style: path.relative(
+                            templateFilePath,
+                            path
+                                .resolve(
+                                    __root,
+                                    'dist',
+                                    path.relative(__entries, fullpath)
+                                )
+                                .replace('.ts', '.css')
+                        ),
+                        title: env.TITLE || 'Untitled'
+                    });
+                    if (index.isOk()) {
+                        await saveTemplate(templateFilePath, index.value);
+                    }
+                    return fullpath;
+                } else {
+                    // if it's a directory, recursively read it
+                    return readDir(fullpath);
+                }
+            })
+        )
+    ).flat(Infinity) as string[];
 };
 
-export const runBuild = async () => {
-    const builder = new EventEmitter<keyof BuildEventData>();
-    const result = await esbuild.build({
-        entryPoints: entries,
-        bundle: true,
-        // minify: true,
-        outdir: './dist',
-        mainFields: ["svelte", "browser", "module", "main"],
-        conditions: ["svelte", "browser"],
-        watch: {
-            onRebuild(error: Error, result: any) {
-    
-                if (error) builder.emit('error', error);
-                else builder.emit('build', result);
+/**
+ * Class for building the client
+ * @date 3/8/2024 - 6:01:24 AM
+ *
+ * @export
+ * @class Builder
+ * @typedef {Builder}
+ */
+export class Builder {
+    /**
+     * A map of all the watchers
+     * @date 3/8/2024 - 6:01:24 AM
+     *
+     * @private
+     * @type {*}
+     */
+    private readonly watchers = new Map<string, fs.FSWatcher>();
+    /**
+     * If the builder is currently building
+     * @date 3/8/2024 - 6:01:24 AM
+     *
+     * @private
+     * @type {boolean}
+     */
+    private building = false;
+
+    /**
+     * Event emitter for the builder
+     * @date 3/8/2024 - 6:01:24 AM
+     *
+     * @public
+     * @readonly
+     * @type {*}
+     */
+    public readonly em = new EventEmitter();
+
+    /**
+     * Watches a directory for changes
+     * @date 3/8/2024 - 6:01:24 AM
+     *
+     * @param {string} dir
+     */
+    public watch = (dir: string) => {
+        console.log('Watching:', dir);
+        const watcher = fs.watch(
+            path.resolve(__dirname, '../', dir),
+            {
+                recursive: true
+            },
+            (event, _filename) => {
+                if (event === 'change' || event === 'rename') {
+                    this.build();
+                }
             }
-        },
-        // trust me, it works
-        plugins: [(sveltePlugin as unknown as Function)({
-            preprocess: [
-                typescript()
-            ]
-        })],
-        logLevel: "info",
-        loader: {
-            '.png': 'dataurl',
-            '.woff': 'dataurl',
-            '.woff2': 'dataurl',
-            '.eot': 'dataurl',
-            '.ttf': 'dataurl',
-            '.svg': 'dataurl',
+        );
+        this.watchers.set(dir, watcher);
+    };
+
+    /**
+     * Closes all the watchers
+     * @date 3/8/2024 - 6:01:24 AM
+     */
+    close = () => {
+        for (const watcher of this.watchers.values()) {
+            watcher.close();
         }
-    });
+    };
 
-    builder.on('build', () => entries = readDir('./client/entries'));
+    /**
+     * Builds the client
+     * @date 3/8/2024 - 6:01:24 AM
+     *
+     * @returns {*}
+     */
+    public build = () => {
+        return attemptAsync(async () => {
+            if (this.building) return;
+            this.building = true;
+            const dirs = await readDir(__entries);
+            const b = await esbuild.build({
+                entryPoints: dirs,
+                bundle: true,
+                minify: env.MINIFY === 'y',
+                outdir: './dist',
+                mainFields: ['svelte', 'browser', 'module', 'main'],
+                conditions: ['svelte', 'browser'],
+                plugins: [
+                    sveltePlugin({
+                        preprocess: [
+                            typescript({
+                                tsconfigRaw: {
+                                    compilerOptions: {}
+                                }
+                            })
+                        ]
+                    })
+                ],
+                logLevel: 'info',
+                loader: {
+                    '.png': 'dataurl',
+                    '.woff': 'dataurl',
+                    '.woff2': 'dataurl',
+                    '.eot': 'dataurl',
+                    '.ttf': 'dataurl',
+                    '.svg': 'dataurl'
+                },
+                tsconfig: path.resolve(__dirname, '../tsconfig.json')
+            });
+            console.log('Build complete');
+            this.em.emit('build');
+            this.building = false;
+            return b;
+        });
+    };
+}
 
-    return builder;
+// if this file is the main file, run the build
+if (require.main === module) {
+    const builder = new Builder();
+    builder
+        .build()
+        .then(res => {
+            if (res.isOk()) process.exit(0);
+            console.error(res.error);
+            process.exit(1);
+        })
+        .catch(() => process.exit(1));
 }

@@ -5,5 +5,6 @@ UPDATE Sessions SET
     requests = :requests,
     ip = :ip,
     prevUrl = :prevUrl,
+    customData = :customData,
     created = :created
 WHERE id = :id;
