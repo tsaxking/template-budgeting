@@ -1,1 +1,1 @@
-DELETE FROM BalanceCorrection WHERE id = ?;
+DELETE FROM BalanceCorrection WHERE id = :id;

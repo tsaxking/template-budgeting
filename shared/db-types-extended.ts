@@ -9,7 +9,7 @@ export type Transaction = {
     subtypeId: string;
     taxDeductible: 0 | 1;
     archived: 0 | 1;
-    picture: string|null;
+    picture: string | null;
 };
 
 export type Bucket = {
@@ -39,13 +39,13 @@ export type Subscription = {
     id: string;
     name: string;
     startDate: number;
-    endDate: number|null;
+    endDate: number | null;
     interval: number; // in ms
     bucketId: string;
     amount: number; // in cents
     subtypeId: string;
     description: string;
-    picture: string|null;
+    picture: string | null;
     taxDeductible: 0 | 1;
     archived: 0 | 1;
 };
