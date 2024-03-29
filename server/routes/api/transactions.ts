@@ -3,34 +3,40 @@ import { Route } from '../../structure/app/app';
 import { DB } from '../../utilities/databases';
 import { uuid } from '../../utilities/uuid';
 import { fileStream } from '../../middleware/stream';
+import { resolveAll } from '../../../shared/check';
 
 export const router = new Route();
 
 router.post<{
-    bucket: string;
+    buckets: string[];
     from: string;
     to: string;
 }>(
     '/search',
     validate({
-        bucket: 'string',
+        buckets: (v: unknown[]) =>
+            Array.isArray(v) && v.every(i => typeof i === 'string'),
         from: 'string',
         to: 'string'
     }),
     async (req, res) => {
-        const { bucket, from, to } = req.body;
+        const { buckets, from, to } = req.body;
 
-        const transactions = await DB.all('transactions/from-bucket', {
-            bucketId: bucket
-        });
+        const transactions = resolveAll(
+            await Promise.all(
+                buckets.map(b =>
+                    DB.all('transactions/from-bucket', { bucketId: b })
+                )
+            )
+        );
 
         if (transactions.isErr()) return res.sendStatus('unknown:error');
 
-        const filtered = transactions.value.filter(t => {
+        const filtered = transactions.value.flat().filter(t => {
             return +t.date >= +from && +t.date <= +to;
         });
 
-        res.stream(filtered.map(t => JSON.stringify(t)));
+        res.json(filtered);
     }
 );
 
@@ -171,7 +177,7 @@ router.post<{
     id: string;
     archive: boolean;
 }>(
-    '/change-transaction-archive-status',
+    '/change-archive-status',
     validate({
         id: 'string',
         archive: 'boolean'
@@ -240,31 +246,28 @@ router.post<{
 
 router.post<{
     amount: number;
-    status: 'pending' | 'completed' | 'failed';
-    date: number;
     from: string;
     to: string;
     description: string;
     subtypeId: string;
     taxDeductible: boolean;
+    date: number;
 }>(
     '/transfer',
     validate({
         amount: 'number',
-        status: ['pending', 'completed', 'failed'],
-        date: 'number',
         from: 'string',
         to: 'string',
         description: 'string',
         subtypeId: 'string',
-        taxDeductible: 'boolean'
+        taxDeductible: 'boolean',
+        date: 'number'
     }),
     (req, res) => {
         const {
             amount,
-            status,
-            date,
             from,
+            date,
             to,
             description,
             subtypeId,
@@ -273,6 +276,7 @@ router.post<{
 
         const fromId = uuid();
         const toId = uuid();
+        const status = 'completed';
 
         DB.run('transactions/new', {
             amount: amount,
@@ -287,10 +291,10 @@ router.post<{
         });
         DB.run('transactions/new', {
             amount: amount,
-            type: 'withdrawal',
+            type: 'deposit',
             status,
             date,
-            bucketId: from,
+            bucketId: to,
             description,
             subtypeId,
             taxDeductible: +taxDeductible,
@@ -311,10 +315,10 @@ router.post<{
         });
         req.io.emit('transactions:created', {
             amount: amount,
-            type: 'withdrawal',
+            type: 'deposit',
             status,
             date,
-            bucketId: from,
+            bucketId: to,
             description,
             subtypeId,
             taxDeductible,

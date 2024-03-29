@@ -10,10 +10,21 @@ router.post('/get-types', async (_req, res) => {
         DB.all('types/all-types'),
         DB.all('types/all-subtypes')
     ]);
+
+    if (types.isErr() || subtypes.isErr()) return res.sendStatus('unknown:error');
+
     res.json({
-        types: types.isOk() ? types.value : [],
-        subtypes: subtypes.isOk() ? subtypes.value : []
+        types: types.value,
+        subtypes: subtypes.value
     });
+});
+
+router.post('/get-subtypes', async (req, res) => {
+    const subtypes = await DB.all('types/all-subtypes');
+
+    if (subtypes.isErr()) return res.sendStatus('unknown:error');
+
+    res.json(subtypes.value);
 });
 
 router.post<{
@@ -38,7 +49,6 @@ router.post<{
         });
 
         res.sendStatus('transaction-types:type-created');
-        // res.sendStatus('transaction-types:type-created');
         req.io.emit('transaction-type:type-created', {
             id,
             name,

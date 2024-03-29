@@ -1,3 +1,4 @@
+import { BucketType } from '../../../shared/db-types-extended';
 import { validate } from '../../middleware/data-type';
 import { Route } from '../../structure/app/app';
 import { DB } from '../../utilities/databases';
@@ -20,7 +21,7 @@ router.post('/archived', (_req, res) => {
 router.post<{
     name: string;
     description: string;
-    type: 'debit' | 'credit' | 'savings';
+    type: BucketType;
 }>(
     '/new',
     validate({
@@ -118,10 +119,10 @@ router.post<{
         });
 
         if (archived) {
-            res.sendStatus('buckets:archived');
+            res.sendStatus('buckets:archived', { bucketId });
             req.io.emit('buckets:archived', { bucketId });
         } else {
-            res.sendStatus('buckets:restored');
+            res.sendStatus('buckets:restored', { bucketId });
             req.io.emit('buckets:restored', { bucketId });
         }
     }
