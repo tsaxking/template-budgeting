@@ -3,7 +3,7 @@ export type Transaction = {
     amount: number;
     type: 'withdrawal' | 'deposit';
     status: 'pending' | 'completed' | 'failed';
-    date: string;
+    date: number;
     bucketId: string;
     description: string;
     subtypeId: string;
@@ -12,13 +12,15 @@ export type Transaction = {
     picture: string | null;
 };
 
+export type BucketType = 'debit' | 'credit' | 'savings';
+
 export type Bucket = {
     id: string;
     created: number;
     name: string;
     description: string;
     archived: 0 | 1;
-    type: 'debit' | 'credit' | 'savings';
+    type: BucketType;
 };
 
 export type BalanceCorrection = {

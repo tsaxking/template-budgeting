@@ -5,10 +5,12 @@ import { validate } from '../../middleware/data-type';
 
 export const router = new Route();
 
-router.get('/all', (_req, res) => {
-    const balanceCorrections = DB.all('balance-correction/all');
+router.get('/all', async (_req, res) => {
+    const balanceCorrections = await DB.all('balance-correction/all');
 
-    res.json(balanceCorrections);
+    if (balanceCorrections.isErr()) return res.sendStatus('unknown:error');
+
+    res.json(balanceCorrections.value);
 });
 
 router.post<{
