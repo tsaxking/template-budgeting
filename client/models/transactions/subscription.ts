@@ -5,6 +5,8 @@ import { EventEmitter } from '../../../shared/event-emitter';
 import { attemptAsync } from '../../../shared/check';
 import { ServerRequest } from '../../utilities/requests';
 import { socket } from '../../utilities/socket';
+import { Transaction } from './transaction';
+import { Random } from '../../../shared/math';
 
 type GlobalSubscriptionEvents = {
     new: Subscription;
@@ -134,6 +136,42 @@ export class Subscription extends Cache<SubscriptionEvents> {
         return ServerRequest.post('/api/subscriptions/set-archive', {
             id: this.id,
             archive
+        });
+    }
+
+    build(from: number, to: number) {
+        const start = new Date(this.startDate);
+        const end = this.endDate ? new Date(this.endDate) : null;
+
+        const f = new Date(from);
+        let t = new Date(to);
+
+        if (end && end < f) return []; // subscription has ended
+        if (start > t) return []; // subscription has not started
+        if (end && end < t) t = end;
+
+        const dates = [];
+        let next = start;
+        while (next <= t) {
+            dates.push(next);
+            next = new Date(next.getTime() + this.interval);
+        }
+
+        return dates.map(d => {
+            // build a fake transaction (this will not be saved to the server)
+            return new Transaction({
+                id: Random.uuid(),
+                amount: this.amount,
+                type: 'withdrawal',
+                status: 'completed',
+                date: d.getTime(),
+                bucketId: this.bucketId,
+                description: this.description,
+                subtypeId: this.subtypeId,
+                taxDeductible: this.taxDeductible,
+                archived: 0,
+                picture: this.picture,
+            }, false);
         });
     }
 }

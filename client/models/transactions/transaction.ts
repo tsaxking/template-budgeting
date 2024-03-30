@@ -106,7 +106,7 @@ export class Transaction extends Cache<TransactionEvents> {
     public archived: 0 | 1;
     public picture: string | null;
 
-    constructor(data: T) {
+    constructor(data: T, public readonly save = true) {
         super();
         this.id = data.id;
         this.amount = data.amount;
@@ -120,12 +120,13 @@ export class Transaction extends Cache<TransactionEvents> {
         this.archived = data.archived;
         this.picture = data.picture;
 
-        if (!Transaction.cache.has(this.id)) {
+        if (save && !Transaction.cache.has(this.id)) {
             Transaction.cache.set(this.id, this);
         }
     }
 
     async update(data: Partial<T>) {
+        if (!this.save) throw new Error('Cannot update unsaved transaction');
         return ServerRequest.post('/api/transactions/update', {
             id: this.id,
             amount: data.amount || this.amount,
@@ -142,6 +143,7 @@ export class Transaction extends Cache<TransactionEvents> {
     }
 
     async setArchive(archived: boolean) {
+        if (!this.save) throw new Error('Cannot archive unsaved transaction');
         return ServerRequest.post('/api/transactions/set-archive-status', {
             id: this.id,
             archived
@@ -149,6 +151,7 @@ export class Transaction extends Cache<TransactionEvents> {
     }
 
     changePicture(files: FileList) {
+        if (!this.save) throw new Error('Cannot change picture of unsaved transaction');
         return ServerRequest.streamFiles(
             '/api/transactions/change-picture',
             files,
