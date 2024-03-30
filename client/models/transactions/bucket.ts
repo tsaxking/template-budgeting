@@ -7,6 +7,7 @@ import { ServerRequest } from '../../utilities/requests';
 import { Bucket as B } from '../../../shared/db-types-extended';
 import { socket } from '../../utilities/socket';
 import { BalanceCorrection } from './balance-correction';
+import { Subscription } from './subscription';
 
 type GlobalBucketEvents = {
     new: Bucket;
@@ -151,6 +152,32 @@ export class Bucket extends Cache<BucketEvents> {
         });
     }
 
+    async newSubscription(data:  {
+        name: string;
+        amount: number;
+        interval: number;
+        taxDeductible: boolean;
+        description: string;
+        picture: string;
+        startDate: number;
+        endDate: number | null;
+        subtypeId: string;
+    }) {
+        return Subscription.new({
+            ...data,
+            bucketId: this.id
+        });
+    }
+
+    async getSubscriptions() {
+        return attemptAsync(async() => {
+            const subs = await Subscription.all();
+            if (subs.isErr()) throw subs.error;
+
+            return subs.value.filter(s => s.bucketId === this.id);
+        });
+    }
+
     async newBalanceCorrection(data: {
         balance: number;
         date: number;
@@ -182,15 +209,22 @@ export class Bucket extends Cache<BucketEvents> {
 
     async getBalance(from: number, to: number) {
         return attemptAsync(async () => {
-            const [transactions, corrections] = await Promise.all([
+            const [transactions, corrections, subs] = await Promise.all([
                 this.getTransactions(from, to),
-                this.getBalanceCorrections(from, to)
+                this.getBalanceCorrections(from, to),
+                this.getSubscriptions()
             ]);
 
             if (transactions.isErr()) throw transactions.error;
             if (corrections.isErr()) throw corrections.error;
+            if (subs.isErr()) throw subs.error;
 
-            const data: (Transaction | BalanceCorrection)[] = [...transactions.value, ...corrections.value].sort((a, b) => a.date - b.date);
+
+            const data: (Transaction | BalanceCorrection)[] = [
+                ...transactions.value, 
+                ...corrections.value,
+                ...subs.value.map(s => s.build(from, to)).flat()
+            ].sort((a, b) => a.date - b.date);
         
             let balance = 0;
             for (const d of data) {
