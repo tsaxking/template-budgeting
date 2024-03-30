@@ -106,7 +106,10 @@ export class Transaction extends Cache<TransactionEvents> {
     public archived: 0 | 1;
     public picture: string | null;
 
-    constructor(data: T, public readonly save = true) {
+    constructor(
+        data: T,
+        public readonly save = true
+    ) {
         super();
         this.id = data.id;
         this.amount = data.amount;
@@ -151,7 +154,8 @@ export class Transaction extends Cache<TransactionEvents> {
     }
 
     changePicture(files: FileList) {
-        if (!this.save) throw new Error('Cannot change picture of unsaved transaction');
+        if (!this.save)
+            throw new Error('Cannot change picture of unsaved transaction');
         return ServerRequest.streamFiles(
             '/api/transactions/change-picture',
             files,

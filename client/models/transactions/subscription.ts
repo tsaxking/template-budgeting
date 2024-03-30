@@ -16,10 +16,11 @@ type SubscriptionEvents = {
     update: undefined;
 };
 
-
 export class Subscription extends Cache<SubscriptionEvents> {
     public static readonly cache = new Map<string, Subscription>();
-    public static readonly emitter = new EventEmitter<keyof GlobalSubscriptionEvents>();
+    public static readonly emitter = new EventEmitter<
+        keyof GlobalSubscriptionEvents
+    >();
 
     public static on<K extends keyof GlobalSubscriptionEvents>(
         event: K,
@@ -47,9 +48,7 @@ export class Subscription extends Cache<SubscriptionEvents> {
             const cache = Array.from(Subscription.cache.values());
             if (cache.length) return cache.filter(s => !s.archived);
 
-            const res = await ServerRequest.post<S[]>(
-                '/api/subscriptions/all'
-            );
+            const res = await ServerRequest.post<S[]>('/api/subscriptions/all');
 
             if (res.isErr()) throw res.error;
             return res.value.map(t => new Subscription(t));
@@ -85,7 +84,6 @@ export class Subscription extends Cache<SubscriptionEvents> {
         return ServerRequest.post('/api/subscriptions/new', data);
     }
 
-
     public readonly id: string;
     public name: string;
     public startDate: number;
@@ -114,7 +112,8 @@ export class Subscription extends Cache<SubscriptionEvents> {
         this.subtypeId = data.subtypeId;
         this.archived = data.archived;
 
-        if (!Subscription.cache.has(data.id)) Subscription.cache.set(data.id, this);
+        if (!Subscription.cache.has(data.id))
+            Subscription.cache.set(data.id, this);
     }
 
     update(data: {
@@ -129,7 +128,10 @@ export class Subscription extends Cache<SubscriptionEvents> {
         subtypeId: string;
         bucketId: string;
     }) {
-        return ServerRequest.post('/api/subscriptions/update', { ...data, id: this.id });
+        return ServerRequest.post('/api/subscriptions/update', {
+            ...data,
+            id: this.id
+        });
     }
 
     setArchive(archive: boolean) {
@@ -159,19 +161,22 @@ export class Subscription extends Cache<SubscriptionEvents> {
 
         return dates.map(d => {
             // build a fake transaction (this will not be saved to the server)
-            return new Transaction({
-                id: Random.uuid(),
-                amount: this.amount,
-                type: 'withdrawal',
-                status: 'completed',
-                date: d.getTime(),
-                bucketId: this.bucketId,
-                description: this.description,
-                subtypeId: this.subtypeId,
-                taxDeductible: this.taxDeductible,
-                archived: 0,
-                picture: this.picture,
-            }, false);
+            return new Transaction(
+                {
+                    id: Random.uuid(),
+                    amount: this.amount,
+                    type: 'withdrawal',
+                    status: 'completed',
+                    date: d.getTime(),
+                    bucketId: this.bucketId,
+                    description: this.description,
+                    subtypeId: this.subtypeId,
+                    taxDeductible: this.taxDeductible,
+                    archived: 0,
+                    picture: this.picture
+                },
+                false
+            );
         });
     }
 }

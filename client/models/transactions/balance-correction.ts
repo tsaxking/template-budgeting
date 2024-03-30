@@ -6,16 +6,18 @@ import { BalanceCorrection as B } from '../../../shared/db-types-extended';
 
 type BalanceCorrectionEvents = {
     update: undefined;
-}
+};
 
 type GlobalBalanceCorrectionEvents = {
     new: BalanceCorrection;
-}
+};
 
 export class BalanceCorrection extends Cache<BalanceCorrectionEvents> {
     public static readonly cache = new Map<string, BalanceCorrection>();
 
-    public static readonly emitter = new EventEmitter<keyof GlobalBalanceCorrectionEvents>();
+    public static readonly emitter = new EventEmitter<
+        keyof GlobalBalanceCorrectionEvents
+    >();
 
     public static on<K extends keyof GlobalBalanceCorrectionEvents>(
         event: K,
@@ -41,14 +43,15 @@ export class BalanceCorrection extends Cache<BalanceCorrectionEvents> {
     public static async new(data: {
         bucketId: string;
         balance: number;
-        date: number
+        date: number;
     }) {
         return ServerRequest.post('/api/balance-correction/new', data);
     }
 
     public static async all() {
         return attemptAsync(async () => {
-            if (BalanceCorrection.cache.size) return Array.from(BalanceCorrection.cache.values());
+            if (BalanceCorrection.cache.size)
+                return Array.from(BalanceCorrection.cache.values());
 
             const res = await ServerRequest.post<B[]>(
                 '/api/balance-correction/get-all'
@@ -58,8 +61,6 @@ export class BalanceCorrection extends Cache<BalanceCorrectionEvents> {
             return res.value.map(b => new BalanceCorrection(b));
         });
     }
-
-
 
     public readonly id: string;
     public date: number;
@@ -74,10 +75,7 @@ export class BalanceCorrection extends Cache<BalanceCorrectionEvents> {
         this.bucketId = data.bucketId;
     }
 
-    update(data: {
-        date: number;
-        balance: number;
-    }) {
+    update(data: { date: number; balance: number }) {
         return ServerRequest.post('/api/balance-correction/update', {
             id: this.id,
             ...data
@@ -87,9 +85,12 @@ export class BalanceCorrection extends Cache<BalanceCorrectionEvents> {
     delete() {
         return attemptAsync(async () => {
             this.destroy();
-            const res = await ServerRequest.post('/api/balance-correction/delete', {
-                id: this.id
-            });
+            const res = await ServerRequest.post(
+                '/api/balance-correction/delete',
+                {
+                    id: this.id
+                }
+            );
 
             if (res.isErr()) throw res.error;
 

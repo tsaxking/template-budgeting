@@ -14,8 +14,6 @@ type GlobalTypeEvents = {
     new: Miles;
 };
 
-
-
 export class Miles extends Cache<TypeEvents> {
     public static readonly cache = new Map<string, Miles>();
 
@@ -42,15 +40,12 @@ export class Miles extends Cache<TypeEvents> {
         this.emitter.emit(event, data);
     }
 
-
     public static all() {
         return attemptAsync(async () => {
             const cache = Array.from(Miles.cache.values());
             if (cache.length) return cache.filter(s => !s.archived);
 
-            const res = await ServerRequest.post<M[]>(
-                '/api/miles/active'
-            );
+            const res = await ServerRequest.post<M[]>('/api/miles/active');
 
             if (res.isErr()) throw res.error;
             return res.value.map(t => new Miles(t));
@@ -62,9 +57,7 @@ export class Miles extends Cache<TypeEvents> {
             const cache = Array.from(Miles.cache.values());
             if (cache.length) return cache.filter(s => s.archived);
 
-            const res = await ServerRequest.post<M[]>(
-                '/api/miles/archived'
-            );
+            const res = await ServerRequest.post<M[]>('/api/miles/archived');
 
             if (res.isErr()) throw res.error;
             return res.value.map(t => new Miles(t));
@@ -105,7 +98,6 @@ export class Miles extends Cache<TypeEvents> {
         });
     }
 }
-
 
 socket.on('miles:created', (data: M) => {
     const m = new Miles(data);

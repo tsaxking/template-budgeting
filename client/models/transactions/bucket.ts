@@ -152,7 +152,7 @@ export class Bucket extends Cache<BucketEvents> {
         });
     }
 
-    async newSubscription(data:  {
+    async newSubscription(data: {
         name: string;
         amount: number;
         interval: number;
@@ -170,7 +170,7 @@ export class Bucket extends Cache<BucketEvents> {
     }
 
     async getSubscriptions() {
-        return attemptAsync(async() => {
+        return attemptAsync(async () => {
             const subs = await Subscription.all();
             if (subs.isErr()) throw subs.error;
 
@@ -178,10 +178,7 @@ export class Bucket extends Cache<BucketEvents> {
         });
     }
 
-    async newBalanceCorrection(data: {
-        balance: number;
-        date: number;
-    }) {
+    async newBalanceCorrection(data: { balance: number; date: number }) {
         return BalanceCorrection.new({
             ...data,
             bucketId: this.id
@@ -192,7 +189,7 @@ export class Bucket extends Cache<BucketEvents> {
         return attemptAsync(async () => {
             const corrections = await BalanceCorrection.all();
             if (corrections.isErr()) throw corrections.error;
-        
+
             return corrections.value.filter(c => {
                 return c.bucketId === this.id && c.date >= from && c.date <= to;
             });
@@ -200,7 +197,7 @@ export class Bucket extends Cache<BucketEvents> {
     }
 
     async getTransactions(from: number, to: number) {
-        return attemptAsync(async() => {
+        return attemptAsync(async () => {
             const [transactions, subscriptions] = await Promise.all([
                 Transaction.search([this.id], from, to),
                 this.getSubscriptions()
@@ -220,18 +217,17 @@ export class Bucket extends Cache<BucketEvents> {
         return attemptAsync(async () => {
             const [transactions, corrections] = await Promise.all([
                 this.getTransactions(from, to),
-                this.getBalanceCorrections(from, to),
+                this.getBalanceCorrections(from, to)
             ]);
 
             if (transactions.isErr()) throw transactions.error;
             if (corrections.isErr()) throw corrections.error;
 
-
             const data: (Transaction | BalanceCorrection)[] = [
-                ...transactions.value, 
-                ...corrections.value,
+                ...transactions.value,
+                ...corrections.value
             ].sort((a, b) => a.date - b.date);
-        
+
             let balance = 0;
             for (const d of data) {
                 if (d instanceof Transaction) {
