@@ -1,172 +1,270 @@
-import { Cache } from "../cache";
-import { ServerRequest } from "../../utilities/requests";
-import { socket } from "../../utilities/socket";
-import { Bucket as BucketObj } from "../../../shared/db-types-extended";
-import { Transaction } from "./transaction";
-import { BalanceCorrection } from "./balance-correction";
-import { Subscription } from "./subscription";
+import { attemptAsync } from '../../../shared/check';
+import { EventEmitter } from '../../../shared/event-emitter';
+import { Cache } from '../cache';
+import { Transaction } from './transaction';
+import { BucketType } from '../../../shared/db-types-extended';
+import { ServerRequest } from '../../utilities/requests';
+import { Bucket as B } from '../../../shared/db-types-extended';
+import { socket } from '../../utilities/socket';
+import { BalanceCorrection } from './balance-correction';
+import { Subscription } from './subscription';
+
+type GlobalBucketEvents = {
+    new: Bucket;
+};
 
 type BucketEvents = {
-    'created': undefined;
-    'updated': undefined;
-    'archived': undefined;
-    'restored': undefined;
-}
+    'new-transaction': Transaction;
+    updated: undefined;
+};
 
 export class Bucket extends Cache<BucketEvents> {
-    static readonly cache: Map<string, Bucket> = new Map<string, Bucket>();
+    public static readonly cache = new Map<string, Bucket>();
 
-    static async getAll(): Promise<Bucket[]> {
-        if (Bucket.cache.size > 0) {
-            return Array.from(Bucket.cache.values()).filter((b) => !b.archived);
-        }
+    public static readonly emitter = new EventEmitter<
+        keyof GlobalBucketEvents
+    >();
 
-        return ServerRequest.post<BucketObj[]>('/api/buckets/all', null, {
-            cached: true
-        })
-            .then((buckets) => {
-                return buckets.map((b) => new Bucket(b));
-            });
+    public static on<K extends keyof GlobalBucketEvents>(
+        event: K,
+        callback: (data: GlobalBucketEvents[K]) => void
+    ): void {
+        this.emitter.on(event, callback);
     }
 
-    static async getArchived(): Promise<Bucket[]> {
-        if (Bucket.cache.size > 0) {
-            const res = Array.from(Bucket.cache.values()).filter((b) => b.archived);
-            if (res.length) return res;
-        }
-
-        return ServerRequest.post<BucketObj[]>('/api/buckets/archived', null, {
-            cached: true
-        })
-            .then((buckets) => {
-                return buckets.map((b) => new Bucket(b));
-            });
+    public static off<K extends keyof GlobalBucketEvents>(
+        event: K,
+        callback?: (data: GlobalBucketEvents[K]) => void
+    ): void {
+        this.emitter.off(event, callback);
     }
 
-    static async newBucket(data: {
-        name: string;
-        description: string;
-        type: 'debit' | 'credit' | 'savings';
-    }) {
-        return ServerRequest.post('/api/buckets/new', data);
+    public static emit<K extends keyof GlobalBucketEvents>(
+        event: K,
+        data: GlobalBucketEvents[K]
+    ): void {
+        this.emitter.emit(event, data);
+    }
+
+    public static new(name: string, description: string, type: BucketType) {
+        return ServerRequest.post('/api/buckets/new', {
+            name,
+            description,
+            type
+        });
+    }
+
+    public static async fromId(id: string) {
+        return attemptAsync(async () => {
+            if (Bucket.cache.has(id)) return Bucket.cache.get(id);
+
+            const [real, archived] = await Promise.all([
+                Bucket.all(),
+                Bucket.archived()
+            ]);
+            if (real.isErr()) throw real.error;
+            if (archived.isErr()) throw archived.error;
+
+            return [...real.value, ...archived.value].find(b => b.id === id);
+        });
+    }
+
+    public static async all() {
+        return attemptAsync(async () => {
+            if (Bucket.cache.size > 0) {
+                const buckets = Array.from(Bucket.cache.values());
+                if (buckets.some(b => !b.archived))
+                    return buckets.filter(b => !b.archived);
+            }
+
+            const res = await ServerRequest.post<B[]>('/api/buckets/all');
+            if (res.isErr()) throw res.error;
+
+            const buckets = res.value.map(bucket => new Bucket(bucket));
+            return buckets;
+        });
+    }
+
+    public static async archived() {
+        return attemptAsync(async () => {
+            if (Bucket.cache.size > 0) {
+                const buckets = Array.from(Bucket.cache.values());
+                if (buckets.some(b => b.archived))
+                    return buckets.filter(b => b.archived);
+            }
+
+            const res = await ServerRequest.post<B[]>('/api/buckets/archived');
+            if (res.isErr()) throw res.error;
+
+            return res.value.map(bucket => new Bucket(bucket));
+        });
     }
 
     public readonly id: string;
-    public created: number;
+    public readonly created: number;
     public name: string;
     public description: string;
-    public archived: boolean;
-    public type: 'debit' | 'credit' | 'savings';
+    public archived: 0 | 1;
+    public type: BucketType;
 
-    constructor(data: BucketObj) {
+    constructor(data: B) {
         super();
-
         this.id = data.id;
         this.created = data.created;
         this.name = data.name;
         this.description = data.description;
-        this.archived = !!data.archived;
+        this.archived = data.archived;
         this.type = data.type;
 
-        Bucket.cache.set(this.id, this);
+        if (!Bucket.cache.has(this.id)) {
+            Bucket.cache.set(this.id, this);
+        }
     }
 
-    async archive() {
-        await ServerRequest.post('/api/buckets/set-archive-status', {
-            id: this.id,
-            archive: true
-        });
-    }
-
-    async restore() {
-        await ServerRequest.post('/api/buckets/set-archive-status', {
-            id: this.id,
-            archive: false
-        });
-    }
-
-    async update(data: Partial<BucketObj>) {
-        if (data.id) throw new Error('Cannot update id');
+    async update(data: Partial<B>) {
         return ServerRequest.post('/api/buckets/update', {
-            ...this,
-            ...data,
-            id: this.id
+            id: this.id,
+            name: data.name || this.name,
+            description: data.description || this.description,
+            type: data.type || this.type
         });
     }
 
-    async getBalanceAtDate(endDate: number): Promise<number> {
-        let balance = 0;
-
-        const [
-            transactions, 
-            corrections,
-            subscriptions
-        ] = await Promise.all([
-            Transaction.search(this.id, 0, endDate).promise,
-            BalanceCorrection.fromBucket(this.id, 0, endDate),
-            Subscription.fromBucket(this.id)
-        ]);
-
-        balance += Transaction.value(transactions);
-        balance += BalanceCorrection.value(corrections);
-        balance += Subscription.value(subscriptions, 0, endDate);
-
-        return balance;
+    async setArchive(archived: boolean) {
+        return ServerRequest.post('/api/buckets/set-archive-status', {
+            bucketId: this.id,
+            archived
+        });
     }
 
-    async getBalanceGraphData(startDate: number, endDate: number): Promise<{ date: number, balance: number, transactions: Transaction[] }[]> {
-        let balance = await this.getBalanceAtDate(startDate);
-        const transactions = await Transaction.search(this.id, startDate, endDate).promise;
-        const corrections = await BalanceCorrection.fromBucket(this.id, startDate, endDate);
-
-        return new Array<{ date: number, balance: number, transactions: Transaction[] }>(startDate - endDate + 1)
-            .fill({ date: 0, balance: 0, transactions: [] })
-            .map((_, i) => ({
-                date: startDate + i,
-                balance: (
-                    balance + Transaction.value(transactions.filter((t) => t.date <= startDate + i))
-                            + BalanceCorrection.value(corrections.filter((c) => c.date <= startDate + i))
-                ),
-                transactions: transactions.filter((t) => t.date <= startDate + i && t.date >= startDate + i - 86400000),
-            }));
+    async newTransaction(data: {
+        amount: number;
+        type: 'withdrawal' | 'deposit';
+        date: number;
+        status: 'pending' | 'completed' | 'failed';
+        description: string;
+        subtypeId: string;
+        taxDeductible: boolean;
+    }) {
+        return Transaction.new({
+            ...data,
+            bucketId: this.id
+        });
     }
-};
 
-socket.on('buckets:created', (data: BucketObj) => {
-    const b = new Bucket(data);
-    b.$emitter.emit('created');
-    Bucket.emit('create', b);
+    async newSubscription(data: {
+        name: string;
+        amount: number;
+        interval: number;
+        taxDeductible: boolean;
+        description: string;
+        picture: string;
+        startDate: number;
+        endDate: number | null;
+        subtypeId: string;
+    }) {
+        return Subscription.new({
+            ...data,
+            bucketId: this.id
+        });
+    }
+
+    async getSubscriptions() {
+        return attemptAsync(async () => {
+            const subs = await Subscription.all();
+            if (subs.isErr()) throw subs.error;
+
+            return subs.value.filter(s => s.bucketId === this.id);
+        });
+    }
+
+    async newBalanceCorrection(data: { balance: number; date: number }) {
+        return BalanceCorrection.new({
+            ...data,
+            bucketId: this.id
+        });
+    }
+
+    async getBalanceCorrections(from: number, to: number) {
+        return attemptAsync(async () => {
+            const corrections = await BalanceCorrection.all();
+            if (corrections.isErr()) throw corrections.error;
+
+            return corrections.value.filter(c => {
+                return c.bucketId === this.id && c.date >= from && c.date <= to;
+            });
+        });
+    }
+
+    async getTransactions(from: number, to: number) {
+        return attemptAsync(async () => {
+            const [transactions, subscriptions] = await Promise.all([
+                Transaction.search([this.id], from, to),
+                this.getSubscriptions()
+            ]);
+
+            if (transactions.isErr()) throw transactions.error;
+            if (subscriptions.isErr()) throw subscriptions.error;
+
+            return [
+                ...transactions.value,
+                ...subscriptions.value.map(s => s.build(from, to)).flat()
+            ].sort((a, b) => a.date - b.date);
+        });
+    }
+
+    async getBalance(from: number, to: number) {
+        return attemptAsync(async () => {
+            const [transactions, corrections] = await Promise.all([
+                this.getTransactions(from, to),
+                this.getBalanceCorrections(from, to)
+            ]);
+
+            if (transactions.isErr()) throw transactions.error;
+            if (corrections.isErr()) throw corrections.error;
+
+            const data: (Transaction | BalanceCorrection)[] = [
+                ...transactions.value,
+                ...corrections.value
+            ].sort((a, b) => a.date - b.date);
+
+            let balance = 0;
+            for (const d of data) {
+                if (d instanceof Transaction) {
+                    if (d.type === 'deposit') balance += d.amount;
+                    else balance -= d.amount;
+                } else {
+                    balance = d.balance;
+                }
+            }
+
+            return balance;
+        });
+    }
+}
+
+socket.on('buckets:created', (data: B) => {
+    const bucket = new Bucket(data);
+    Bucket.emit('new', bucket);
 });
 
-socket.on('buckets:updated', (data: BucketObj) => {
+socket.on('buckets:updated', (data: B) => {
     const b = Bucket.cache.get(data.id);
-    if (b) {
-        Object.assign(b, data);
-        Bucket.cache.set(data.id, b);
-
-        b.$emitter.emit('updated');
-        Bucket.emit('update', b);
-    }
+    if (!b) return;
+    Object.assign(b, data);
+    b.emit('updated', undefined);
 });
 
-socket.on('buckets:archived', (id: string) => {
-    const b = Bucket.cache.get(id);
-    if (b) {
-        b.archived = true;
-        Bucket.cache.set(id, b);
-
-        b.$emitter.emit('archived');
-        Bucket.emit('archive', b);
-    }
+socket.on('buckets:archived', (data: B) => {
+    const b = Bucket.cache.get(data.id);
+    if (!b) return;
+    b.archived = 1;
+    b.emit('updated', undefined);
 });
 
-socket.on('buckets:restored', (id: string) => {
-    const b = Bucket.cache.get(id);
-    if (b) {
-        b.archived = false;
-        Bucket.cache.set(id, b);
-
-        b.$emitter.emit('restored');
-        Bucket.emit('restore', b);
-    }
+socket.on('buckets:restored', (data: B) => {
+    const b = Bucket.cache.get(data.id);
+    if (!b) return;
+    b.archived = 0;
+    b.emit('updated', undefined);
 });

@@ -2,12 +2,12 @@ import { Route } from '../structure/app/app';
 
 export const router = new Route();
 
-import { router as subscriptions } from "./api/subscriptions.ts";
-import { router as transactions } from "./api/transactions.ts";
-import { router as types } from "./api/types.ts";
-import { router as buckets } from "./api/buckets.ts";
-import { router as balanceCorrection } from "./api/balance-correction.ts";
-import { router as miles } from "./api/miles.ts";
+import { router as subscriptions } from './api/subscriptions';
+import { router as transactions } from './api/transactions';
+import { router as types } from './api/types';
+import { router as buckets } from './api/buckets';
+import { router as balanceCorrection } from './api/balance-correction';
+import { router as miles } from './api/miles';
 
 router.route('/subscriptions', subscriptions);
 router.route('/transactions', transactions);

@@ -1,42 +1,65 @@
-import { Cache } from "../cache";
-import { ServerRequest } from "../../utilities/requests";
-import { socket } from "../../utilities/socket";
-import { BalanceCorrection as BalanceObj } from "../../../shared/db-types-extended";
+import { attemptAsync } from '../../../shared/check';
+import { EventEmitter } from '../../../shared/event-emitter';
+import { ServerRequest } from '../../utilities/requests';
+import { Cache } from '../cache';
+import { BalanceCorrection as B } from '../../../shared/db-types-extended';
 
 type BalanceCorrectionEvents = {
-    'created': undefined;
-    'updated': undefined;
-    'deleted': undefined;
+    update: undefined;
 };
 
+type GlobalBalanceCorrectionEvents = {
+    new: BalanceCorrection;
+};
 
 export class BalanceCorrection extends Cache<BalanceCorrectionEvents> {
-    static readonly cache: Map<string, BalanceCorrection> = new Map<string, BalanceCorrection>();
+    public static readonly cache = new Map<string, BalanceCorrection>();
 
-    static async getAll(): Promise<BalanceCorrection[]> {
-        if (BalanceCorrection.cache.size > 0) {
-            return Array.from(BalanceCorrection.cache.values())
-        }
+    public static readonly emitter = new EventEmitter<
+        keyof GlobalBalanceCorrectionEvents
+    >();
 
-        return ServerRequest.post<BalanceObj[]>('/api/balance-corrections/all')
-            .then((balances) => {
-                return balances.map((b) => new BalanceCorrection(b));
-            });
+    public static on<K extends keyof GlobalBalanceCorrectionEvents>(
+        event: K,
+        callback: (data: GlobalBalanceCorrectionEvents[K]) => void
+    ): void {
+        this.emitter.on(event, callback);
     }
 
-    static async fromBucket(bucketId: string, from: number, to: number): Promise<BalanceCorrection[]> {
-        return this.getAll().then((balances) => balances.filter(b => b.bucketId === bucketId && b.date >= from && b.date <= to));
+    public static off<K extends keyof GlobalBalanceCorrectionEvents>(
+        event: K,
+        callback?: (data: GlobalBalanceCorrectionEvents[K]) => void
+    ): void {
+        this.emitter.off(event, callback);
     }
 
-    static async newBalanceCorrection(data: {
-        amount: number;
+    public static emit<K extends keyof GlobalBalanceCorrectionEvents>(
+        event: K,
+        data: GlobalBalanceCorrectionEvents[K]
+    ): void {
+        this.emitter.emit(event, data);
+    }
+
+    public static async new(data: {
+        bucketId: string;
+        balance: number;
         date: number;
     }) {
-        return ServerRequest.post('/api/balance-corrections/new', data);
+        return ServerRequest.post('/api/balance-correction/new', data);
     }
 
-    static value(balances: BalanceCorrection[]): number {
-        return balances.reduce((acc, b) => acc + b.balance, 0);
+    public static async all() {
+        return attemptAsync(async () => {
+            if (BalanceCorrection.cache.size)
+                return Array.from(BalanceCorrection.cache.values());
+
+            const res = await ServerRequest.post<B[]>(
+                '/api/balance-correction/get-all'
+            );
+            if (res.isErr()) throw res.error;
+
+            return res.value.map(b => new BalanceCorrection(b));
+        });
     }
 
     public readonly id: string;
@@ -44,54 +67,34 @@ export class BalanceCorrection extends Cache<BalanceCorrectionEvents> {
     public balance: number; // in cents
     public bucketId: string;
 
-    constructor(data: BalanceObj) {
+    constructor(data: B) {
         super();
-
         this.id = data.id;
         this.date = data.date;
         this.balance = data.balance;
         this.bucketId = data.bucketId;
-
-        BalanceCorrection.cache.set(this.id, this);
     }
 
-    update(data: Partial<BalanceObj>){
-        if (data.id) throw new Error('Cannot update id');
-
-        return ServerRequest.post('/api/balance-corrections/update', {
-            ...this,
-            ...data,
-            id: this.id
+    update(data: { date: number; balance: number }) {
+        return ServerRequest.post('/api/balance-correction/update', {
+            id: this.id,
+            ...data
         });
     }
 
     delete() {
-        return ServerRequest.post('/api/balance-corrections/delete', {
-            id: this.id
+        return attemptAsync(async () => {
+            this.destroy();
+            const res = await ServerRequest.post(
+                '/api/balance-correction/delete',
+                {
+                    id: this.id
+                }
+            );
+
+            if (res.isErr()) throw res.error;
+
+            return res.value;
         });
     }
-};
-
-socket.on('balance-correction:created', (data: BalanceObj) => {
-    const c = new BalanceCorrection(data);
-    c.$emitter.emit('created');
-    BalanceCorrection.emit('create', c);
-});
-
-socket.on('balance-correction:deleted', (id: string) => {
-    const b = BalanceCorrection.cache.get(id);
-    if (!b) return;
-
-    b.$emitter.emit('deleted');
-    BalanceCorrection.emit('delete', b);
-    b.destroy();
-});
-
-socket.on('balance-correction:updated', (data: BalanceObj) => {
-    if (BalanceCorrection.cache.has(data.id)) {
-        const b = BalanceCorrection.cache.get(data.id) as BalanceCorrection;
-        Object.assign(b, data);
-        b.$emitter.emit('updated');
-        BalanceCorrection.emit('update', b);
-    }
-});
+}

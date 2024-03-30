@@ -70,9 +70,7 @@ export type StatusMessage = {
     instructions: string;
     redirect?: string;
     sleep?: number;
-}
-
-
+};
 
 export const messages: {
     [key in StatusId]: StatusMessage;
@@ -324,59 +322,60 @@ export const messages: {
         instructions: ''
     },
     'balance-correction:created': {
-    message: 'Balance correction created',
-    color: 'success',
-    code: 200,
-    instructions: ''
-},
+        message: 'Balance correction created',
+        color: 'success',
+        code: 200,
+        instructions: ''
+    },
     'balance-correction:deleted': {
-    message: 'Balance correction deleted',
-    color: 'success',
-    code: 200,
-    instructions: ''
-},
+        message: 'Balance correction deleted',
+        color: 'success',
+        code: 200,
+        instructions: ''
+    },
     'balance-correction:updated': {
-    message: 'Balance correction updated',
-    color: 'success',
-    code: 200,
-    instructions: ''
-},
+        message: 'Balance correction updated',
+        color: 'success',
+        code: 200,
+        instructions: ''
+    },
     'buckets:archived': {
-    message: 'Bucket archived',
-    color: 'success',
-    code: 200,
-    instructions: ''
-},
+        message: 'Bucket archived',
+        color: 'success',
+        code: 200,
+        instructions: ''
+    },
     'buckets:created': {
-    message: 'Bucket created',
-    color: 'success',
-    code: 200,
-    instructions: ''
-},
+        message: 'Bucket created',
+        color: 'success',
+        code: 200,
+        instructions: ''
+    },
     'buckets:invalid-id': {
-    message: 'Invalid bucket id',
-    color: 'danger',
-    code: 404,
-    instructions: ''
-},
+        message: 'Invalid bucket id',
+        color: 'danger',
+        code: 404,
+        instructions: ''
+    },
     'buckets:invalid-type': {
-    message: 'Invalid bucket type, only \'debit\', \'credit\', and \'savings\' are allowed',
-    color: 'danger',
-    code: 404,
-    instructions: ''
-},
+        message:
+            "Invalid bucket type, only 'debit', 'credit', and 'savings' are allowed",
+        color: 'danger',
+        code: 404,
+        instructions: ''
+    },
     'buckets:restored': {
-    message: 'Bucket restored',
-    color: 'success',
-    code: 200,
-    instructions: ''
-},
+        message: 'Bucket restored',
+        color: 'success',
+        code: 200,
+        instructions: ''
+    },
     'buckets:updated': {
-    message: 'Bucket update successful',
-    color: 'success',
-    code: 200,
-    instructions: ''
-},
+        message: 'Bucket update successful',
+        color: 'success',
+        code: 200,
+        instructions: ''
+    },
     'files:invalid': {
         message: 'Invalid file',
         color: 'danger',
@@ -516,35 +515,35 @@ export const messages: {
         instructions: ''
     },
     'miles:archived': {
-    message: 'Miles archived',
-    color: 'success',
-    code: 200,
-    instructions: ''
-},
+        message: 'Miles archived',
+        color: 'success',
+        code: 200,
+        instructions: ''
+    },
     'miles:created': {
-    message: 'Miles created',
-    color: 'success',
-    code: 200,
-    instructions: ''
-},
+        message: 'Miles created',
+        color: 'success',
+        code: 200,
+        instructions: ''
+    },
     'miles:invalid-id': {
-    message: 'Invalid miles id',
-    color: 'danger',
-    code: 404,
-    instructions: ''
-},
+        message: 'Invalid miles id',
+        color: 'danger',
+        code: 404,
+        instructions: ''
+    },
     'miles:restored': {
-    message: 'Miles restored',
-    color: 'success',
-    code: 200,
-    instructions: ''
-},
+        message: 'Miles restored',
+        color: 'success',
+        code: 200,
+        instructions: ''
+    },
     'miles:updated': {
-    message: 'Miles updated',
-    color: 'success',
-    code: 200,
-    instructions: ''
-},
+        message: 'Miles updated',
+        color: 'success',
+        code: 200,
+        instructions: ''
+    },
     'page:not-found': {
         message: 'Page not found',
         color: 'danger',
@@ -734,35 +733,35 @@ export const messages: {
         instructions: 'Please try again.'
     },
     'subscriptions:archived': {
-    message: 'Subscription archived',
-    color: 'success',
-    code: 200,
-    instructions: ''
-},
+        message: 'Subscription archived',
+        color: 'success',
+        code: 200,
+        instructions: ''
+    },
     'subscriptions:created': {
-    message: 'Subscription created successfully',
-    color: 'success',
-    code: 200,
-    instructions: ''
-},
+        message: 'Subscription created successfully',
+        color: 'success',
+        code: 200,
+        instructions: ''
+    },
     'subscriptions:invalid-id': {
-    message: 'Invalid subscription id',
-    color: 'danger',
-    code: 400,
-    instructions: ''
-},
+        message: 'Invalid subscription id',
+        color: 'danger',
+        code: 400,
+        instructions: ''
+    },
     'subscriptions:restored': {
-    message: 'Subscription restored',
-    color: 'success',
-    code: 200,
-    instructions: ''
-},
+        message: 'Subscription restored',
+        color: 'success',
+        code: 200,
+        instructions: ''
+    },
     'subscriptions:updated': {
-    message: 'Subscription updated',
-    color: 'success',
-    code: 200,
-    instructions: ''
-},
+        message: 'Subscription updated',
+        color: 'success',
+        code: 200,
+        instructions: ''
+    },
     'test:fail': {
         message: 'This test failed',
         color: 'danger',
@@ -776,83 +775,85 @@ export const messages: {
         instructions: ''
     },
     'transaction-types:created': {
-    message: 'Transaction type created',
-    color: 'success',
-    code: 200,
-    instructions: ''
-},
+        message: 'Transaction type created',
+        color: 'success',
+        code: 200,
+        instructions: ''
+    },
     'transaction-types:invalid-type': {
-    message: 'Invalid transaction type, only \'withdrawal\' and \'deposit\' are allowed',
-    color: 'danger',
-    code: 404,
-    instructions: ''
-},
+        message:
+            "Invalid transaction type, only 'withdrawal' and 'deposit' are allowed",
+        color: 'danger',
+        code: 404,
+        instructions: ''
+    },
     'transaction-types:subtype-created': {
-    message: 'Created subtype',
-    color: 'success',
-    code: 200,
-    instructions: ''
-},
+        message: 'Created subtype',
+        color: 'success',
+        code: 200,
+        instructions: ''
+    },
     'transaction-types:subtype-updated': {
-    message: 'Transaction subtype updated',
-    color: 'success',
-    code: 200,
-    instructions: ''
-},
+        message: 'Transaction subtype updated',
+        color: 'success',
+        code: 200,
+        instructions: ''
+    },
     'transaction-types:type-created': {
-    message: 'Created type',
-    color: 'success',
-    code: 200,
-    instructions: ''
-},
+        message: 'Created type',
+        color: 'success',
+        code: 200,
+        instructions: ''
+    },
     'transaction-types:type-updated': {
-    message: 'Transaction type updated',
-    color: 'success',
-    code: 200,
-    instructions: ''
-},
+        message: 'Transaction type updated',
+        color: 'success',
+        code: 200,
+        instructions: ''
+    },
     'transactions:archived': {
-    message: 'Transaction archived',
-    color: 'success',
-    code: 200,
-    instructions: ''
-},
+        message: 'Transaction archived',
+        color: 'success',
+        code: 200,
+        instructions: ''
+    },
     'transactions:created': {
-    message: 'Transaction created',
-    color: 'success',
-    code: 200,
-    instructions: ''
-},
+        message: 'Transaction created',
+        color: 'success',
+        code: 200,
+        instructions: ''
+    },
     'transactions:invalid-id': {
-    message: 'Invalid transaction id',
-    color: 'danger',
-    code: 400,
-    instructions: ''
-},
+        message: 'Invalid transaction id',
+        color: 'danger',
+        code: 400,
+        instructions: ''
+    },
     'transactions:invalid-type': {
-    message: 'Invalid transaction type, only \'withdrawal\' and \'deposit\' are allowed',
-    color: 'danger',
-    code: 404,
-    instructions: ''
-},
+        message:
+            "Invalid transaction type, only 'withdrawal' and 'deposit' are allowed",
+        color: 'danger',
+        code: 404,
+        instructions: ''
+    },
     'transactions:picture-updated': {
-    message: 'Transaction picture updated',
-    color: 'success',
-    code: 200,
-    instructions: ''
-},
+        message: 'Transaction picture updated',
+        color: 'success',
+        code: 200,
+        instructions: ''
+    },
     'transactions:restored': {
-    message: 'Transaction restored',
-    color: 'success',
-    code: 200,
-    instructions: ''
-},
+        message: 'Transaction restored',
+        color: 'success',
+        code: 200,
+        instructions: ''
+    },
     'transactions:updated': {
-    message: 'Transaction updated',
-    color: 'success',
-    code: 200,
-    instructions: ''
-},
+        message: 'Transaction updated',
+        color: 'success',
+        code: 200,
+        instructions: ''
+    },
     'unknown:error': {
         message: 'Unknown error',
         color: 'danger',
@@ -959,40 +960,39 @@ export type StatusId =
     | 'test:fail'
     | 'test:success'
     | 'unknown:error'
-	| 'balance-correction:created'
-	| 'balance-correction:deleted'
-	| 'balance-correction:updated'
-	| 'buckets:archived'
-	| 'buckets:created'
-	| 'buckets:invalid-id'
-	| 'buckets:invalid-type'
-	| 'buckets:restored'
-	| 'buckets:updated'
-	| 'miles:archived'
-	| 'miles:created'
-	| 'miles:invalid-id'
-	| 'miles:restored'
-	| 'miles:updated'
-	| 'subscriptions:archived'
-	| 'subscriptions:created'
-	| 'subscriptions:invalid-id'
-	| 'subscriptions:restored'
-	| 'subscriptions:updated'
-	| 'transaction-types:created'
-	| 'transaction-types:invalid-type'
-	| 'transaction-types:subtype-created'
-	| 'transaction-types:subtype-updated'
-	| 'transaction-types:type-created'
-	| 'transaction-types:type-updated'
-	| 'transactions:archived'
-	| 'transactions:created'
-	| 'transactions:invalid-id'
-	| 'transactions:invalid-type'
-	| 'transactions:picture-updated'
-	| 'transactions:restored'
-	| 'transactions:updated'
-	| 'unknown:error'
-;
+    | 'balance-correction:created'
+    | 'balance-correction:deleted'
+    | 'balance-correction:updated'
+    | 'buckets:archived'
+    | 'buckets:created'
+    | 'buckets:invalid-id'
+    | 'buckets:invalid-type'
+    | 'buckets:restored'
+    | 'buckets:updated'
+    | 'miles:archived'
+    | 'miles:created'
+    | 'miles:invalid-id'
+    | 'miles:restored'
+    | 'miles:updated'
+    | 'subscriptions:archived'
+    | 'subscriptions:created'
+    | 'subscriptions:invalid-id'
+    | 'subscriptions:restored'
+    | 'subscriptions:updated'
+    | 'transaction-types:created'
+    | 'transaction-types:invalid-type'
+    | 'transaction-types:subtype-created'
+    | 'transaction-types:subtype-updated'
+    | 'transaction-types:type-created'
+    | 'transaction-types:type-updated'
+    | 'transactions:archived'
+    | 'transactions:created'
+    | 'transactions:invalid-id'
+    | 'transactions:invalid-type'
+    | 'transactions:picture-updated'
+    | 'transactions:restored'
+    | 'transactions:updated'
+    | 'unknown:error';
 
 export type AccountStatusId =
     | 'already-logged-in'
@@ -1063,27 +1063,22 @@ export type MemberStatusId =
     | 'update-bio'
     | 'update-resume'
     | 'update-title';
-export type BalancecorrectionStatusId = 'created'
-	| 'deleted'
-	| 'updated';
+export type BalancecorrectionStatusId = 'created' | 'deleted' | 'updated';
 
+export type BucketsStatusId =
+    | 'archived'
+    | 'created'
+    | 'invalid-id'
+    | 'invalid-type'
+    | 'restored'
+    | 'updated';
 
-export type BucketsStatusId = 'archived'
-	| 'created'
-	| 'invalid-id'
-	| 'invalid-type'
-	| 'restored'
-	| 'updated';
-
-
-
-
-export type MilesStatusId = 'archived'
-	| 'created'
-	| 'invalid-id'
-	| 'restored'
-	| 'updated';
-
+export type MilesStatusId =
+    | 'archived'
+    | 'created'
+    | 'invalid-id'
+    | 'restored'
+    | 'updated';
 
 export type PageStatusId = 'not-found';
 
@@ -1129,32 +1124,30 @@ export type SkillsStatusId =
 
 export type SpamStatusId = 'detected';
 
-export type SubscriptionsStatusId = 'archived'
-	| 'created'
-	| 'invalid-id'
-	| 'restored'
-	| 'updated';
+export type SubscriptionsStatusId =
+    | 'archived'
+    | 'created'
+    | 'invalid-id'
+    | 'restored'
+    | 'updated';
 
+export type TestStatusId = 'fail' | 'success';
 
-export type TestStatusId = 'fail'
-	| 'success';
+export type TransactiontypesStatusId =
+    | 'created'
+    | 'invalid-type'
+    | 'subtype-created'
+    | 'subtype-updated'
+    | 'type-created'
+    | 'type-updated';
 
-
-export type TransactiontypesStatusId = 'created'
-	| 'invalid-type'
-	| 'subtype-created'
-	| 'subtype-updated'
-	| 'type-created'
-	| 'type-updated';
-
-
-export type TransactionsStatusId = 'archived'
-	| 'created'
-	| 'invalid-type'
-	| 'picture-updated'
-	| 'restored'
-	| 'updated'
-	| 'invalid-id';
-
+export type TransactionsStatusId =
+    | 'archived'
+    | 'created'
+    | 'invalid-type'
+    | 'picture-updated'
+    | 'restored'
+    | 'updated'
+    | 'invalid-id';
 
 export type UnknownStatusId = 'error';

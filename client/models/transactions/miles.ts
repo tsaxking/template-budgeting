@@ -1,52 +1,71 @@
-import { Cache } from "../cache";
-import { Miles as MilesObj } from "../../../shared/db-types-extended";
-import { ServerRequest } from "../../utilities/requests";
-import { socket } from "../../utilities/socket";
+import { Cache } from '../cache';
+import { Miles as M } from '../../../shared/db-types-extended';
+import { EventEmitter } from '../../../shared/event-emitter';
+import { attemptAsync } from '../../../shared/check';
+import { ServerRequest } from '../../utilities/requests';
+import { socket } from '../../utilities/socket';
 
-
-type MilesEvents = {
-    'created': undefined;
-    'updated': undefined;
-    'archived': undefined;
-    'restored': undefined;
+type TypeEvents = {
+    update: void;
+    'new-subtype': Miles;
 };
 
+type GlobalTypeEvents = {
+    new: Miles;
+};
 
-export class Miles extends Cache<MilesEvents> {
-    static readonly cache: Map<string, Miles> = new Map<string, Miles>();
+export class Miles extends Cache<TypeEvents> {
+    public static readonly cache = new Map<string, Miles>();
 
-    static async getActive(): Promise<Miles[]> {
-        if (Miles.cache.size > 0) {
-            return Array.from(Miles.cache.values()).filter((m) => !m.archived);
-        }
+    public static readonly emitter = new EventEmitter<keyof GlobalTypeEvents>();
 
-        return ServerRequest.post<MilesObj[]>('/api/miles/active', null, {
-            cached: true
-        })
-            .then((miles) => {
-                return miles.map((m) => new Miles(m));
-            });
+    public static on<K extends keyof GlobalTypeEvents>(
+        event: K,
+        callback: (data: GlobalTypeEvents[K]) => void
+    ): void {
+        this.emitter.on(event, callback);
     }
 
-    static async getArchived(): Promise<Miles[]> {
-        if (Miles.cache.size > 0) {
-            const res = Array.from(Miles.cache.values()).filter((m) => m.archived);
-            if (res.length) return res;
-        }
-
-        return ServerRequest.post<MilesObj[]>('/api/miles/archived', null, {
-            cached: true
-        })
-            .then((miles) => {
-                return miles.map((m) => new Miles(m));
-            });
+    public static off<K extends keyof GlobalTypeEvents>(
+        event: K,
+        callback?: (data: GlobalTypeEvents[K]) => void
+    ): void {
+        this.emitter.off(event, callback);
     }
 
-    static async newMiles(data: {
-        amount: number;
-        date: number;
-    }) {
-        return ServerRequest.post('/api/miles/new', data);
+    public static emit<K extends keyof GlobalTypeEvents>(
+        event: K,
+        data: GlobalTypeEvents[K]
+    ): void {
+        this.emitter.emit(event, data);
+    }
+
+    public static all() {
+        return attemptAsync(async () => {
+            const cache = Array.from(Miles.cache.values());
+            if (cache.length) return cache.filter(s => !s.archived);
+
+            const res = await ServerRequest.post<M[]>('/api/miles/active');
+
+            if (res.isErr()) throw res.error;
+            return res.value.map(t => new Miles(t));
+        });
+    }
+
+    public static archived() {
+        return attemptAsync(async () => {
+            const cache = Array.from(Miles.cache.values());
+            if (cache.length) return cache.filter(s => s.archived);
+
+            const res = await ServerRequest.post<M[]>('/api/miles/archived');
+
+            if (res.isErr()) throw res.error;
+            return res.value.map(t => new Miles(t));
+        });
+    }
+
+    public static new(amount: number, date: number) {
+        return ServerRequest.post('/api/miles/new', { amount, date });
     }
 
     public readonly id: string;
@@ -54,75 +73,58 @@ export class Miles extends Cache<MilesEvents> {
     public date: number;
     public archived: 0 | 1;
 
-    constructor(data: MilesObj) {
+    constructor(data: M) {
         super();
-
         this.id = data.id;
         this.amount = data.amount;
         this.date = data.date;
         this.archived = data.archived;
 
-        Miles.cache.set(this.id, this);
+        if (!Miles.cache.has(this.id)) Miles.cache.set(this.id, this);
     }
 
-    update(data: Partial<MilesObj>) {
-        if (data.id) throw new Error('Cannot update id');
-
-        ServerRequest.post('/api/miles/miles-update', {
-            ...this,
-            ...data,
-            id: this.id
+    update(amount: number, date: number) {
+        return ServerRequest.post('/api/miles/miles-update', {
+            id: this.id,
+            amount,
+            date
         });
     }
 
-    archive() {
-        if (this.archived) return;
+    setArchie(archive: boolean) {
         return ServerRequest.post('/api/miles/set-archive', {
             id: this.id,
-            archive: true
+            archive
         });
     }
+}
 
-    restore() {
-        if (!this.archived) return;
-        return ServerRequest.post('/api/miles/set-archive', {
-            id: this.id,
-            archive: false
-        });
-    }
-};
-
-socket.on('miles:archived', (id: string) => {
-    const m = Miles.cache.get(id);
-    if (m) {
-        m.archived = 1;
-        m.$emitter.emit('archived');
-        Miles.emit('archive', m);
-    }
+socket.on('miles:created', (data: M) => {
+    const m = new Miles(data);
+    Miles.emit('new', m);
 });
 
-socket.on('miles:restored', (id: string) => {
-    const m = Miles.cache.get(id);
-    if (m) {
-        m.archived = 0;
-        m.$emitter.emit('restored');
-        Miles.emit('restore', m);
-    }
+socket.on('miles:updated', (data: M) => {
+    const exists = Miles.cache.get(data.id);
+    if (!exists) return;
+
+    exists.amount = data.amount;
+    exists.date = data.date;
+    exists.emit('update', undefined);
 });
 
-socket.on('miles:created', (data: MilesObj) => {
-    if (!Miles.cache.has(data.id)) {
-        const m = new Miles(data);
-        m.$emitter.emit('created');
-        Miles.emit('create', m);
-    }
+socket.on('miles:archived', (data: M) => {
+    const exists = Miles.cache.get(data.id);
+    if (!exists) return;
+
+    exists.archived = data.archived;
+    exists.emit('update', undefined);
 });
 
-socket.on('miles:updated', (data: MilesObj) => {
-    if (Miles.cache.has(data.id)) {
-        const m = Miles.cache.get(data.id) as Miles;
-        Object.assign(m, data);
-        m.$emitter.emit('updated');
-        Miles.emit('update', m);
-    }
+socket.on('miles:restored', (data: M) => {
+    const exists = Miles.cache.get(data.id);
+    if (!exists) return;
+
+    exists.archived = data.archived;
+    exists.emit('update', undefined);
 });

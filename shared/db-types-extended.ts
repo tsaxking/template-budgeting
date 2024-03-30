@@ -3,14 +3,16 @@ export type Transaction = {
     amount: number;
     type: 'withdrawal' | 'deposit';
     status: 'pending' | 'completed' | 'failed';
-    date: string;
+    date: number;
     bucketId: string;
     description: string;
     subtypeId: string;
     taxDeductible: 0 | 1;
     archived: 0 | 1;
-    picture: string|null;
+    picture: string | null;
 };
+
+export type BucketType = 'debit' | 'credit' | 'savings';
 
 export type Bucket = {
     id: string;
@@ -18,7 +20,7 @@ export type Bucket = {
     name: string;
     description: string;
     archived: 0 | 1;
-    type: 'debit' | 'credit' | 'savings';
+    type: BucketType;
 };
 
 export type BalanceCorrection = {
@@ -39,13 +41,13 @@ export type Subscription = {
     id: string;
     name: string;
     startDate: number;
-    endDate: number|null;
+    endDate: number | null;
     interval: number; // in ms
     bucketId: string;
     amount: number; // in cents
     subtypeId: string;
     description: string;
-    picture: string|null;
+    picture: string | null;
     taxDeductible: 0 | 1;
     archived: 0 | 1;
 };
