@@ -200,30 +200,36 @@ export class Bucket extends Cache<BucketEvents> {
     }
 
     async getTransactions(from: number, to: number) {
-        return Transaction.search(
-            [this.id],
-            from,
-            to
-        );
-    }
-
-    async getBalance(from: number, to: number) {
-        return attemptAsync(async () => {
-            const [transactions, corrections, subs] = await Promise.all([
-                this.getTransactions(from, to),
-                this.getBalanceCorrections(from, to),
+        return attemptAsync(async() => {
+            const [transactions, subscriptions] = await Promise.all([
+                Transaction.search([this.id], from, to),
                 this.getSubscriptions()
             ]);
 
             if (transactions.isErr()) throw transactions.error;
+            if (subscriptions.isErr()) throw subscriptions.error;
+
+            return [
+                ...transactions.value,
+                ...subscriptions.value.map(s => s.build(from, to)).flat()
+            ].sort((a, b) => a.date - b.date);
+        });
+    }
+
+    async getBalance(from: number, to: number) {
+        return attemptAsync(async () => {
+            const [transactions, corrections] = await Promise.all([
+                this.getTransactions(from, to),
+                this.getBalanceCorrections(from, to),
+            ]);
+
+            if (transactions.isErr()) throw transactions.error;
             if (corrections.isErr()) throw corrections.error;
-            if (subs.isErr()) throw subs.error;
 
 
             const data: (Transaction | BalanceCorrection)[] = [
                 ...transactions.value, 
                 ...corrections.value,
-                ...subs.value.map(s => s.build(from, to)).flat()
             ].sort((a, b) => a.date - b.date);
         
             let balance = 0;
