@@ -11,7 +11,8 @@ router.post('/get-types', async (_req, res) => {
         DB.all('types/all-subtypes')
     ]);
 
-    if (types.isErr() || subtypes.isErr()) return res.sendStatus('unknown:error');
+    if (types.isErr() || subtypes.isErr())
+        return res.sendStatus('unknown:error');
 
     res.json({
         types: types.value,
