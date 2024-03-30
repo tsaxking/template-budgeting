@@ -44,7 +44,7 @@ router.post<{
     description: string;
     picture: string;
     startDate: number;
-    endDate: number;
+    endDate: number | null;
     subtypeId: string;
 }>(
     '/new',
@@ -57,7 +57,7 @@ router.post<{
         description: 'string',
         picture: 'string',
         startDate: 'number',
-        endDate: 'number',
+        endDate: (v: number | null) => v === null || typeof v === 'number',
         subtypeId: 'string'
     }),
     (req, res) => {
@@ -86,7 +86,7 @@ router.post<{
             description,
             picture,
             startDate,
-            endDate,
+            endDate: endDate || undefined,
             subtypeId
         });
 

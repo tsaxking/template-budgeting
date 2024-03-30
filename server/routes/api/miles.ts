@@ -5,7 +5,7 @@ import { uuid } from '../../utilities/uuid';
 
 export const router = new Route();
 
-router.get('/active', (_req, res) => {
+router.post('/active', (_req, res) => {
     const miles = DB.all('miles/active');
 
     res.json(miles);
