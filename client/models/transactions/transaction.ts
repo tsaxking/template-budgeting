@@ -1,314 +1,220 @@
-import { Cache } from "../cache";
-import { Transaction as TransactionObj } from "../../../shared/db-types-extended";
+import { EventEmitter } from '../../../shared/event-emitter';
+import { Transaction as T } from '../../../shared/db-types-extended';
+import { Cache } from '../cache';
+import { attemptAsync } from '../../../shared/check';
 import { ServerRequest } from '../../utilities/requests';
 import { socket } from '../../utilities/socket';
-import { RetrieveStreamEventEmitter } from "../../utilities/requests";
-import { Subtype, TransactionType } from "./types";
-import { Bucket } from "./bucket";
-import { notify } from "../../utilities/notifications";
-import { formatDate } from "../../utilities/clock";
+import { Type } from './type';
+import { Subtype } from './subtype';
 
-
-const formatter = formatDate('MM/DD/YYYY HH12:mm ap');
-
+type GlobalTransactionEvents = {
+    new: Transaction;
+};
 
 type TransactionEvents = {
-    'updated': undefined;
-    'archived': undefined;
-    'restored': undefined;
-    'created': undefined;
-}
-
-
-
-
+    update: undefined;
+};
 
 export class Transaction extends Cache<TransactionEvents> {
-    static readonly cache: Map<string, Transaction> = new Map<string, Transaction>();
-    static search(bucket: string, from: number, to: number, cached: boolean = false) {
-        if (from > to) throw new Error('From date must be before to date');
+    public static readonly cache = new Map<string, Transaction>();
+    public static readonly emitter = new EventEmitter<
+        keyof GlobalTransactionEvents
+    >();
 
-        if (Transaction.cache.size > 0 && cached) {
-            const items = Array.from(Transaction.cache.values());
+    public static on<K extends keyof GlobalTransactionEvents>(
+        event: K,
+        callback: (data: GlobalTransactionEvents[K]) => void
+    ): void {
+        this.emitter.on(event, callback);
+    }
 
-            const filtered = items.filter(t => {
-                return t.bucketId === bucket && +t.date >= from && +t.date <= to;
-            });
+    public static off<K extends keyof GlobalTransactionEvents>(
+        event: K,
+        callback?: (data: GlobalTransactionEvents[K]) => void
+    ): void {
+        this.emitter.off(event, callback);
+    }
 
-            const em = new RetrieveStreamEventEmitter<Transaction>();
+    public static emit<K extends keyof GlobalTransactionEvents>(
+        event: K,
+        data: GlobalTransactionEvents[K]
+    ): void {
+        this.emitter.emit(event, data);
+    }
 
-            const emit = (i: number) => em.emit('chunk', filtered[i]);
+    public static search(
+        buckets: string[], // bucket ids
+        from: number,
+        to: number
+    ) {
+        return attemptAsync(async () => {
+            const current = Array.from(Transaction.cache.values());
 
-            const interval = setInterval(() => {
-                if (filtered.length <= 0) {
-                    clearInterval(interval);
-                    return em.emit('complete', filtered);
+            const res = await ServerRequest.post<T[]>(
+                '/api/transactions/search',
+                {
+                    buckets,
+                    from,
+                    to
                 }
-
-                emit(0);
-                filtered.splice(0, 1);
-            }, 5);
-
-            return em;
-        }
-
-
-        const em = ServerRequest
-            .retrieveStream<Transaction>('/api/transactions/search', {
-                    bucket,
-                    from: from.toString(),
-                    to: to.toString()
-                },
-                (data) => new Transaction(JSON.parse(data))
             );
 
-        return em;
-    };
+            if (res.isErr()) throw res.error;
 
-    static async taxDeductible(bucket: string, from: number, to: number) {
-        const transactions = await Transaction.search(bucket, from, to).promise;
-        return transactions.filter(t => t.taxDeductible);
+            return res.value.map(t => {
+                const exists = current.find(c => c.id === t.id);
+                if (exists) return exists;
+                else return new Transaction(t);
+            });
+        });
     }
 
-    static async archived(bucket: string, from: number, to: number) {
-        const transactions = await Transaction.search(bucket, from, to).promise;
-        return transactions.filter(t => t.archived);
-    }
-
-    static value(transactions: Transaction[]) {
-        return transactions.reduce((acc, t) => {
-            if (t.type === 'deposit') {
-                return acc + t.amount;
-            } else {
-                return acc - t.amount;
-            }
-        }, 0);
-    }
-
-    static async newTransfer(data: {
+    public static transfer(data: {
+        from: string;
+        to: string;
         amount: number;
-        date: string;
-        fromBucketId: string;
-        toBucketId: string;
         description: string;
         subtypeId: string;
         taxDeductible: boolean;
-        status: 'pending' | 'completed' | 'failed';
+        date: number;
     }) {
         return ServerRequest.post('/api/transactions/transfer', data);
     }
 
-    static async newTransaction(data: {
-        transfer?: string, // bucket id
+    public static new(data: {
         amount: number;
         type: 'withdrawal' | 'deposit';
         status: 'pending' | 'completed' | 'failed';
-        date: string;
+        date: number;
         bucketId: string;
         description: string;
         subtypeId: string;
         taxDeductible: boolean;
-    }): Promise<boolean> {
-
-        const fail = (needed: string) => {
-            notify({
-                message: 'Please fill in the ' + needed + ' field.',
-                title: 'Invalid Input',
-                color: 'danger',
-                status: needed + ' is required.',
-                code: 400,
-                instructions: ''
-            });
-            return false;
-        }
-
-        if (!data.amount) return fail('amount');
-        if (!data.date) return fail('date');
-        if (!data.bucketId) return fail('bucket');
-        // if (!data.description) return fail('description');
-        if (!data.subtypeId) return fail('subtype');
-        if (data.taxDeductible === undefined) return fail('tax deductible');
-        if (!data.type) return fail('type');
-        if (!data.status) return fail('status');
-
-
-        if (data.transfer) {
-            Transaction.newTransfer({
-                amount: data.amount,
-                date: data.date,
-                fromBucketId: data.bucketId,
-                toBucketId: data.transfer,
-                description: data.description,
-                subtypeId: data.subtypeId,
-                taxDeductible: data.taxDeductible,
-                status: data.status
-            });
-            return true;
-        } else {
-            ServerRequest.post('/api/transactions/new', data);
-            return true;
-        }
+    }) {
+        return ServerRequest.post('/api/transactions/new', data);
     }
 
     public readonly id: string;
-    public amount: number;
-    public type: 'withdrawal' | 'deposit';
-    public status: 'pending' | 'completed' | 'failed';
-    public date: string;
+    public readonly amount: number;
+    public readonly type: 'withdrawal' | 'deposit';
+    public readonly status: 'pending' | 'completed' | 'failed';
+    public date: number;
     public bucketId: string;
     public description: string;
     public subtypeId: string;
     public taxDeductible: 0 | 1;
     public archived: 0 | 1;
-    public picture: string|null;
+    public picture: string | null;
 
-    constructor(obj: TransactionObj) {
+    constructor(
+        data: T,
+        public readonly save = true
+    ) {
         super();
-        this.id = obj.id;
-        this.amount = obj.amount;
-        this.type = obj.type;
-        this.status = obj.status;
-        this.date = obj.date;
-        this.bucketId = obj.bucketId;
-        this.description = obj.description;
-        this.subtypeId = obj.subtypeId;
-        this.taxDeductible = obj.taxDeductible;
-        this.archived = obj.archived;
-        this.picture = obj.picture;
+        this.id = data.id;
+        this.amount = data.amount;
+        this.type = data.type;
+        this.status = data.status;
+        this.date = data.date;
+        this.bucketId = data.bucketId;
+        this.description = data.description;
+        this.subtypeId = data.subtypeId;
+        this.taxDeductible = data.taxDeductible;
+        this.archived = data.archived;
+        this.picture = data.picture;
 
-        if (!Transaction.cache.has(this.id)) {
+        if (save && !Transaction.cache.has(this.id)) {
             Transaction.cache.set(this.id, this);
         }
-    };
+    }
 
-    update(data: Partial<TransactionObj>) {
-        if (data.id) {
-            throw new Error('Cannot update ID');
-        }
+    async update(data: Partial<T>) {
+        if (!this.save) throw new Error('Cannot update unsaved transaction');
         return ServerRequest.post('/api/transactions/update', {
-            ...this,
-            ...data,
-            id: this.id
-        });
-    }
-
-    archive() {
-        if (this.archived) return;
-        return ServerRequest.post('/api/transactions/change-transaction-archive-status', {
             id: this.id,
-            archive: true
+            amount: data.amount || this.amount,
+            type: data.type || this.type,
+            status: data.status || this.status,
+            date: data.date || this.date,
+            bucketId: data.bucketId || this.bucketId,
+            description: data.description || this.description,
+            subtypeId: data.subtypeId || this.subtypeId,
+            taxDeductible: data.taxDeductible || this.taxDeductible,
+            archived: data.archived || this.archived,
+            picture: data.picture || this.picture
         });
     }
 
-    restore() {
-        if (!this.archived) return;
-        return ServerRequest.post('/api/transactions/change-transaction-archive-status', {
+    async setArchive(archived: boolean) {
+        if (!this.save) throw new Error('Cannot archive unsaved transaction');
+        return ServerRequest.post('/api/transactions/set-archive-status', {
             id: this.id,
-            archive: false
+            archived
         });
     }
 
-    async getTypeInfo(): Promise<{ type: TransactionType|null, subtype: Subtype|null }> {
-        const { types, subtypes } = await TransactionType.getTypes();
-
-        const subtype = subtypes.find(s => s.id === this.subtypeId);
-        if (!subtype) return {
-            type: null,
-            subtype: null
-        }
-        const type = types.find(t => t.id === subtype.typeId);
-        if (!type) return {
-            type: null,
-            subtype: subtype
-        }
-
-        return {
-            type,
-            subtype
-        }
+    changePicture(files: FileList) {
+        if (!this.save)
+            throw new Error('Cannot change picture of unsaved transaction');
+        return ServerRequest.streamFiles(
+            '/api/transactions/change-picture',
+            files,
+            {
+                id: this.id
+            }
+        );
     }
 
-    async getBucketName(): Promise<string|null> {
-        const b = Bucket.cache.get(this.bucketId);
-        if (!b) return null;
-        return b.name;
-    }
+    async getTypeInfo() {
+        return attemptAsync(async () => {
+            const [type, subtype] = await Promise.all([
+                Type.all(),
+                Subtype.all()
+            ]);
+            if (type.isErr()) throw type.error;
+            if (subtype.isErr()) throw subtype.error;
 
-    async getTableData() {
-        const typeInfo = await this.getTypeInfo();
-        return {
-            amount: this.amountString,
-            type: typeInfo.type?.name ?? '',
-            subtype: typeInfo.subtype?.name ?? '',
-            bucket: await this.getBucketName(),
-            date: formatter(new Date(+this.date)),
-            transaction: this,
-            id: this.id
-        }
-    }
+            const s = subtype.value.find(s => s.id === this.subtypeId);
+            if (!s) throw new Error('Subtype not found');
 
-    get amountString() {
-        return this.amount.toLocaleString('en-US', {
-            style: 'currency',
-            currency: 'USD'
+            const t = type.value.find(t => t.id === s.typeId);
+            if (!t) throw new Error('Type not found');
+
+            return {
+                type: t,
+                subtype: s
+            };
         });
     }
+}
 
-    changePicture(pictures: FileList) {
-        if (pictures.length > 1) throw new Error('Cannot upload more than one picture');
-
-        ServerRequest.streamFiles('/api/transactions/change-picture', pictures, {
-            id: this.id
-        });
-    }
-};
-
-socket.on('transactions:updated', (data: TransactionObj) => {
-    const t = Transaction.cache.get(data.id);
-    if (t) {
-        Object.assign(t, data);
-        Transaction.cache.set(data.id, t);
-
-        t.$emitter.emit('updated');
-        Transaction.emit('update', t);
-    }
-});
-
-socket.on('transactions:archived', (id: string) => {
-    const t = Transaction.cache.get(id);
-    if (t) {
-        t.archived = 1;
-        Transaction.cache.set(id, t);
-
-        t.$emitter.emit('archived');
-        Transaction.emit('archive', t);
-    }
-});
-
-socket.on('transactions:restored', (id: string) => {
-    const t = Transaction.cache.get(id);
-    if (t) {
-        t.archived = 0;
-        Transaction.cache.set(id, t);
-
-        t.$emitter.emit('restored');
-        Transaction.emit('restore', t);
-    }
-});
-
-socket.on('transactions:created', (data: TransactionObj) => {
+socket.on('transactions:created', (data: T) => {
     const t = new Transaction(data);
-    t.$emitter.emit('created');
-    Transaction.emit('create', t);
+    Transaction.emit('new', t);
 });
 
-socket.on('transactions:picture-updated', ({ id, picture }) => {
-    const t = Transaction.cache.get(id);
-    if (t) {
-        t.picture = picture;
-        Transaction.cache.set(id, t);
+socket.on(
+    'transactions:picture-updated',
+    (data: { id: string; picture: string }) => {
+        const t = Transaction.cache.get(data.id);
+        if (!t) return;
 
-        t.$emitter.emit('updated');
-        Transaction.emit('update', t);
+        t.picture = data.picture;
+        t.emit('update', undefined);
     }
+);
+
+socket.on('transactions:archived', (data: { bucketId: string }) => {
+    const t = Transaction.cache.get(data.bucketId);
+    if (!t) return;
+
+    t.archived = 1;
+    t.emit('update', undefined);
+});
+socket.on('transactions:restored', (data: { bucketId: string }) => {
+    const t = Transaction.cache.get(data.bucketId);
+    if (!t) return;
+
+    t.archived = 0;
+    t.emit('update', undefined);
 });

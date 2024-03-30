@@ -1,169 +1,212 @@
-import { Cache } from "../cache";
-import { Subscription as SubscriptionObj } from "../../../shared/db-types-extended";
-import { ServerRequest } from "../../utilities/requests";
-import { socket } from "../../utilities/socket";
+import { Cache } from '../cache';
 
+import { Subscription as S } from '../../../shared/db-types-extended';
+import { EventEmitter } from '../../../shared/event-emitter';
+import { attemptAsync } from '../../../shared/check';
+import { ServerRequest } from '../../utilities/requests';
+import { socket } from '../../utilities/socket';
+import { Transaction } from './transaction';
+import { Random } from '../../../shared/math';
+
+type GlobalSubscriptionEvents = {
+    new: Subscription;
+};
 
 type SubscriptionEvents = {
-    'archived': undefined;
-    'restored': undefined;
-    'created': undefined;
-    'updated': undefined;
+    update: undefined;
 };
 
 export class Subscription extends Cache<SubscriptionEvents> {
-    static readonly cache: Map<string, Subscription> = new Map<string, Subscription>();
+    public static readonly cache = new Map<string, Subscription>();
+    public static readonly emitter = new EventEmitter<
+        keyof GlobalSubscriptionEvents
+    >();
 
-    static async getAll(): Promise<Subscription[]> {
-        if (Subscription.cache.size > 0) {
-            return Array.from(Subscription.cache.values()).filter((s) => !s.archived);
-        }
-
-        return ServerRequest.post<SubscriptionObj[]>('/api/subscriptions/get-all', null, {
-            cached: true
-        })
-            .then((subs) => {
-                return subs.map((s) => new Subscription(s));
-            });
+    public static on<K extends keyof GlobalSubscriptionEvents>(
+        event: K,
+        callback: (data: GlobalSubscriptionEvents[K]) => void
+    ): void {
+        this.emitter.on(event, callback);
     }
 
-    static async getArchived(): Promise<Subscription[]> {
-        if (Subscription.cache.size > 0) {
-            const res = Array.from(Subscription.cache.values()).filter((s) => s.archived);
-            if (res.length) return res;
-        }
-
-        return ServerRequest.post<SubscriptionObj[]>('/api/subscriptions/get-archived', null, {
-            cached: true
-        })
-            .then((subs) => {
-                return subs.map((s) =>  new Subscription(s));
-            });
+    public static off<K extends keyof GlobalSubscriptionEvents>(
+        event: K,
+        callback?: (data: GlobalSubscriptionEvents[K]) => void
+    ): void {
+        this.emitter.off(event, callback);
     }
 
-    static newSubscription(data: {
-        name: string;
-        startDate: number;
-        endDate: number|null;
-        interval: number; // in ms
+    public static emit<K extends keyof GlobalSubscriptionEvents>(
+        event: K,
+        data: GlobalSubscriptionEvents[K]
+    ): void {
+        this.emitter.emit(event, data);
+    }
+
+    public static all() {
+        return attemptAsync(async () => {
+            const cache = Array.from(Subscription.cache.values());
+            if (cache.length) return cache.filter(s => !s.archived);
+
+            const res = await ServerRequest.post<S[]>('/api/subscriptions/all');
+
+            if (res.isErr()) throw res.error;
+            return res.value.map(t => new Subscription(t));
+        });
+    }
+
+    public static archived() {
+        return attemptAsync(async () => {
+            const cache = Array.from(Subscription.cache.values());
+            if (cache.length) return cache.filter(s => s.archived);
+
+            const res = await ServerRequest.post<S[]>(
+                '/api/subscriptions/archived'
+            );
+
+            if (res.isErr()) throw res.error;
+            return res.value.map(t => new Subscription(t));
+        });
+    }
+
+    public static new(data: {
         bucketId: string;
-        amount: number; // in cents
-        subtypeId: string;
+        name: string;
+        amount: number;
+        interval: number;
+        taxDeductible: boolean;
         description: string;
-        picture: string|null;
-        taxDeductible: 0 | 1;
+        picture: string;
+        startDate: number;
+        endDate: number | null;
+        subtypeId: string;
     }) {
         return ServerRequest.post('/api/subscriptions/new', data);
     }
 
-    static async fromBucket(bucketId: string): Promise<Subscription[]> {
-        const subs = await this.getAll();
-        return subs.filter(s => s.bucketId === bucketId);
-    }
-
-    static value(subs: Subscription[], from: number, to: number) {
-        return subs.reduce((acc, s) => {
-            if (s.startDate > to || (s.endDate && s.endDate < from)) return acc;
-            return acc + s.amount;
-        }, 0);
-    };
-
     public readonly id: string;
     public name: string;
     public startDate: number;
-    public endDate: number|null;
+    public endDate: number | null;
     public interval: number; // in ms
     public bucketId: string;
     public amount: number; // in cents
     public subtypeId: string;
     public description: string;
-    public picture: string|null;
+    public picture: string | null;
     public taxDeductible: 0 | 1;
     public archived: 0 | 1;
 
-    constructor(data: SubscriptionObj) {
+    constructor(data: S) {
         super();
-
         this.id = data.id;
-        this.name = data.name;
-        this.startDate = data.startDate;
-        this.endDate = data.endDate;
-        this.interval = data.interval;
         this.bucketId = data.bucketId;
+        this.name = data.name;
         this.amount = data.amount;
-        this.subtypeId = data.subtypeId;
+        this.interval = data.interval;
+        this.taxDeductible = data.taxDeductible;
         this.description = data.description;
         this.picture = data.picture;
-        this.taxDeductible = data.taxDeductible;
+        this.startDate = data.startDate;
+        this.endDate = data.endDate;
+        this.subtypeId = data.subtypeId;
         this.archived = data.archived;
 
-        if (!Subscription.cache.has(this.id)) {
-            Subscription.cache.set(this.id, this);
-        }
+        if (!Subscription.cache.has(data.id))
+            Subscription.cache.set(data.id, this);
     }
 
-    update(data: Partial<SubscriptionObj>) {
-        if (data.id) {
-            throw new Error('Cannot update ID');
-        }
+    update(data: {
+        name: string;
+        amount: number;
+        interval: number;
+        taxDeductible: boolean;
+        description: string;
+        picture: string;
+        startDate: number;
+        endDate: number | null;
+        subtypeId: string;
+        bucketId: string;
+    }) {
         return ServerRequest.post('/api/subscriptions/update', {
-            ...this,
             ...data,
             id: this.id
         });
     }
 
-    archive() {
-        if (this.archived) return;
+    setArchive(archive: boolean) {
         return ServerRequest.post('/api/subscriptions/set-archive', {
             id: this.id,
-            archive: true
+            archive
         });
     }
 
-    restore() {
-        if (!this.archived) return;
-        return ServerRequest.post('/api/subscriptions/set-archive', {
-            id: this.id,
-            archive: false
+    build(from: number, to: number) {
+        const start = new Date(this.startDate);
+        const end = this.endDate ? new Date(this.endDate) : null;
+
+        const f = new Date(from);
+        let t = new Date(to);
+
+        if (end && end < f) return []; // subscription has ended
+        if (start > t) return []; // subscription has not started
+        if (end && end < t) t = end;
+
+        const dates = [];
+        let next = start;
+        while (next <= t) {
+            dates.push(next);
+            next = new Date(next.getTime() + this.interval);
+        }
+
+        return dates.map(d => {
+            // build a fake transaction (this will not be saved to the server)
+            return new Transaction(
+                {
+                    id: Random.uuid(),
+                    amount: this.amount,
+                    type: 'withdrawal',
+                    status: 'completed',
+                    date: d.getTime(),
+                    bucketId: this.bucketId,
+                    description: this.description,
+                    subtypeId: this.subtypeId,
+                    taxDeductible: this.taxDeductible,
+                    archived: 0,
+                    picture: this.picture
+                },
+                false
+            );
         });
     }
+}
 
-    
-};
-
+socket.on('subscriptions:created', (data: S) => {
+    const s = new Subscription(data);
+    Subscription.emit('new', s);
+});
 
 socket.on('subscriptions:archived', (id: string) => {
     const s = Subscription.cache.get(id);
-    if (s) {
-        s.archived = 1;
-        s.$emitter.emit('archived');
-        Subscription.emit('archive', s);
-    }
+    if (!s) return;
+
+    s.archived = 1;
+    s.emit('update', undefined);
 });
 
 socket.on('subscriptions:restored', (id: string) => {
     const s = Subscription.cache.get(id);
-    if (s) {
-        s.archived = 0;
-        s.$emitter.emit('restored');
-        Subscription.emit('restore', s);
-    }
+    if (!s) return;
+
+    s.archived = 0;
+    s.emit('update', undefined);
 });
 
-socket.on('subscriptions:created', (data: SubscriptionObj) => {
-    if (!Subscription.cache.has(data.id)) {
-        const s = new Subscription(data);
-        s.$emitter.emit('created');
-        Subscription.emit('create', s);
-    }
-});
+socket.on('subscriptions:updated', (data: S) => {
+    const s = Subscription.cache.get(data.id);
+    if (!s) return;
 
-socket.on('subscriptions:updated', (data: SubscriptionObj) => {
-    if (Subscription.cache.has(data.id)) {
-        const s = Subscription.cache.get(data.id) as Subscription;
-        Object.assign(s, data);
-        s.$emitter.emit('updated');
-        Subscription.emit('update', s);
-    }
+    Object.assign(s, data);
+
+    s.emit('update', undefined);
 });

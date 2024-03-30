@@ -1,5 +1,5 @@
 UPDATE BalanceCorrection
-SET amount = :amount,
+SET balance = :balance,
     date = :date,
     bucketId = :bucketId
 WHERE id = :id;

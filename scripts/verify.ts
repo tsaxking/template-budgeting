@@ -1,11 +1,15 @@
-import Account from "../server/structure/accounts.ts";
+import Account from '../server/structure/accounts';
 
-const [username] = Deno.args;
+(async () => {
+    const [username] = process.argv;
 
-const a = Account.fromUsername(username);
+    const a = await Account.fromUsername(username);
 
-if (!a) throw new Error('Account not found');
+    if (!a) throw new Error('Account not found');
 
-const status = a.verify();
+    const status = a?.verify();
 
-console.log(username + '\'s', 'verification status:', status);
+    console.log(username + "'s", 'verification status:', status);
+
+    process.exit(status == 'verified' ? 0 : 1);
+})();
