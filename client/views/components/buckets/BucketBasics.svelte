@@ -10,7 +10,7 @@ import { Bucket } from "../../../models/transactions/bucket";
         Promise.all([
             bucket.getBalance(from, to)
         ]).then(([
-            balances
+            balance
         ]) => {});
         
         return () => {}

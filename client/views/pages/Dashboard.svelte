@@ -1,9 +1,9 @@
 <script lang="ts">
-import SelectBucket from "../components/transactions/SelectBucket.svelte";
+import SelectBucket from "../components/buckets/SelectBucket.svelte";
 import { Bucket } from "../../models/transactions/bucket";
 import { onMount } from "svelte";
 import DashboardCard from "../components/main/DashboardCard.svelte";
-import BucketBasics from "../components/transactions/BucketBasics.svelte";
+import BucketBasics from "../components/buckets/BucketBasics.svelte";
 
 
 let buckets: Bucket[] = [];
