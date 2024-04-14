@@ -1,24 +1,48 @@
 <script lang="ts">
-import { onMount } from "svelte";
 import { Transaction } from "../../../../shared/db-types-extended";
 import { Bucket } from "../../../models/transactions/bucket";
 import { resolveAll } from "../../../../shared/check";
+import { Subtype } from "../../../models/transactions/subtype";
+import { Type } from "../../../models/transactions/type";
 
     export let buckets: Bucket[] = [];
     export let from: number;
     export let to: number;
 
-    let transactions: Transaction[] = [];
+    let transactions: {
+        transaction: Transaction;
+        bucket: Bucket | undefined;
+        subtype: Subtype;
+        type: Type;
+    }[] = [];
 
     $: Promise.all([
             Promise.all(buckets.map(b => b.getTransactions(from, to)))
-        ]).then(([
+        ]).then(async ([
             transactionRes
         ]) => {
             const ts = resolveAll(transactionRes);
             if (ts.isErr()) return console.error(ts.error);
-            transactions = ts.value.flat();
+            transactions = await Promise.all(ts.value.flat().map(async t => {
+                const [bucket, typeInfo] = await Promise.all([
+                    Bucket.fromId(t.bucketId),
+                    t.getTypeInfo()
+                ]);
+
+                if (bucket.isErr()) throw bucket.error;
+                if (typeInfo.isErr()) throw typeInfo.error;
+
+                return {
+                    transaction: t,
+                    bucket: bucket.value,
+                    subtype: typeInfo.value.subtype,
+                    type: typeInfo.value.type
+                }
+            }));
         });
+
+
+    const edit = (t: Transaction) => {}
 </script>
 
 <div class="table-responsive">
@@ -30,19 +54,22 @@ import { resolveAll } from "../../../../shared/check";
                 <th>Type</th>
                 <th>Subtype</th>
                 <th>Bucket</th>
-                <th>Notes</th>
+                <th>Description</th>
             </tr>
         </thead>
     </table>
     <tbody>
-        {#each transactions as transaction}
-            <tr>
-                <td>{new Date(transaction.date).toLocaleDateString()}</td>
-                <td>{transaction.amount}</td>
-                <td>{transaction.type}</td>
-                <td>{transaction.subtype}</td>
-                <td>{transaction.bucket}</td>
-                <td>{transaction.notes}</td>
+        {#each transactions as t}
+            <tr
+                on:click={() => edit(t.transaction)}
+                style="cursor: pointer;"
+            >
+                <td>{new Date(t.transaction.date).toLocaleDateString()}</td>
+                <td>{t.transaction.amount}</td>
+                <td>{t.type.name}</td>
+                <td>{t.subtype.name}</td>
+                <td>{t.bucket ? t.bucket.name : "None"}</td>
+                <td>{t.transaction.description}</td>
             </tr>
         {/each}
     </tbody>
