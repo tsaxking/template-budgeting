@@ -16,6 +16,7 @@ type GlobalBucketEvents = {
 type BucketEvents = {
     'new-transaction': Transaction;
     updated: undefined;
+    'balance-correction': BalanceCorrection;
 };
 
 export class Bucket extends Cache<BucketEvents> {
@@ -110,7 +111,7 @@ export class Bucket extends Cache<BucketEvents> {
     constructor(data: B) {
         super();
         this.id = data.id;
-        this.created = data.created;
+        this.created = +data.created;
         this.name = data.name;
         this.description = data.description;
         this.archived = data.archived;
