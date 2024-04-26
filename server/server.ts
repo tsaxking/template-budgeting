@@ -154,7 +154,7 @@ app.post('/*', (req, res, next) => {
 // }));
 
 app.get('/', (req, res) => {
-    res.redirect('/home');
+    res.redirect('/dashboard/budgeting');
 });
 
 app.get('/*', async (req, res, next) => {

@@ -3,6 +3,8 @@ import { EventEmitter } from '../../../shared/event-emitter';
 import { ServerRequest } from '../../utilities/requests';
 import { Cache } from '../cache';
 import { BalanceCorrection as B } from '../../../shared/db-types-extended';
+import { socket } from '../../utilities/socket';
+import { Bucket } from './bucket';
 
 type BalanceCorrectionEvents = {
     update: undefined;
@@ -54,7 +56,7 @@ export class BalanceCorrection extends Cache<BalanceCorrectionEvents> {
                 return Array.from(BalanceCorrection.cache.values());
 
             const res = await ServerRequest.post<B[]>(
-                '/api/balance-correction/get-all'
+                '/api/balance-correction/all'
             );
             if (res.isErr()) throw res.error;
 
@@ -70,8 +72,8 @@ export class BalanceCorrection extends Cache<BalanceCorrectionEvents> {
     constructor(data: B) {
         super();
         this.id = data.id;
-        this.date = data.date;
-        this.balance = data.balance;
+        this.date = +data.date;
+        this.balance = +data.balance;
         this.bucketId = data.bucketId;
     }
 
@@ -98,3 +100,12 @@ export class BalanceCorrection extends Cache<BalanceCorrectionEvents> {
         });
     }
 }
+
+socket.on('balance-correction:created', (data: B) => {
+    const correction = new BalanceCorrection(data);
+    BalanceCorrection.emit('new', correction);
+
+    const bucket = Bucket.cache.get(data.bucketId);
+    if (!bucket) return;
+    bucket.emit('balance-correction', correction);
+});

@@ -9,15 +9,15 @@ export const router = new Route();
 
 router.post<{
     buckets: string[];
-    from: string;
-    to: string;
+    from: number;
+    to: number;
 }>(
     '/search',
     validate({
         buckets: (v: unknown[]) =>
             Array.isArray(v) && v.every(i => typeof i === 'string'),
-        from: 'string',
-        to: 'string'
+        from: 'number',
+        to: 'number'
     }),
     async (req, res) => {
         const { buckets, from, to } = req.body;

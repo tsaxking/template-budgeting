@@ -5,7 +5,7 @@ import { validate } from '../../middleware/data-type';
 
 export const router = new Route();
 
-router.get('/all', async (_req, res) => {
+router.post('/all', async (_req, res) => {
     const balanceCorrections = await DB.all('balance-correction/all');
 
     if (balanceCorrections.isErr()) return res.sendStatus('unknown:error');
@@ -24,12 +24,12 @@ router.post<{
         bucketId: 'string',
         date: 'number'
     }),
-    (req, res) => {
+    async (req, res) => {
         const { balance, bucketId, date } = req.body;
 
-        const b = DB.get('buckets/from-id', { id: bucketId });
+        const b = await DB.get('buckets/from-id', { id: bucketId });
 
-        if (!b) return res.sendStatus('buckets:invalid-id');
+        if (b.isErr() || !b.value) return res.sendStatus('buckets:invalid-id');
 
         const id = uuid();
 
