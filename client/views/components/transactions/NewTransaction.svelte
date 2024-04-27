@@ -3,6 +3,11 @@ import { createEventDispatcher, onMount } from 'svelte';
 import { Transaction } from '../../../models/transactions/transaction';
 import { Bucket } from '../../../models/transactions/bucket';
 import Select from '../bootstrap/Select.svelte';
+import { Type } from '../../../models/transactions/type';
+import { Subtype } from '../../../models/transactions/subtype';
+import TypeSelector from '../types/TypeSelector.svelte';
+import SubtypeSelector from '../types/SubtypeSelector.svelte';
+import DateTimeInput from '../bootstrap/DateTimeInput.svelte';
 
 let buckets: Bucket[] = [];
 
@@ -14,16 +19,35 @@ onMount(() => {
 });
 
 let amount = '';
-let date = new Date().toISOString().split('T')[0];
-let status = 'pending';
+let date = new Date();
+let status: 'pending' | 'completed' | 'failed' = 'pending';
 let bucketId = '';
 let description = '';
+let type: 'withdrawal' | 'deposit' = 'withdrawal';
 let subtypeId = '';
 let taxDeductible = false;
 
+let t: Type | undefined;
+let s: Subtype | undefined;
+
+$: subtypeId = s?.id || '';
+
 const d = createEventDispatcher();
 
-const create = async () => {};
+const create = async () => {
+    Transaction.new({
+        amount: parseFloat(amount),
+        date: date.getTime(),
+        status,
+        bucketId,
+        description,
+        type,
+        subtypeId,
+        taxDeductible
+    });
+
+    d('transaction-created');
+};
 </script>
 
 <form on:submit|preventDefault="{create}">
@@ -38,14 +62,7 @@ const create = async () => {};
         />
     </div>
     <div class="mb-3">
-        <label for="transaction-date" class="form-label"> Date </label>
-        <input
-            name="transaction-date"
-            id="transaction-date"
-            class="form-control"
-            type="date"
-            bind:value="{date}"
-        />
+        <DateTimeInput bind:date={date} />
     </div>
     <div class="mb-3">
         <label for="transaction-status" class="form-label"> Status </label>
@@ -56,8 +73,8 @@ const create = async () => {};
             bind:value="{status}"
         >
             <option value="pending" selected>Pending</option>
-            <option value="cleared">Cleared</option>
-            <option value="reconciled">Reconciled</option>
+            <option value="completed">Completed</option>
+            <option value="failed">Failed</option>
         </select>
     </div>
     <div class="mb-3">
@@ -79,23 +96,31 @@ const create = async () => {};
             bind:value="{description}"
         ></textarea>
     </div>
-    <!-- <div class="mb-3">
-        <label for="transaction-subtype" class="form-label
-        ">
-            Subtype
-        </label>
-        <Select bind:value={subtypeId} options={buckets.map(b => b.name)} values={buckets.map(b => b.id)} />
-    </div> -->
     <div class="mb-3">
-        <label for="transaction-tax-deductible" class="form-label">
-            Tax Deductible
-        </label>
-        <input
-            type="checkbox"
-            id="transaction-tax-deductible"
-            class="form-check
-        "
-            bind:checked="{taxDeductible}"
-        />
+        <label for="transaction-type mb-1" class="form-label"> Type </label>
+        <TypeSelector bind:value={t} />
+        {#if t}
+            <label for="transaction-subtype mb-1">
+                Subtype
+            </label>
+            <SubtypeSelector bind:value={s} type={t} />
+        {/if}
     </div>
+    <div class="mb-3">
+        <div class="form-check form-switch">
+            <input
+                type="checkbox"
+                class="form-check-input"
+                id="transaction-tax-deductible"
+                bind:checked="{taxDeductible}"
+            />
+            <label
+                class="form-check-label"
+                for="transaction-tax-deductible"
+            >
+                Tax Deductible
+            </label>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary"> Create </button>
 </form>

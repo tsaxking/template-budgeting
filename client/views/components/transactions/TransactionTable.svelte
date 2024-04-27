@@ -58,17 +58,17 @@ Transaction.on('new', () => (buckets = buckets));
                 <th>Description</th>
             </tr>
         </thead>
+        <tbody>
+            {#each transactions as t}
+                <tr on:click="{() => edit(t.transaction)}" style="cursor: pointer;">
+                    <td>{new Date(t.transaction.date).toLocaleDateString()}</td>
+                    <td>{t.transaction.amount}</td>
+                    <td>{t.type.name}</td>
+                    <td>{t.subtype.name}</td>
+                    <td>{t.bucket ? t.bucket.name : 'None'}</td>
+                    <td>{t.transaction.description}</td>
+                </tr>
+            {/each}
+        </tbody>
     </table>
-    <tbody>
-        {#each transactions as t}
-            <tr on:click="{() => edit(t.transaction)}" style="cursor: pointer;">
-                <td>{new Date(t.transaction.date).toLocaleDateString()}</td>
-                <td>{t.transaction.amount}</td>
-                <td>{t.type.name}</td>
-                <td>{t.subtype.name}</td>
-                <td>{t.bucket ? t.bucket.name : 'None'}</td>
-                <td>{t.transaction.description}</td>
-            </tr>
-        {/each}
-    </tbody>
 </div>

@@ -49,12 +49,15 @@ export class Type extends Cache<TypeEvents> {
             const cache = Array.from(Type.cache.values());
             if (cache.length) return cache;
 
-            const res = await ServerRequest.post<TransactionType[]>(
+            const res = await ServerRequest.post<{
+                types: TransactionType[];
+                subtypes: Subtype[];
+            }>(
                 '/api/types/get-types'
             );
             if (res.isErr()) throw res.error;
 
-            return res.value.map(t => new Type(t));
+            return res.value.types.map(t => new Type(t));
         });
     }
 
@@ -86,6 +89,14 @@ export class Type extends Cache<TypeEvents> {
             if (subtypes.isErr()) throw subtypes.error;
 
             return subtypes.value.filter(s => s.typeId === this.id);
+        });
+    }
+
+    newSubtype(name: string, type: 'deposit' | 'withdrawal') {
+        return Subtype.new({
+            name,
+            typeId: this.id,
+            type
         });
     }
 }

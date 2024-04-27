@@ -30,6 +30,8 @@ router.post<{
             )
         );
 
+        console.log({ transactions });
+
         if (transactions.isErr()) return res.sendStatus('unknown:error');
 
         const filtered = transactions.value.flat().filter(t => {
@@ -55,7 +57,7 @@ router.post<{
         amount: 'number',
         type: ['withdrawal', 'deposit'],
         status: ['pending', 'completed', 'failed'],
-        date: 'string',
+        date: 'number',
         bucketId: 'string',
         description: 'string',
         subtypeId: 'string',
