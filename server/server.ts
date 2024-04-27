@@ -54,7 +54,7 @@ app.post('/socket-init', (req, res) => {
 });
 
 app.use('/*', (req, res, next) => {
-    log(`[${req.method}] ${req.pathname}`);
+    log(`[${req.method}] ${req.originalUrl}`);
     res.setHeader('Access-Control-Allow-Origin', '*');
     // res.setHeader('Access-Control-Allow-Credentials', 'true');
     // res.setHeader('Access-Control-Allow-Headers', '*');
@@ -154,7 +154,7 @@ app.post('/*', (req, res, next) => {
 // }));
 
 app.get('/', (req, res) => {
-    res.redirect('/home');
+    res.redirect('/dashboard/budgeting');
 });
 
 app.get('/*', async (req, res, next) => {

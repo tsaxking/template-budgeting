@@ -72,24 +72,27 @@ export const viewTables = async () => {
         const data = await DB.unsafe.all<any>(`SELECT * FROM ${table}`);
         if (data.isOk()) {
             // using cliffy to display the data
-            const tableData = data.value;
-            const keys = Object.keys(tableData[0] || {});
-            const values = tableData.map(d =>
-                Object.values(d).map(a => {
-                    switch (typeof a) {
-                        case 'bigint':
-                            return a.toString() + 'n';
-                        case 'object':
-                            return JSON.stringify(a);
-                        default:
-                            return a;
-                    }
-                })
-            );
+            // const tableData = data.value;
+            // const keys = Object.keys(tableData[0] || {});
+            // const values = tableData.map(d =>
+            //     Object.values(d).map(a => {
+            //         switch (typeof a) {
+            //             case 'bigint':
+            //                 return a.toString() + 'n';
+            //             case 'object':
+            //                 return JSON.stringify(a);
+            //             default:
+            //                 return a;
+            //         }
+            //     })
+            // );
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            console.table(keys, values as any);
+            console.table(data.value);
 
-            await select('', ['[Back]']);
+            await select('', ['[Back]'], {
+                clear: false,
+                exit: true
+            });
             return main();
         } else {
             return backToMain('Error getting data: ' + data.error.message);

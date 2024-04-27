@@ -6,16 +6,16 @@ import { uuid } from '../../utilities/uuid';
 
 export const router = new Route();
 
-router.post('/all', (_req, res) => {
-    const buckets = DB.all('buckets/all');
-
-    res.json(buckets);
+router.post('/all', async (_req, res) => {
+    const buckets = await DB.all('buckets/all');
+    if (buckets.isErr()) return res.sendStatus('unknown:error');
+    res.json(buckets.value);
 });
 
-router.post('/archived', (_req, res) => {
-    const buckets = DB.all('buckets/archived');
-
-    res.json(buckets);
+router.post('/archived', async (_req, res) => {
+    const buckets = await DB.all('buckets/archived');
+    if (buckets.isErr()) return res.sendStatus('unknown:error');
+    res.json(buckets.value);
 });
 
 router.post<{

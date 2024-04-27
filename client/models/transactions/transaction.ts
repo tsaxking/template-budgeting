@@ -115,7 +115,7 @@ export class Transaction extends Cache<TransactionEvents> {
         this.amount = data.amount;
         this.type = data.type;
         this.status = data.status;
-        this.date = data.date;
+        this.date = +data.date;
         this.bucketId = data.bucketId;
         this.description = data.description;
         this.subtypeId = data.subtypeId;
