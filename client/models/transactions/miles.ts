@@ -81,6 +81,7 @@ export class Miles extends Cache<TypeEvents> {
         this.archived = data.archived;
 
         if (!Miles.cache.has(this.id)) Miles.cache.set(this.id, this);
+        else throw new Error('Miles already exists in cache');
     }
 
     update(amount: number, date: number) {

@@ -12,6 +12,8 @@ type BalanceCorrectionEvents = {
 
 type GlobalBalanceCorrectionEvents = {
     new: BalanceCorrection;
+    update: BalanceCorrection;
+    archive: BalanceCorrection;
 };
 
 export class BalanceCorrection extends Cache<BalanceCorrectionEvents> {
@@ -75,12 +77,20 @@ export class BalanceCorrection extends Cache<BalanceCorrectionEvents> {
         this.date = +data.date;
         this.balance = +data.balance;
         this.bucketId = data.bucketId;
-    }
 
-    update(data: { date: number; balance: number }) {
+        if (BalanceCorrection.cache.has(this.id))
+            {
+                throw new Error('Balance correction already exists');
+        } else {
+            BalanceCorrection.cache.set(this.id, this);
+        }}
+
+    update(data: Partial<{ date: number; balance: number, bucketId: string }>) {
         return ServerRequest.post('/api/balance-correction/update', {
             id: this.id,
-            ...data
+            date: data.date ?? this.date,
+            balance: data.balance ?? this.balance,
+            bucketId: data.bucketId ?? this.bucketId
         });
     }
 
@@ -108,4 +118,25 @@ socket.on('balance-correction:created', (data: B) => {
     const bucket = Bucket.cache.get(data.bucketId);
     if (!bucket) return;
     bucket.emit('balance-correction', correction);
+});
+
+socket.on('balance-correction:updated', (data: B) => {
+    const correction = BalanceCorrection.cache.get(data.id);
+    if (!correction) return;
+
+    correction.date = +data.date;
+    correction.balance = +data.balance;
+    correction.bucketId = data.bucketId;
+
+    correction.emit('update', undefined);
+    BalanceCorrection.emit('update', correction);
+});
+
+socket.on('balance-correction:archived', (data: B) => {
+    const correction = BalanceCorrection.cache.get(data.id);
+    if (!correction) return;
+
+    correction.destroy();
+    correction.emit('update', undefined);
+    BalanceCorrection.emit('archive', correction);
 });

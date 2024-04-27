@@ -11,6 +11,7 @@ import { Bucket } from './bucket';
 type GlobalTransactionEvents = {
     new: Transaction;
     archive: Transaction;
+    update: Transaction;
 };
 
 type TransactionEvents = {
@@ -130,6 +131,8 @@ export class Transaction extends Cache<TransactionEvents> {
 
         if (save && !Transaction.cache.has(this.id)) {
             Transaction.cache.set(this.id, this);
+        } else if (save) {
+            throw new Error('Transaction already exists');
         }
     }
 
@@ -209,6 +212,7 @@ socket.on(
 
         t.picture = data.picture;
         t.emit('update', undefined);
+        Transaction.emit('update', t);
     }
 );
 
@@ -227,4 +231,5 @@ socket.on('transactions:restored', (id: string) => {
 
     t.archived = 0;
     t.emit('update', undefined);
+    Transaction.emit('update', t);
 });

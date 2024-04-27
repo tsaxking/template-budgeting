@@ -5,6 +5,7 @@
 import { Line } from "svelte-chartjs";
 import { onMount } from 'svelte';
 import { date } from "../../../../shared/clock";
+import { BalanceCorrection } from "../../../models/transactions/balance-correction";
 
 // TODO: Build a chart that shows the balance over time
 // build the dates, then get the data for each date
@@ -62,7 +63,11 @@ import { date } from "../../../../shared/clock";
     $: mount(buckets);
 
     Transaction.on('new', () => mount(buckets));
-    Transaction.on('archive', () => mount(buckets));
+    Transaction.on('update', () => mount(buckets));
+    Transaction.on('archive', () => mount(buckets));    
+    BalanceCorrection.on('new', () => mount(buckets));
+    BalanceCorrection.on('update', () => mount(buckets));
+    BalanceCorrection.on('archive', () => mount(buckets));
 </script>
 
 <Line

@@ -1,20 +1,18 @@
 <script lang="ts">
 import { Bucket } from '../../../models/transactions/bucket';
-import { BucketType } from '../../../../shared/db-types-extended';
+import { Random } from '../../../../shared/math';
+import { createEventDispatcher } from 'svelte';
+const id = Random.uuid();
 
-export let bucket: Bucket | undefined = undefined;
+export let bucket: Bucket;
 
-let name = '';
-let description = '';
-let type: BucketType = 'debit';
+const d = createEventDispatcher();
 
-$: name = bucket?.name || '';
-$: description = bucket?.description || '';
-$: type = bucket?.type || 'debit';
+let name = bucket.name;
+let description = bucket.description;
+let type = bucket.type;
 
 const update = async () => {
-    if (!bucket)
-        throw new Error('There should always be a bucket by this point');
     if (!name.length) return alert('Cannot create a bucket without a name');
 
     if (name !== bucket.name) {
@@ -22,7 +20,7 @@ const update = async () => {
         if (buckets.isErr()) throw buckets.error;
 
         if (
-            buckets.value.findIndex(
+            buckets.value.find(
                 b => b.name.toLowerCase() === name.toLowerCase()
             )
         ) {
@@ -35,39 +33,44 @@ const update = async () => {
         description,
         type
     });
+
+    d('submit');
 };
+
 </script>
 
 <form on:submit|preventDefault="{update}">
     <div class="mb-3">
-        <label for="bucket-name" class="form-label"> Name </label>
+        <label for="bucket-name-{id}" class="form-label"> Name </label>
         <input
             type="text"
-            id="bucket-name"
+            id="bucket-name-{id}"
             class="form-control"
             bind:value="{name}"
         />
     </div>
     <div class="mb-3">
-        <label for="bucket-description" class="form-label"> Description </label>
+        <label for="bucket-description-{id}" class="form-label"> Description </label>
         <textarea
             name="bucket-description"
-            id="description"
+            id="bucket-description-{id}"
             class="form-control"
-            bind:value="{name}"
+            bind:value="{description}"
         ></textarea>
     </div>
     <div class="mb-3">
-        <label for="bucket-type" class="form-label">Type</label>
+        <label for="bucket-type-{id}" class="form-label">Type</label>
         <select
             name="bucket-type"
-            id="bucket-type"
+            id="bucket-type-{id}"
             class="form-select"
             bind:value="{type}"
         >
             <option value="debit">Debit</option>
             <option value="credit">Credit</option>
             <option value="savings">Savings</option>
+            <option value="other"> Other </option>
         </select>
     </div>
+    <button type="submit" class="btn btn-primary"> Submit </button>
 </form>

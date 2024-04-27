@@ -27,7 +27,7 @@ router.post<{
     validate({
         name: 'string',
         description: 'string',
-        type: ['debit', 'credit', 'savings']
+        type: ['debit', 'credit', 'savings', 'other']
     }),
     (req, res) => {
         const { name, description, type } = req.body;

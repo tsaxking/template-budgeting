@@ -97,7 +97,7 @@ $: {
 }
 </script>
 
-<div class="container">
+<div class="container-fluid">
     <div class="row mb-3">
         <div class="input-group">
             <input
@@ -136,7 +136,7 @@ $: {
                 </thead>
                 <tbody>
                     {#each transactions as t}
-                        <tr on:click="{() => update(t.transaction)}" style="cursor: pointer;">
+                        <tr on:click="{() => update(t.transaction)}" class="cursor-pointer">
                             <td>{new Date(t.transaction.date).toLocaleDateString()}</td>
                             <td 
                                 class="{t.transaction.type === 'deposit' ? 'text-success' : 'text-danger'}"

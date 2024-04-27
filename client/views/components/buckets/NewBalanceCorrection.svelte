@@ -1,18 +1,19 @@
 <script lang="ts">
 import { createEventDispatcher } from 'svelte';
 import { Bucket } from '../../../models/transactions/bucket';
+import DateTimeInput from '../bootstrap/DateTimeInput.svelte';
 
 export let bucket: Bucket;
 
 let amount: string = '';
-let date: string = new Date().toISOString().split('T')[0];
+let date = new Date();
 
 const d = createEventDispatcher();
 
 const create = async () => {
     const b = await bucket.newBalanceCorrection({
         balance: parseFloat(amount),
-        date: new Date(date).getTime()
+        date: date.getTime()
     });
 
     if (b.isErr()) {
@@ -39,14 +40,7 @@ const create = async () => {
                 />
             </div>
             <div class="mb-3">
-                <label for="correction-date" class="form-label"> Date </label>
-                <input
-                    name="correction-date"
-                    id="correction-date"
-                    class="form-control"
-                    type="date"
-                    bind:value="{date}"
-                />
+                <DateTimeInput bind:date />
             </div>
             <button type="submit" class="btn btn-primary"> Submit </button>
         </form>

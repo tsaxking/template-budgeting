@@ -59,6 +59,7 @@ const create = async () => {
             <option value="debit" selected>Debit</option>
             <option value="credit">Credit</option>
             <option value="savings">Savings</option>
+            <option value="other">Other</option>    
         </select>
     </div>
     <button type="submit" class="btn btn-primary">Submit</button>
