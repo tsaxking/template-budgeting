@@ -112,7 +112,7 @@ export const parseObject = (
 };
 
 export const cost = (amount: number): string => {
-    return amount > 0
-        ? `$${amount.toFixed(2)}`
-        : `-$${Math.abs(amount).toFixed(2)}`;
+    return +amount >= 0
+        ? `$${+amount.toFixed(2)}`
+        : `-$${Math.abs(+amount).toFixed(2)}`;
 };

@@ -227,7 +227,9 @@ export class Bucket extends Cache<BucketEvents> {
             const data: (Transaction | BalanceCorrection)[] = [
                 ...transactions.value,
                 ...corrections.value
-            ].sort((a, b) => a.date - b.date);
+            ].sort((a, b) => +a.date - +b.date);
+
+            console.log({ data });
 
             let balance = 0;
             for (const d of data) {
