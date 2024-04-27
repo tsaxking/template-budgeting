@@ -175,15 +175,15 @@ router.post<{
 
 router.post<{
     id: string;
-    archive: boolean;
+    archived: boolean;
 }>(
-    '/change-archive-status',
+    '/set-archive-status',
     validate({
         id: 'string',
-        archive: 'boolean'
+        archived: 'boolean'
     }),
-    (req, res) => {
-        const { id, archive } = req.body;
+    async (req, res) => {
+        const { id, archived } = req.body;
 
         const t = DB.get('transactions/from-id', { id });
 
@@ -191,12 +191,12 @@ router.post<{
             return res.sendStatus('transactions:invalid-id');
         }
 
-        DB.run('transactions/set-archive', {
+        await DB.run('transactions/set-archive', {
             id,
-            archived: archive ? 1 : 0
+            archived: archived ? 1 : 0
         });
 
-        if (archive) {
+        if (archived) {
             res.sendStatus('transactions:archived');
             req.io.emit('transactions:archived', id);
         } else {

@@ -74,16 +74,6 @@ onMount(() => {
                     class="form-control"
                     bind:value="{toStr}"
                 />
-                <!-- <span class="input-group-text">
-                    <i class="bi bi-search"></i>
-                </span>
-                <input
-                    id="dashboard-search-transactions"
-                    type="text"
-                    class="form-control"
-                    placeholder="Search..."
-                    bind:value="{search}"
-                /> -->
             </div>
         </div>
     </div>
@@ -96,7 +86,7 @@ onMount(() => {
     <div class="row mb-3">
         {#each buckets as bucket}
             <DashboardCard title="{bucket.name}">
-                <BucketBasics {bucket} {from} {to} />
+                <BucketBasics {bucket} {to} />
             </DashboardCard>
         {/each}
         <DashboardCard title="Transactions">

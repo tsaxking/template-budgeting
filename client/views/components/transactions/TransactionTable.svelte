@@ -7,6 +7,7 @@ import { Type } from '../../../models/transactions/type';
 import { cost } from '../../../../shared/text';
 import { Modal } from '../../../utilities/modals';
 import UpdateTransaction from './UpdateTransaction.svelte';
+import { confirm } from '../../../utilities/notifications';
 
 export let buckets: Bucket[] = [];
 export let from: number;
@@ -19,39 +20,6 @@ let transactions: {
     subtype: Subtype;
     type: Type;
 }[] = [];
-
-// $: Promise.all([
-//     Promise.all(buckets.map(b => b.getTransactions(from, to)))
-// ]).then(async ([transactionRes]) => {
-//     const ts = resolveAll(transactionRes);
-//     if (ts.isErr()) return console.error(ts.error);
-//     transactions = (await Promise.all(
-//         ts.value.flat().reverse().map(async t => {
-//             const [bucket, typeInfo] = await Promise.all([
-//                 Bucket.fromId(t.bucketId),
-//                 t.getTypeInfo()
-//             ]);
-
-//             if (bucket.isErr()) throw bucket.error;
-//             if (typeInfo.isErr()) throw typeInfo.error;
-
-//             return {
-//                 transaction: t,
-//                 bucket: bucket.value,
-//                 subtype: typeInfo.value.subtype,
-//                 type: typeInfo.value.type
-//             };
-//         })
-//     )).filter(t => {
-//         if (!search) return true;
-//         return [
-//             t.transaction.description,
-//             t.type.name,
-//             t.subtype.name,
-//             t.bucket ? t.bucket.name : ''
-//         ].map(t => t.toLowerCase()).join('').includes(search.toLowerCase());
-//     });
-// });
 
 $: {
     Bucket.transactionsFromBuckets(buckets, from, to)
@@ -93,6 +61,23 @@ const update = (t: Transaction) => {
             transaction: t
         }
     });
+
+    const deleteBtn = (() => {
+        const b = create('button');
+        b.classList.add('btn', 'btn-danger');
+        b.innerHTML = `<i class="fas fa-archive"></i> Archive`;
+        b.addEventListener('click', async () => {
+            const confirmed = await confirm('Are you sure you want to delete this transaction?');
+            if (!confirmed) return;
+            t.setArchive(true);
+            m.hide();
+            m.destroy();
+        });
+        return b;
+    })();
+
+    m.addButton(deleteBtn);
+
     m.show();
     b.$on('transaction-updated', () => {
         m.hide();
@@ -101,6 +86,7 @@ const update = (t: Transaction) => {
 };
 
 Transaction.on('new', () => (buckets = buckets));
+Transaction.on('archive', () => (buckets = buckets));
 
 let subtotal = 0;
 $: {
