@@ -608,6 +608,7 @@ export class ServerRequest<T = unknown> {
                     value
                 }): Promise<ReadableStreamReadResult<Uint8Array> | undefined> {
                     if (done) {
+                        console.log('Stream complete, received', i, 'chunks');
                         emitter.emit('complete', output);
                         return;
                     }
@@ -637,6 +638,7 @@ export class ServerRequest<T = unknown> {
                             }
                         }
                     }
+                    i++;
                     return reader.read().then(process);
                 });
             })
