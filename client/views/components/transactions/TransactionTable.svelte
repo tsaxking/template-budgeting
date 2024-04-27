@@ -20,6 +20,12 @@ let transactions: {
     subtype: Subtype;
     type: Type;
 }[] = [];
+let transactionView: {
+    transaction: Transaction;
+    bucket: Bucket | undefined;
+    subtype: Subtype;
+    type: Type;
+}[] = [];
 
 $: {
     Bucket.transactionsFromBuckets(buckets, from, to)
@@ -40,7 +46,13 @@ $: {
                 subtype: typeInfo.value.subtype,
                 type: typeInfo.value.type
             };
-        }))).filter(t => {
+        })))
+    });
+}
+
+$: {
+    transactionView = transactions
+    .filter(t => {
         if (!search) return true;
         return [
             t.transaction.description,
@@ -49,7 +61,6 @@ $: {
             t.bucket ? t.bucket.name : ''
         ].map(t => t.toLowerCase()).join('').includes(search.toLowerCase());
     });
-    })
 }
 
 const update = (t: Transaction) => {
@@ -90,7 +101,7 @@ Transaction.on('archive', () => (buckets = buckets));
 
 let subtotal = 0;
 $: {
-    subtotal = transactions.reduce((acc, t) => {
+    subtotal = transactionView.reduce((acc, t) => {
         if (t.transaction.type === 'deposit') return acc + t.transaction.amount;
         return acc - t.transaction.amount;
     }, 0);
@@ -135,12 +146,14 @@ $: {
                     </tr>
                 </thead>
                 <tbody>
-                    {#each transactions as t}
+                    {#each transactionView as t}
                         <tr on:click="{() => update(t.transaction)}" class="cursor-pointer">
                             <td>{new Date(t.transaction.date).toLocaleDateString()}</td>
-                            <td 
-                                class="{t.transaction.type === 'deposit' ? 'text-success' : 'text-danger'}"
-                            >{cost(t.transaction.amount)}</td>
+                            {#if t.transaction.type === 'deposit'}
+                                <td class="text-success">{cost(+t.transaction.amount)}</td>
+                            {:else}
+                                <td class="text-danger">{cost(-+t.transaction.amount)}</td>
+                            {/if}
                             <td>{t.type.name}</td>
                             <td>{t.subtype.name}</td>
                             <td>{t.bucket ? t.bucket.name : 'None'}</td>
