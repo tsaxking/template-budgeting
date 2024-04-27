@@ -7,6 +7,8 @@ import { BalanceCorrection } from '../../../models/transactions/balance-correcti
 import { Modal } from '../../../utilities/modals';
 import NewBalanceCorrection from './NewBalanceCorrection.svelte';
 import { Transaction } from '../../../models/transactions/transaction';
+import UpdateBalanceCorrection from './UpdateBalanceCorrection.svelte';
+import UpdateBucket from './UpdateBucket.svelte';
 
 export let bucket: Bucket;
 // export let from: number;
@@ -24,6 +26,22 @@ const generate = () => {
         balance = b.value;
         if (c.isErr()) return console.error(c.error);
         corrections = c.value;
+    });
+};
+
+const editBucket = () => {
+    const m = new Modal();
+    m.setTitle('Edit Bucket');
+    const b = new UpdateBucket({
+        target: m.target.querySelector('.modal-body') as HTMLElement,
+        props: {
+            bucket
+        }
+    });
+    m.show();
+    b.$on('submit', () => {
+        m.hide();
+        m.destroy();
     });
 };
 
@@ -48,15 +66,34 @@ const correction = () => {
     });
 };
 
+const editCorrection = (correction: BalanceCorrection) => {
+    const m = new Modal();
+    m.setTitle('Edit Balance Correction');
+    const b = new UpdateBalanceCorrection({
+        target: m.target.querySelector('.modal-body') as HTMLElement,
+        props: {
+            correction
+        }
+    });
+    m.show();
+    b.$on('submit', () => {
+        m.hide();
+        m.destroy();
+    });
+}
+
 bucket.on('updated', generate);
 bucket.on('balance-correction', generate);
 
-// bucket.on('new-transaction', generate);
 Transaction.on('new', generate);
+Transaction.on('update', generate);
 Transaction.on('archive', generate);
+BalanceCorrection.on('new', generate);
+BalanceCorrection.on('update', generate);
+BalanceCorrection.on('archive', generate);
 </script>
 
-<div class="container">
+<div class="container-fluid">
     <div class="row mb-2">
         <table class="table table-striped table-hover">
             <thead>
@@ -98,7 +135,10 @@ Transaction.on('archive', generate);
             </thead>
             <tbody>
                 {#each corrections as correction}
-                    <tr>
+                    <tr
+                        on:click={() => editCorrection(correction)}
+                        class="cursor-pointer"
+                    >
                         <td
                             class="{correction.balance >= 0
                                 ? 'text-success'
@@ -113,5 +153,13 @@ Transaction.on('archive', generate);
                 {/each}
             </tbody>
         </table>
+    </div>
+    <div class="row mb-2">
+        <button class="btn btn-secondary" on:click={editBucket}>
+            <i class="material-icons">
+                edit
+            </i>
+            Edit
+        </button>
     </div>
 </div>

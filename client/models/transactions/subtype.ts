@@ -82,6 +82,8 @@ export class Subtype extends Cache<SubtypeEvents> {
 
         if (!Subtype.cache.has(data.id)) {
             Subtype.cache.set(data.id, this);
+        } else {
+            throw new Error('Subtype already exists');
         }
     }
 

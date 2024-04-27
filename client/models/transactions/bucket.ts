@@ -11,6 +11,7 @@ import { Subscription } from './subscription';
 
 type GlobalBucketEvents = {
     new: Bucket;
+    update: Bucket;
 };
 
 type BucketEvents = {
@@ -130,6 +131,8 @@ export class Bucket extends Cache<BucketEvents> {
 
         if (!Bucket.cache.has(this.id)) {
             Bucket.cache.set(this.id, this);
+        } else {
+            throw new Error('Bucket already exists');
         }
     }
 
@@ -267,6 +270,7 @@ socket.on('buckets:updated', (data: B) => {
     if (!b) return;
     Object.assign(b, data);
     b.emit('updated', undefined);
+    Bucket.emit('update', b);
 });
 
 socket.on('buckets:archived', (data: B) => {

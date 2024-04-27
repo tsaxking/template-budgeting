@@ -114,6 +114,7 @@ export class Subscription extends Cache<SubscriptionEvents> {
 
         if (!Subscription.cache.has(data.id))
             Subscription.cache.set(data.id, this);
+        else throw new Error('Subscription already exists in cache');
     }
 
     update(data: {

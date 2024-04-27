@@ -47,6 +47,8 @@ onMount(() => {
 
     return () => {};
 });
+
+Bucket.on('update', () => buckets = buckets);
 </script>
 
 <div class="container-fluid">
@@ -85,14 +87,14 @@ onMount(() => {
     </div>
     <div class="row mb-3">
         {#each buckets as bucket}
-            <DashboardCard title="{bucket.name}">
+            <DashboardCard title="{bucket.name}" expandable={true}>
                 <BucketBasics {bucket} {to} />
             </DashboardCard>
         {/each}
-        <DashboardCard title="Transactions">
+        <DashboardCard title="Transactions" expandable={true}>
             <TransactionTable {from} {to} {buckets}/>
         </DashboardCard>
-        <DashboardCard title="Chart">
+        <DashboardCard title="Chart" expandable={true}>
             <TransactionChart {from} {to} {buckets}/>
         </DashboardCard>
     </div>

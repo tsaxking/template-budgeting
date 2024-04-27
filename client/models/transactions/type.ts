@@ -74,6 +74,11 @@ export class Type extends Cache<TypeEvents> {
         this.dateModified = data.dateModified;
 
         if (!Type.cache.has(this.id)) Type.cache.set(this.id, this);
+        else {
+            throw new Error(
+                `Type with id ${this.id} already exists in cache.`
+            );
+        }
     }
 
     update(name: string) {

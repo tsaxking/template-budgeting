@@ -12,7 +12,7 @@ export type Transaction = {
     picture: string | null;
 };
 
-export type BucketType = 'debit' | 'credit' | 'savings';
+export type BucketType = 'debit' | 'credit' | 'savings' | 'other';
 
 export type Bucket = {
     id: string;
