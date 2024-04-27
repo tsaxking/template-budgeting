@@ -10,6 +10,7 @@ import { Bucket } from './bucket';
 
 type GlobalTransactionEvents = {
     new: Transaction;
+    archive: Transaction;
 };
 
 type TransactionEvents = {
@@ -211,16 +212,17 @@ socket.on(
     }
 );
 
-socket.on('transactions:archived', (data: { bucketId: string }) => {
-    const t = Transaction.cache.get(data.bucketId);
+socket.on('transactions:archived', (id: string) => {
+    const t = Transaction.cache.get(id);
     if (!t) return;
 
     t.archived = 1;
     t.emit('update', undefined);
+    Transaction.emit('archive', t);
 });
 
-socket.on('transactions:restored', (data: { bucketId: string }) => {
-    const t = Transaction.cache.get(data.bucketId);
+socket.on('transactions:restored', (id: string) => {
+    const t = Transaction.cache.get(id);
     if (!t) return;
 
     t.archived = 0;

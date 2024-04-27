@@ -9,7 +9,7 @@ import NewBalanceCorrection from './NewBalanceCorrection.svelte';
 import { Transaction } from '../../../models/transactions/transaction';
 
 export let bucket: Bucket;
-export let from: number;
+// export let from: number;
 export let to: number;
 
 let balance = 0;
@@ -17,8 +17,8 @@ let corrections: BalanceCorrection[] = [];
 
 const generate = () => {
     Promise.all([
-        bucket.getBalance(from, to),
-        bucket.getBalanceCorrections(from, to)
+        bucket.getBalance(0, to),
+        bucket.getBalanceCorrections(0, to)
     ]).then(([b, c]) => {
         if (b.isErr()) return console.error(b.error);
         balance = b.value;
@@ -53,6 +53,7 @@ bucket.on('balance-correction', generate);
 
 // bucket.on('new-transaction', generate);
 Transaction.on('new', generate);
+Transaction.on('archive', generate);
 </script>
 
 <div class="container">
