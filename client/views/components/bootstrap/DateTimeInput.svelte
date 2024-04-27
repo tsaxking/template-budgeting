@@ -9,7 +9,10 @@
         const [m, d, y] = date.toLocaleDateString().split('/');
         return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
     })();
-    let time: string = date.toTimeString().split(' ')[0];
+    let time: string = (() => {
+        const [h, m] = date.toLocaleTimeString().split(':');
+        return `${h.padStart(2, '0')}:${m.padStart(2, '0')}`;
+    })();
 
     const update = (value: string, time: string) => {
         console.log(value, time);

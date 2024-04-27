@@ -9,7 +9,7 @@ import NewSubtype from './NewSubtype.svelte';
 export let type: Type;
 export let subtypes: Subtype[] = [];
 
-const mount = () => {
+const mount = (type: Type) => {
     type.getSubtypes().then(s => {
         if (s.isErr()) {
             subtypes = [];
@@ -19,16 +19,22 @@ const mount = () => {
     });
 }
 
-Subtype.on('new', mount);
+Subtype.on('new', () => {
+    mount(type);
+});
 
 const d = createEventDispatcher();
 
 export let value: Subtype | undefined;
-let selected: string | undefined;
+let selected: string | undefined = value?.id;
 $: {
     value = subtypes.find(subtype => subtype.id === selected);
     d('change', value);
 }
+
+$: mount(type);
+
+$: console.log({ selected });
 
 const create = async () => {
     const m = new Modal();
@@ -46,7 +52,7 @@ const create = async () => {
 };
 
 onMount(() => {
-    mount();
+    mount(type);
     return () => {
         subtypes = [];
         value = undefined;
@@ -62,6 +68,7 @@ onMount(() => {
                 bind:value="{selected}"
                 options="{subtypes.map(t => t.name)}"
                 values="{subtypes.map(t => t.id)}"
+                defaultValue="Select a subtype"
             />
         </div>
         <div class="col-3 m-0 p-0">

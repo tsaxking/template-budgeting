@@ -55,6 +55,17 @@ export class Bucket extends Cache<BucketEvents> {
         });
     }
 
+    public static transactionsFromBuckets(buckets: Bucket[], from: number, to: number) {
+        return attemptAsync(async () => {
+            return (await Promise.all(buckets.map(async b => {
+                return b.getTransactions(from, to).then(transactions => {
+                    if (transactions.isErr()) throw transactions.error;
+                    return transactions.value.reverse();
+                });
+            }))).flat();
+        });
+    }
+
     public static async fromId(id: string) {
         return attemptAsync(async () => {
             if (Bucket.cache.has(id)) return Bucket.cache.get(id);

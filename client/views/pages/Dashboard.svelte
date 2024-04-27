@@ -7,6 +7,7 @@ import TransactionTable from '../components/transactions/TransactionTable.svelte
 import { Modal } from '../../utilities/modals';
 import NewTransaction from '../components/transactions/NewTransaction.svelte';
 import { onMount } from 'svelte';
+import TransactionChart from '../components/transactions/TransactionChart.svelte';
 
 let buckets: Bucket[] = [];
 let search: string = '';
@@ -40,8 +41,7 @@ onMount(() => {
     fromDate.setHours(0, 0, 0, 0);
     const [fm, fd, fy] = fromDate.toLocaleDateString().split('/');
     fromStr = `${fy}-${fm.padStart(2, '0')}-${fd.padStart(2, '0')}`;
-    const toDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    toDate.setHours(23, 59, 59, 999);
+    const toDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
     const [tm, td, ty] = toDate.toLocaleDateString().split('/');
     toStr = `${ty}-${tm.padStart(2, '0')}-${td.padStart(2, '0')}`;
 
@@ -74,7 +74,7 @@ onMount(() => {
                     class="form-control"
                     bind:value="{toStr}"
                 />
-                <span class="input-group-text">
+                <!-- <span class="input-group-text">
                     <i class="bi bi-search"></i>
                 </span>
                 <input
@@ -83,7 +83,7 @@ onMount(() => {
                     class="form-control"
                     placeholder="Search..."
                     bind:value="{search}"
-                />
+                /> -->
             </div>
         </div>
     </div>
@@ -100,7 +100,10 @@ onMount(() => {
             </DashboardCard>
         {/each}
         <DashboardCard title="Transactions">
-            <TransactionTable {from} {to} {buckets} />
+            <TransactionTable {from} {to} {buckets}/>
+        </DashboardCard>
+        <DashboardCard title="Chart">
+            <TransactionChart {from} {to} {buckets}/>
         </DashboardCard>
     </div>
 </div>

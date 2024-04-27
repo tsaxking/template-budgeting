@@ -6,6 +6,7 @@ import { ServerRequest } from '../../utilities/requests';
 import { socket } from '../../utilities/socket';
 import { Type } from './type';
 import { Subtype } from './subtype';
+import { Bucket } from './bucket';
 
 type GlobalTransactionEvents = {
     new: Transaction;
@@ -56,6 +57,9 @@ export class Transaction extends Cache<TransactionEvents> {
                     buckets,
                     from,
                     to
+                },
+                {
+                    cached: false
                 }
             );
 
@@ -112,7 +116,7 @@ export class Transaction extends Cache<TransactionEvents> {
     ) {
         super();
         this.id = data.id;
-        this.amount = data.amount;
+        this.amount = +data.amount;
         this.type = data.type;
         this.status = data.status;
         this.date = +data.date;
@@ -189,8 +193,11 @@ export class Transaction extends Cache<TransactionEvents> {
 }
 
 socket.on('transactions:created', (data: T) => {
+    console.log('Created!');
     const t = new Transaction(data);
     Transaction.emit('new', t);
+    const b = Bucket.cache.get(t.bucketId);
+    if (b) b.emit('new-transaction', t);
 });
 
 socket.on(
@@ -211,6 +218,7 @@ socket.on('transactions:archived', (data: { bucketId: string }) => {
     t.archived = 1;
     t.emit('update', undefined);
 });
+
 socket.on('transactions:restored', (data: { bucketId: string }) => {
     const t = Transaction.cache.get(data.bucketId);
     if (!t) return;

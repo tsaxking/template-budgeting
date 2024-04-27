@@ -50,7 +50,7 @@ router.post<{
         });
 
         res.sendStatus('transaction-types:type-created');
-        req.io.emit('transaction-type:type-created', {
+        req.io.emit('transaction-types:type-created', {
             id,
             name,
             dateCreated,
@@ -87,7 +87,7 @@ router.post<{
         });
 
         res.sendStatus('transaction-types:subtype-created');
-        req.io.emit('transaction-type:subtype-created', {
+        req.io.emit('transaction-types:subtype-created', {
             id,
             name,
             typeId,
@@ -160,7 +160,7 @@ router.post<{
         });
 
         res.sendStatus('transaction-types:subtype-updated');
-        req.io.emit('transaction-type:subtype-updated', {
+        req.io.emit('transaction-types:subtype-updated', {
             id,
             name,
             typeId,
