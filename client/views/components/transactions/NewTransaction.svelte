@@ -8,6 +8,8 @@ import { Subtype } from '../../../models/transactions/subtype';
 import TypeSelector from '../types/TypeSelector.svelte';
 import SubtypeSelector from '../types/SubtypeSelector.svelte';
 import DateTimeInput from '../bootstrap/DateTimeInput.svelte';
+import { Random } from '../../../../shared/math';
+const id = Random.uuid();
 
 let buckets: Bucket[] = [];
 
@@ -16,11 +18,15 @@ onMount(() => {
         if (b.isErr()) return console.error(b.error);
         buckets = b.value;
     });
+
+    return () => {
+        buckets = [];
+    };
 });
 
 let amount = '';
 let date = new Date();
-let status: 'pending' | 'completed' | 'failed' = 'pending';
+let status: 'pending' | 'completed' | 'failed' = 'completed';
 let bucketId = '';
 let description = '';
 let type: 'withdrawal' | 'deposit' = 'withdrawal';
@@ -60,6 +66,39 @@ const create = async () => {
             bind:value="{amount}"
             step="0.01"
         />
+    </div>
+    <div class="mb-3">
+        <!-- button radio -->
+        <div class="btn-group" role="group">
+            <input
+                type="radio"
+                class="btn-check"
+                name="transaction-type"
+                id="transaction-type-withdrawal-{id}"
+                value="withdrawal"
+                bind:group="{type}"
+            />
+            <label
+                class="btn btn-outline-danger"
+                for="transaction-type-withdrawal-{id}"
+            >
+                Withdrawal
+            </label>
+            <input
+                type="radio"
+                class="btn-check"
+                name="transaction-type"
+                id="transaction-type-deposit-{id}"
+                value="deposit"
+                bind:group="{type}"
+            />
+            <label
+                class="btn btn-outline-success"
+                for="transaction-type-deposit-{id}"
+            >
+                Deposit
+            </label>
+        </div>
     </div>
     <div class="mb-3">
         <DateTimeInput bind:date={date} />
@@ -103,7 +142,7 @@ const create = async () => {
             <label for="transaction-subtype mb-1">
                 Subtype
             </label>
-            <SubtypeSelector bind:value={s} type={t} />
+            <SubtypeSelector bind:value={s} bind:type={t} />
         {/if}
     </div>
     <div class="mb-3">

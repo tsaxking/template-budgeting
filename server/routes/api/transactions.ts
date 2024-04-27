@@ -17,7 +17,7 @@ router.post<{
         buckets: (v: unknown[]) =>
             Array.isArray(v) && v.every(i => typeof i === 'string'),
         from: 'number',
-        to: 'number'
+        to: 'number',
     }),
     async (req, res) => {
         const { buckets, from, to } = req.body;
@@ -29,8 +29,6 @@ router.post<{
                 )
             )
         );
-
-        console.log({ transactions });
 
         if (transactions.isErr()) return res.sendStatus('unknown:error');
 
@@ -63,7 +61,7 @@ router.post<{
         subtypeId: 'string',
         taxDeductible: 'boolean'
     }),
-    (req, res) => {
+    async (req, res) => {
         const {
             amount,
             type,
@@ -77,7 +75,7 @@ router.post<{
 
         const id = uuid();
 
-        DB.run('transactions/new', {
+        await DB.run('transactions/new', {
             id,
             amount,
             type,

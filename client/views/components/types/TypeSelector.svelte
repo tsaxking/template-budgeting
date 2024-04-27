@@ -12,11 +12,14 @@ Type.on('new', (t) => {
 const d = createEventDispatcher();
 
 export let value: Type | undefined;
-let selected: string | undefined;
+console.log(value);
+let selected: string | undefined = value?.id || '';
 $: {
-    value = types.find(type => type.id === selected);
+    value = value ? value : types.find(type => type.id === selected);
     d('change', value);
 }
+
+$: console.log({ selected });
 
 const create = async () => {
     prompt('Enter the name of the new type').then((n) => {
@@ -44,6 +47,7 @@ onMount(() => {
                 bind:value="{selected}"
                 options="{types.map(t => t.name)}"
                 values="{types.map(t => t.id)}"
+                defaultValue="Select a type"
             />
         </div>
         <div class="col-3 m-0 p-0">

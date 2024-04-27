@@ -764,8 +764,10 @@ export class ServerRequest<T = unknown> {
 
         // console.log({ isRequesting });
 
+        const cached = typeof this.options?.cached === 'boolean' ? this.options.cached : true;
+
         // greater than 1 because "this" is one of them
-        if (isRequesting.length > 1) {
+        if (isRequesting.length > 1 && cached) {
             const [r] = isRequesting;
             // warn('Currently requesting...');
             const d = await r.promise;

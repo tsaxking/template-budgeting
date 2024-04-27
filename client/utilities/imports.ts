@@ -11,3 +11,7 @@ import './socket';
 
 // settings
 import './settings';
+
+
+import { Chart, registerables } from 'chart.js';
+Chart.register(...registerables);

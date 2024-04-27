@@ -6,6 +6,7 @@ import { cost } from '../../../../shared/text';
 import { BalanceCorrection } from '../../../models/transactions/balance-correction';
 import { Modal } from '../../../utilities/modals';
 import NewBalanceCorrection from './NewBalanceCorrection.svelte';
+import { Transaction } from '../../../models/transactions/transaction';
 
 export let bucket: Bucket;
 export let from: number;
@@ -49,6 +50,9 @@ const correction = () => {
 
 bucket.on('updated', generate);
 bucket.on('balance-correction', generate);
+
+// bucket.on('new-transaction', generate);
+Transaction.on('new', generate);
 </script>
 
 <div class="container">
