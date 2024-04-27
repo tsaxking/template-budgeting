@@ -5,16 +5,16 @@ import { uuid } from '../../utilities/uuid';
 
 export const router = new Route();
 
-router.post('/all', (_req, res) => {
-    const subs = DB.all('subscriptions/active');
-
-    res.json(subs);
+router.post('/all', async (_req, res) => {
+    const subs = await DB.all('subscriptions/active');
+    if (subs.isErr()) return res.sendStatus('unknown:error');
+    res.json(subs.value);
 });
 
-router.post('/archived', (_req, res) => {
-    const subs = DB.all('subscriptions/archived');
-
-    res.json(subs);
+router.post('/archived', async (_req, res) => {
+    const subs = await DB.all('subscriptions/archived');
+    if (subs.isErr()) return res.sendStatus('unknown:error');
+    res.json(subs.value);
 });
 
 router.post<{
@@ -24,14 +24,16 @@ router.post<{
     validate({
         bucketId: 'string'
     }),
-    (req, res) => {
+    async (req, res) => {
         const { bucketId } = req.body;
 
-        const subs = DB.all('subscriptions/from-bucket', {
+        const subs = await DB.all('subscriptions/from-bucket', {
             bucketId
         });
 
-        res.json(subs);
+        if (subs.isErr()) return res.sendStatus('unknown:error');
+
+        res.json(subs.value);
     }
 );
 
