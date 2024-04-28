@@ -1,30 +1,30 @@
 <script lang="ts">
-    import { onMount, createEventDispatcher } from 'svelte';
+import { onMount, createEventDispatcher } from 'svelte';
 
-    export let date: Date;
+export let date: Date = new Date();
 
-    const d = createEventDispatcher();
+const d = createEventDispatcher();
 
-    let value: string = (() => {
-        const [m, d, y] = date.toLocaleDateString().split('/');
-        return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
-    })();
-    let time: string = (() => {
-        const [h, m] = date.toLocaleTimeString().split(':');
-        return `${h.padStart(2, '0')}:${m.padStart(2, '0')}`;
-    })();
+let value: string = (() => {
+    const [m, d, y] = date.toLocaleDateString().split('/');
+    return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+})();
+let time: string = (() => {
+    const [h, m] = date.toLocaleTimeString().split(':');
+    return `${h.padStart(2, '0')}:${m.padStart(2, '0')}`;
+})();
 
-    const update = (value: string, time: string) => {
-        console.log(value, time);
-        date = new Date(`${value}T${time}`);
-        d('change', date);
-    };
+const update = (value: string, time: string) => {
+    console.log(value, time);
+    date = new Date(`${value}T${time}`);
+    d('change', date);
+};
 
-    onMount(() => {
-        return () => {};
-    });
+onMount(() => {
+    return () => {};
+});
 
-    $: update(value, time);
+$: update(value, time);
 </script>
 
 <!-- date and time input -->
@@ -33,17 +33,9 @@
     <span class="input-group-text">
         <i class="bi bi-calendar"></i>
     </span>
-    <input
-        type="date"
-        class="form-control"
-        bind:value="{value}"
-    />
+    <input type="date" class="form-control" bind:value />
     <span class="input-group-text">
         <i class="bi bi-clock"></i>
     </span>
-    <input
-        type="time"
-        class="form-control"
-        bind:value="{time}"
-    />
+    <input type="time" class="form-control" bind:value="{time}" />
 </div>

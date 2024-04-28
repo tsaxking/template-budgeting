@@ -9,7 +9,8 @@ INSERT INTO Subscriptions (
     description,
     picture,
     taxDeductible,
-    amount
+    amount,
+    type
 ) VALUES (
     :id,
     :name,
@@ -21,5 +22,6 @@ INSERT INTO Subscriptions (
     :description,
     :picture,
     :taxDeductible,
-    :amount
+    :amount,
+    :type
 );

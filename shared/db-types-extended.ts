@@ -37,12 +37,15 @@ export type Miles = {
     archived: 0 | 1;
 };
 
+export type SubscriptionInterval = 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly';
+
 export type Subscription = {
     id: string;
     name: string;
     startDate: number;
     endDate: number | null;
-    interval: number; // in ms
+    interval: SubscriptionInterval;
+    period: number; // how many intervals after the "0" interval (for hourly, 0 = midnight, 1 = 1am, etc.)
     bucketId: string;
     amount: number; // in cents
     subtypeId: string;
@@ -50,6 +53,7 @@ export type Subscription = {
     picture: string | null;
     taxDeductible: 0 | 1;
     archived: 0 | 1;
+    type: "deposit" | "withdrawal";
 };
 
 export type TransactionType = {

@@ -17,7 +17,7 @@ router.post<{
         buckets: (v: unknown[]) =>
             Array.isArray(v) && v.every(i => typeof i === 'string'),
         from: 'number',
-        to: 'number',
+        to: 'number'
     }),
     async (req, res) => {
         const { buckets, from, to } = req.body;

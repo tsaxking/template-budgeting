@@ -56,14 +56,25 @@ export class Bucket extends Cache<BucketEvents> {
         });
     }
 
-    public static transactionsFromBuckets(buckets: Bucket[], from: number, to: number) {
+    public static transactionsFromBuckets(
+        buckets: Bucket[],
+        from: number,
+        to: number
+    ) {
         return attemptAsync(async () => {
-            return (await Promise.all(buckets.map(async b => {
-                return b.getTransactions(from, to).then(transactions => {
-                    if (transactions.isErr()) throw transactions.error;
-                    return transactions.value.reverse();
-                });
-            }))).flat();
+            return (
+                await Promise.all(
+                    buckets.map(async b => {
+                        return b
+                            .getTransactions(from, to)
+                            .then(transactions => {
+                                if (transactions.isErr())
+                                    throw transactions.error;
+                                return transactions.value.reverse();
+                            });
+                    })
+                )
+            ).flat();
         });
     }
 
@@ -93,7 +104,7 @@ export class Bucket extends Cache<BucketEvents> {
             const res = await ServerRequest.post<B[]>('/api/buckets/all');
             if (res.isErr()) throw res.error;
 
-            const buckets = res.value.map(bucket => new Bucket(bucket));
+            const buckets = res.value.map(bucket => Bucket.retrieve(bucket));
             return buckets;
         });
     }
@@ -109,8 +120,15 @@ export class Bucket extends Cache<BucketEvents> {
             const res = await ServerRequest.post<B[]>('/api/buckets/archived');
             if (res.isErr()) throw res.error;
 
-            return res.value.map(bucket => new Bucket(bucket));
+            return res.value.map(bucket => Bucket.retrieve(bucket));
         });
+    }
+
+    public static retrieve(data: B) {
+        const exists = Bucket.cache.get(data.id);
+        if (exists) return exists;
+
+        return new Bucket(data);
     }
 
     public readonly id: string;
@@ -243,7 +261,7 @@ export class Bucket extends Cache<BucketEvents> {
                 ...corrections.value
             ].sort((a, b) => +a.date - +b.date);
 
-            console.log({ data });
+            // console.log({ data });
 
             let balance = 0;
             for (const d of data) {

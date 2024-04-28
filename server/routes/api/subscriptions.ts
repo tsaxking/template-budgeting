@@ -44,10 +44,10 @@ router.post<{
     interval: number;
     taxDeductible: boolean;
     description: string;
-    picture: string;
     startDate: number;
     endDate: number | null;
     subtypeId: string;
+    type: 'deposit' | 'withdrawal';
 }>(
     '/new',
     validate({
@@ -57,10 +57,10 @@ router.post<{
         interval: 'number',
         taxDeductible: 'boolean',
         description: 'string',
-        picture: 'string',
         startDate: 'number',
         endDate: (v: number | null) => v === null || typeof v === 'number',
-        subtypeId: 'string'
+        subtypeId: 'string',
+        type: ['deposit', 'withdrawal']
     }),
     (req, res) => {
         const {
@@ -70,10 +70,10 @@ router.post<{
             interval,
             taxDeductible,
             description,
-            picture,
             startDate,
             endDate,
-            subtypeId
+            subtypeId,
+            type
         } = req.body;
 
         const id = uuid();
@@ -86,10 +86,11 @@ router.post<{
             interval,
             taxDeductible: +taxDeductible,
             description,
-            picture,
+            picture: '',
             startDate,
             endDate: endDate || undefined,
-            subtypeId
+            subtypeId,
+            type
         });
 
         res.sendStatus('subscriptions:created');
@@ -101,10 +102,10 @@ router.post<{
             interval,
             taxDeductible,
             description,
-            picture,
             startDate,
             endDate,
-            subtypeId
+            subtypeId,
+            type
         });
     }
 );

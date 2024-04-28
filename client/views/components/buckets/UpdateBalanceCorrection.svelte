@@ -19,33 +19,37 @@ const submit = () => {
         balance
     });
     d('submit');
-}
+};
 
 onMount(() => {
     Bucket.all().then(b => {
         if (b.isErr()) return console.error(b.error);
         buckets = b.value;
     });
-    return () => { buckets = []; };
+    return () => {
+        buckets = [];
+    };
 });
 </script>
 
 <form on:submit|preventDefault="{submit}">
     <DateTimeInput bind:date />
     <div class="mb-3">
-        <label for="correction-balance" class="form-label">
-            Balance
-        </label>
+        <label for="correction-balance" class="form-label"> Balance </label>
         <input
             type="number"
             id="correction-balance"
             class="form-control"
             bind:value="{balance}"
             step="0.01"
-        /> 
+        />
     </div>
     <div class="mb-3">
-        <Select bind:value="{bucketId}" options="{buckets.map(b => b.name)}" values={buckets.map(b => b.id)} />
+        <Select
+            bind:value="{bucketId}"
+            options="{buckets.map(b => b.name)}"
+            values="{buckets.map(b => b.id)}"
+        />
     </div>
     <button type="submit" class="btn btn-primary"> Submit </button>
 </form>

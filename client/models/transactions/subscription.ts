@@ -1,6 +1,6 @@
 import { Cache } from '../cache';
 
-import { Subscription as S } from '../../../shared/db-types-extended';
+import { Subscription as S, SubscriptionInterval } from '../../../shared/db-types-extended';
 import { EventEmitter } from '../../../shared/event-emitter';
 import { attemptAsync } from '../../../shared/check';
 import { ServerRequest } from '../../utilities/requests';
@@ -51,7 +51,7 @@ export class Subscription extends Cache<SubscriptionEvents> {
             const res = await ServerRequest.post<S[]>('/api/subscriptions/all');
 
             if (res.isErr()) throw res.error;
-            return res.value.map(t => new Subscription(t));
+            return res.value.map(t => Subscription.retrieve(t));
         });
     }
 
@@ -65,7 +65,7 @@ export class Subscription extends Cache<SubscriptionEvents> {
             );
 
             if (res.isErr()) throw res.error;
-            return res.value.map(t => new Subscription(t));
+            return res.value.map(t => Subscription.retrieve(t));
         });
     }
 
@@ -73,22 +73,31 @@ export class Subscription extends Cache<SubscriptionEvents> {
         bucketId: string;
         name: string;
         amount: number;
-        interval: number;
+        interval: SubscriptionInterval;
+        period: number;
         taxDeductible: boolean;
         description: string;
-        picture: string;
         startDate: number;
         endDate: number | null;
         subtypeId: string;
+        type: 'deposit' | 'withdrawal';
     }) {
         return ServerRequest.post('/api/subscriptions/new', data);
+    }
+
+    public static retrieve(data: S) {
+        const exists = Subscription.cache.get(data.id);
+        if (exists) return exists;
+
+        return new Subscription(data);
     }
 
     public readonly id: string;
     public name: string;
     public startDate: number;
     public endDate: number | null;
-    public interval: number; // in ms
+    public interval: SubscriptionInterval; // in ms
+    public period: number;
     public bucketId: string;
     public amount: number; // in cents
     public subtypeId: string;
@@ -96,6 +105,7 @@ export class Subscription extends Cache<SubscriptionEvents> {
     public picture: string | null;
     public taxDeductible: 0 | 1;
     public archived: 0 | 1;
+    public type: 'deposit' | 'withdrawal';
 
     constructor(data: S) {
         super();
@@ -111,6 +121,8 @@ export class Subscription extends Cache<SubscriptionEvents> {
         this.endDate = data.endDate;
         this.subtypeId = data.subtypeId;
         this.archived = data.archived;
+        this.type = data.type;
+        this.period = data.period;
 
         if (!Subscription.cache.has(data.id))
             Subscription.cache.set(data.id, this);
@@ -157,7 +169,27 @@ export class Subscription extends Cache<SubscriptionEvents> {
         let next = start;
         while (next <= t) {
             dates.push(next);
-            next = new Date(next.getTime() + this.interval);
+            switch (this.interval) {
+                case 'daily':
+                    next = new Date(next.getTime() + 1000 * 60 * 60 * 24)
+                    break;
+                case 'hourly':
+                    next = new Date(next.getTime() + 1000 * 60 * 60);
+                    break;
+                case 'monthly':
+                    next = new Date(next.getTime());
+                    next.setMonth(next.getMonth() + 1);
+                    break;
+                case 'weekly':
+                    next = new Date(next.getTime());
+                    next.setDate(next.getDate() + 7);
+                    break;
+                case 'yearly':
+                    next = new Date(next.getTime());
+                    next.setFullYear(next.getFullYear() + 1);
+                    break;
+                default:
+            }
         }
 
         return dates.map(d => {

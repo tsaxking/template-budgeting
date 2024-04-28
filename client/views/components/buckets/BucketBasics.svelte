@@ -22,6 +22,7 @@ const generate = () => {
         bucket.getBalance(0, to),
         bucket.getBalanceCorrections(0, to)
     ]).then(([b, c]) => {
+        console.log(b, c);
         if (b.isErr()) return console.error(b.error);
         balance = b.value;
         if (c.isErr()) return console.error(c.error);
@@ -80,7 +81,7 @@ const editCorrection = (correction: BalanceCorrection) => {
         m.hide();
         m.destroy();
     });
-}
+};
 
 bucket.on('updated', generate);
 bucket.on('balance-correction', generate);
@@ -94,6 +95,7 @@ BalanceCorrection.on('archive', generate);
 </script>
 
 <div class="container-fluid">
+    <!-- <button on:click={() => bucket.getTransactions(0, to).then(console.log)}>click me!</button> -->
     <div class="row mb-2">
         <table class="table table-striped table-hover">
             <thead>
@@ -136,7 +138,7 @@ BalanceCorrection.on('archive', generate);
             <tbody>
                 {#each corrections as correction}
                     <tr
-                        on:click={() => editCorrection(correction)}
+                        on:click="{() => editCorrection(correction)}"
                         class="cursor-pointer"
                     >
                         <td
@@ -155,10 +157,8 @@ BalanceCorrection.on('archive', generate);
         </table>
     </div>
     <div class="row mb-2">
-        <button class="btn btn-secondary" on:click={editBucket}>
-            <i class="material-icons">
-                edit
-            </i>
+        <button class="btn btn-secondary" on:click="{editBucket}">
+            <i class="material-icons"> edit </i>
             Edit
         </button>
     </div>

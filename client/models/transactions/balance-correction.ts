@@ -62,8 +62,15 @@ export class BalanceCorrection extends Cache<BalanceCorrectionEvents> {
             );
             if (res.isErr()) throw res.error;
 
-            return res.value.map(b => new BalanceCorrection(b));
+            return res.value.map(b => BalanceCorrection.retrieve(b));
         });
+    }
+
+    public static retrieve(data: B) {
+        const correction = BalanceCorrection.cache.get(data.id);
+        if (correction) return correction;
+
+        return new BalanceCorrection(data);
     }
 
     public readonly id: string;
@@ -78,14 +85,14 @@ export class BalanceCorrection extends Cache<BalanceCorrectionEvents> {
         this.balance = +data.balance;
         this.bucketId = data.bucketId;
 
-        if (BalanceCorrection.cache.has(this.id))
-            {
-                throw new Error('Balance correction already exists');
+        if (BalanceCorrection.cache.has(this.id)) {
+            throw new Error('Balance correction already exists');
         } else {
             BalanceCorrection.cache.set(this.id, this);
-        }}
+        }
+    }
 
-    update(data: Partial<{ date: number; balance: number, bucketId: string }>) {
+    update(data: Partial<{ date: number; balance: number; bucketId: string }>) {
         return ServerRequest.post('/api/balance-correction/update', {
             id: this.id,
             date: data.date ?? this.date,
