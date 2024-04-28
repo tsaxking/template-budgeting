@@ -28,38 +28,41 @@ let transactionView: {
 }[] = [];
 
 $: {
-    Bucket.transactionsFromBuckets(buckets, from, to)
-    .then(async ts => {
+    Bucket.transactionsFromBuckets(buckets, from, to).then(async ts => {
         if (ts.isErr()) return console.error(ts.error);
-        transactions = (await Promise.all(ts.value.reverse().map(async t => {
-            const [bucket, typeInfo] = await Promise.all([
-                Bucket.fromId(t.bucketId),
-                t.getTypeInfo()
-            ]);
+        transactions = await Promise.all(
+            ts.value.reverse().map(async t => {
+                const [bucket, typeInfo] = await Promise.all([
+                    Bucket.fromId(t.bucketId),
+                    t.getTypeInfo()
+                ]);
 
-            if (bucket.isErr()) throw bucket.error;
-            if (typeInfo.isErr()) throw typeInfo.error;
+                if (bucket.isErr()) throw bucket.error;
+                if (typeInfo.isErr()) throw typeInfo.error;
 
-            return {
-                transaction: t,
-                bucket: bucket.value,
-                subtype: typeInfo.value.subtype,
-                type: typeInfo.value.type
-            };
-        })))
+                return {
+                    transaction: t,
+                    bucket: bucket.value,
+                    subtype: typeInfo.value.subtype,
+                    type: typeInfo.value.type
+                };
+            })
+        );
     });
 }
 
 $: {
-    transactionView = transactions
-    .filter(t => {
+    transactionView = transactions.filter(t => {
         if (!search) return true;
         return [
             t.transaction.description,
             t.type.name,
             t.subtype.name,
             t.bucket ? t.bucket.name : ''
-        ].map(t => t.toLowerCase()).join('').includes(search.toLowerCase());
+        ]
+            .map(t => t.toLowerCase())
+            .join('')
+            .includes(search.toLowerCase());
     });
 }
 
@@ -78,7 +81,9 @@ const update = (t: Transaction) => {
         b.classList.add('btn', 'btn-danger');
         b.innerHTML = `<i class="fas fa-archive"></i> Archive`;
         b.addEventListener('click', async () => {
-            const confirmed = await confirm('Are you sure you want to delete this transaction?');
+            const confirmed = await confirm(
+                'Are you sure you want to delete this transaction?'
+            );
             if (!confirmed) return;
             t.setArchive(true);
             m.hide();
@@ -127,9 +132,9 @@ $: {
             Showing {transactions.length} transactions
         </div>
         {#if !!search.length}
-        <div class="col-6">
-            Subtotal: {cost(subtotal)}
-        </div>
+            <div class="col-6">
+                Subtotal: {cost(subtotal)}
+            </div>
         {/if}
     </div>
     <div class="row">
@@ -147,12 +152,23 @@ $: {
                 </thead>
                 <tbody>
                     {#each transactionView as t}
-                        <tr on:click="{() => update(t.transaction)}" class="cursor-pointer">
-                            <td>{new Date(t.transaction.date).toLocaleDateString()}</td>
+                        <tr
+                            on:click="{() => update(t.transaction)}"
+                            class="cursor-pointer"
+                        >
+                            <td
+                                >{new Date(
+                                    t.transaction.date
+                                ).toLocaleDateString()}</td
+                            >
                             {#if t.transaction.type === 'deposit'}
-                                <td class="text-success">{cost(+t.transaction.amount)}</td>
+                                <td class="text-success"
+                                    >{cost(+t.transaction.amount)}</td
+                                >
                             {:else}
-                                <td class="text-danger">{cost(-+t.transaction.amount)}</td>
+                                <td class="text-danger"
+                                    >{cost(-+t.transaction.amount)}</td
+                                >
                             {/if}
                             <td>{t.type.name}</td>
                             <td>{t.subtype.name}</td>
@@ -165,5 +181,3 @@ $: {
         </div>
     </div>
 </div>
-
-

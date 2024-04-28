@@ -20,9 +20,7 @@ const update = async () => {
         if (buckets.isErr()) throw buckets.error;
 
         if (
-            buckets.value.find(
-                b => b.name.toLowerCase() === name.toLowerCase()
-            )
+            buckets.value.find(b => b.name.toLowerCase() === name.toLowerCase())
         ) {
             return alert(`Cannot create bucket with the same name (${name})`);
         }
@@ -36,7 +34,6 @@ const update = async () => {
 
     d('submit');
 };
-
 </script>
 
 <form on:submit|preventDefault="{update}">
@@ -50,7 +47,9 @@ const update = async () => {
         />
     </div>
     <div class="mb-3">
-        <label for="bucket-description-{id}" class="form-label"> Description </label>
+        <label for="bucket-description-{id}" class="form-label">
+            Description
+        </label>
         <textarea
             name="bucket-description"
             id="bucket-description-{id}"

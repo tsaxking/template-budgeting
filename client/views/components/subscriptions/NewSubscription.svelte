@@ -1,6 +1,5 @@
 <script lang="ts">
 import { createEventDispatcher, onMount } from 'svelte';
-import { Transaction } from '../../../models/transactions/transaction';
 import { Bucket } from '../../../models/transactions/bucket';
 import Select from '../bootstrap/Select.svelte';
 import { Type } from '../../../models/transactions/type';
@@ -9,8 +8,10 @@ import TypeSelector from '../types/TypeSelector.svelte';
 import SubtypeSelector from '../types/SubtypeSelector.svelte';
 import DateTimeInput from '../bootstrap/DateTimeInput.svelte';
 import { Random } from '../../../../shared/math';
+import { Subscription } from '../../../models/transactions/subscription';
+import type { SubscriptionInterval } from '../../../../shared/db-types-extended';
+import { capitalize } from '../../../../shared/text';
 const id = Random.uuid();
-
 let buckets: Bucket[] = [];
 
 onMount(() => {
@@ -24,39 +25,53 @@ onMount(() => {
     };
 });
 
-let amount = '';
-let date = new Date();
-let status: 'pending' | 'completed' | 'failed' = 'completed';
-let bucketId = '';
-let description = '';
-let type: 'withdrawal' | 'deposit' = 'withdrawal';
-let subtypeId = '';
-let taxDeductible = false;
+    let bucketId = '';
+    let name = '';
+    let amount = 0;
+    let interval: SubscriptionInterval = 'monthly';
+    let period = 1;
+    let taxDeductible = false;
+    let description = '';
+    let startDate = new Date();
+    let endDate: Date | undefined = new Date();
+    let subtypeId = '';
+    let type: 'withdrawal' | 'deposit' = 'withdrawal'; // TODO: add this to subscriptions
 
 let t: Type | undefined;
 let s: Subtype | undefined;
 
 $: subtypeId = s?.id || '';
-
 const d = createEventDispatcher();
 
 const create = async () => {
-    Transaction.new({
-        amount: parseFloat(amount),
-        date: date.getTime(),
-        status,
+    Subscription.new({
         bucketId,
+        name,
+        amount,
+        interval,
+        taxDeductible,
         description,
-        type,
+        startDate: startDate.getTime(),
+        endDate: endDate?.getTime() || null,
         subtypeId,
-        taxDeductible
+        type,
+        period
     });
 
-    d('transaction-created');
-};
+    d('subscription-created');
+}
 </script>
 
-<form on:submit|preventDefault="{create}">
+<form on:submit|preventDefault={create}>
+    <div class="mb-3">
+        <label for="transaction-name" class="form-label"> Name </label>
+        <input
+            type="text"
+            id="transaction-name"
+            class="form-control"
+            bind:value="{name}"
+        />
+    </div>
     <div class="mb-3">
         <label for="transaction-amount" class="form-label"> Amount </label>
         <input
@@ -101,20 +116,59 @@ const create = async () => {
         </div>
     </div>
     <div class="mb-3">
-        <DateTimeInput bind:date />
+        <DateTimeInput bind:date={startDate} />
     </div>
     <div class="mb-3">
-        <label for="transaction-status" class="form-label"> Status </label>
-        <select
-            name="transaction-status"
-            id="transaction-status"
-            class="form-select"
-            bind:value="{status}"
+        <DateTimeInput bind:date={endDate} />
+    </div>
+    <div class="mb-3">
+        <!-- interval select -->
+        <label for="transaction-interval" class="form-label"> Interval </label>
+        <Select
+            bind:value="{interval}"
+            options={['daily', 'weekly', 'monthly', 'yearly']}></Select>
+    </div>
+    <div class="mb-3">
+        <label for="transaction-period" class="form-label"> Interval day/time ({capitalize(interval)}) </label>
+        <div class="input-group">
+            <input
+                type="number"
+                id="transaction-period"
+                class="form-control"
+                bind:value="{period}"
+                min={
+                    interval === 'hourly' ? 0 : 1
+                }
+                max={
+                    interval === 'hourly' ? 23 :
+                    interval === 'daily' ? 31 :
+                    interval === 'weekly' ? 7 :
+                    interval === 'monthly' ? 31 :
+                    interval === 'yearly' ? 365 : 1
+                }
+                step="1"
+            />
+            <span class="input-group-text">
+                {#if interval === 'hourly'}
+                    hours
+                {:else if interval === 'daily'}
+                    days (0-23 hours)
+                {:else if interval === 'weekly'}
+                    weeks (1-7 days)
+                {:else if interval === 'monthly'}
+                    months (1-31 days)
+                {:else if interval === 'yearly'}
+                    years (1-365 days)
+                {/if}
+            </span>
+        </div>
+        <small 
+            class="form-text text-muted"
         >
-            <option value="pending" selected>Pending</option>
-            <option value="completed">Completed</option>
-            <option value="failed">Failed</option>
-        </select>
+            If the interval is monthly, this is which day of the month the subscription will be charged, etc.
+        </small>
+
+
     </div>
     <div class="mb-3">
         <label for="transaction-bucket" class="form-label"> Bucket </label>

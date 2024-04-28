@@ -70,7 +70,7 @@ export class Transaction extends Cache<TransactionEvents> {
             return res.value.map(t => {
                 const exists = current.find(c => c.id === t.id);
                 if (exists) return exists;
-                else return new Transaction(t);
+                else return Transaction.retrieve(t);
             });
         });
     }
@@ -98,6 +98,13 @@ export class Transaction extends Cache<TransactionEvents> {
         taxDeductible: boolean;
     }) {
         return ServerRequest.post('/api/transactions/new', data);
+    }
+
+    public static retrieve(data: T) {
+        const exists = Transaction.cache.get(data.id);
+        if (exists) return exists;
+
+        return new Transaction(data);
     }
 
     public readonly id: string;
@@ -197,7 +204,6 @@ export class Transaction extends Cache<TransactionEvents> {
 }
 
 socket.on('transactions:created', (data: T) => {
-    console.log('Created!');
     const t = new Transaction(data);
     Transaction.emit('new', t);
     const b = Bucket.cache.get(t.bucketId);

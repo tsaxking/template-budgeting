@@ -52,13 +52,18 @@ export class Type extends Cache<TypeEvents> {
             const res = await ServerRequest.post<{
                 types: TransactionType[];
                 subtypes: Subtype[];
-            }>(
-                '/api/types/get-types'
-            );
+            }>('/api/types/get-types');
             if (res.isErr()) throw res.error;
 
-            return res.value.types.map(t => new Type(t));
+            return res.value.types.map(t => Type.retrieve(t));
         });
+    }
+
+    public static retrieve(data: TransactionType) {
+        const exists = Type.cache.get(data.id);
+        if (exists) return exists;
+
+        return new Type(data);
     }
 
     public readonly id: string;

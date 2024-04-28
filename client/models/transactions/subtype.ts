@@ -60,8 +60,15 @@ export class Subtype extends Cache<SubtypeEvents> {
             );
             if (res.isErr()) throw res.error;
 
-            return res.value.map(s => new Subtype(s));
+            return res.value.map(s => Subtype.retrieve(s));
         });
+    }
+
+    public static retrieve(data: S) {
+        const exists = Subtype.cache.get(data.id);
+        if (exists) return exists;
+
+        return new Subtype(data);
     }
 
     public readonly id: string;

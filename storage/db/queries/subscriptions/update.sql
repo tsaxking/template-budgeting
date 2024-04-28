@@ -9,5 +9,6 @@ SET
     description = :description,
     picture = :picture,
     taxDeductible = :taxDeductible,
-    amount = :amount
+    amount = :amount,
+    type = :type
 WHERE id = :id;

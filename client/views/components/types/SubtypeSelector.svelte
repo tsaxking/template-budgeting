@@ -17,7 +17,7 @@ const mount = (type: Type) => {
         }
         subtypes = s.value;
     });
-}
+};
 
 Subtype.on('new', () => {
     mount(type);

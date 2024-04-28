@@ -5,7 +5,7 @@ import { prompt } from '../../../utilities/notifications';
 import Select from '../bootstrap/Select.svelte';
 let types: Type[] = [];
 
-Type.on('new', (t) => {
+Type.on('new', t => {
     types = [...types, t];
 });
 
@@ -22,7 +22,7 @@ $: {
 $: console.log({ selected });
 
 const create = async () => {
-    prompt('Enter the name of the new type').then((n) => {
+    prompt('Enter the name of the new type').then(n => {
         if (n) Type.new(n);
     });
 };
