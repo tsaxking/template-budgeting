@@ -10,6 +10,7 @@ import { Random } from '../../../shared/math';
 
 type GlobalSubscriptionEvents = {
     new: Subscription;
+    update: Subscription;
 };
 
 type SubscriptionEvents = {
@@ -129,17 +130,26 @@ export class Subscription extends Cache<SubscriptionEvents> {
         else throw new Error('Subscription already exists in cache');
     }
 
+    get start() {
+        return new Date(+this.startDate);
+    }
+
+    get end() {
+        return this.endDate ? new Date(+this.endDate) : undefined;
+    }
+
     update(data: {
         name: string;
         amount: number;
-        interval: number;
+        interval: SubscriptionInterval;
         taxDeductible: boolean;
         description: string;
-        picture: string;
         startDate: number;
         endDate: number | null;
         subtypeId: string;
         bucketId: string;
+        type: 'withdrawal' | 'deposit';
+        period: number;
     }) {
         return ServerRequest.post('/api/subscriptions/update', {
             ...data,
@@ -165,13 +175,12 @@ export class Subscription extends Cache<SubscriptionEvents> {
         if (start > t) return []; // subscription has not started
         if (end && end < t) t = end;
 
-        const dates = [];
+        const dates: Date[] = [];
         let next = start;
         while (next <= t) {
-            dates.push(next);
             switch (this.interval) {
                 case 'daily':
-                    next = new Date(next.getTime() + 1000 * 60 * 60 * 24)
+                    next = new Date(next.getTime() + 1000 * 60 * 60 * 24);
                     break;
                 case 'hourly':
                     next = new Date(next.getTime() + 1000 * 60 * 60);
@@ -190,6 +199,7 @@ export class Subscription extends Cache<SubscriptionEvents> {
                     break;
                 default:
             }
+            dates.push(next);
         }
 
         return dates.map(d => {
@@ -198,7 +208,7 @@ export class Subscription extends Cache<SubscriptionEvents> {
                 {
                     id: Random.uuid(),
                     amount: this.amount,
-                    type: 'withdrawal',
+                    type: this.type,
                     status: 'completed',
                     date: d.getTime(),
                     bucketId: this.bucketId,
@@ -212,6 +222,39 @@ export class Subscription extends Cache<SubscriptionEvents> {
             );
         });
     }
+
+    get nextPayment(): Date | undefined {
+        // we don't want to return this.start or this.end becuase we don't want dependency issues
+        const now = new Date();
+        if (this.end && now > this.end) return undefined;
+        const fromStart = now.getTime() - this.startDate;
+        if (fromStart < 0) return new Date(this.startDate);
+        const date = new Date(this.startDate);
+        while (date < now) {
+            switch (this.interval) {
+                case 'yearly':
+                    date.setFullYear(date.getFullYear() + 1);
+                    date.setMonth(0);
+                    date.setDate(this.period);
+                    break;
+                case 'monthly':
+                    date.setMonth(date.getMonth() + 1);
+                    break;
+                case 'weekly':
+                    date.setDate(date.getDate() + 7);
+                    break;
+                case 'daily':
+                    date.setDate(date.getDate() + 1);
+                    break;
+                case 'hourly':
+                    date.setHours(date.getHours() + 1);
+                    break;
+            }
+        }
+        return date;
+    }
+
+    uploadPicture(files: FileList) {}
 }
 
 socket.on('subscriptions:created', (data: S) => {
