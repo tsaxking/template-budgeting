@@ -55,7 +55,7 @@ export class Type extends Cache<TypeEvents> {
             }>('/api/types/get-types');
             if (res.isErr()) throw res.error;
 
-            return res.value.types.map(t => Type.retrieve(t));
+            return res.value.types.map(Type.retrieve);
         });
     }
 

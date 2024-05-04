@@ -52,7 +52,7 @@ export class Subscription extends Cache<SubscriptionEvents> {
             const res = await ServerRequest.post<S[]>('/api/subscriptions/all');
 
             if (res.isErr()) throw res.error;
-            return res.value.map(t => Subscription.retrieve(t));
+            return res.value.map(Subscription.retrieve);
         });
     }
 
@@ -66,7 +66,7 @@ export class Subscription extends Cache<SubscriptionEvents> {
             );
 
             if (res.isErr()) throw res.error;
-            return res.value.map(t => Subscription.retrieve(t));
+            return res.value.map(Subscription.retrieve);
         });
     }
 

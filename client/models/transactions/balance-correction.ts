@@ -62,7 +62,7 @@ export class BalanceCorrection extends Cache<BalanceCorrectionEvents> {
             );
             if (res.isErr()) throw res.error;
 
-            return res.value.map(b => BalanceCorrection.retrieve(b));
+            return res.value.map(BalanceCorrection.retrieve);
         });
     }
 

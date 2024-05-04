@@ -48,7 +48,7 @@ export class Miles extends Cache<TypeEvents> {
             const res = await ServerRequest.post<M[]>('/api/miles/active');
 
             if (res.isErr()) throw res.error;
-            return res.value.map(t => Miles.retrieve(t));
+            return res.value.map(Miles.retrieve);
         });
     }
 
@@ -60,7 +60,7 @@ export class Miles extends Cache<TypeEvents> {
             const res = await ServerRequest.post<M[]>('/api/miles/archived');
 
             if (res.isErr()) throw res.error;
-            return res.value.map(t => Miles.retrieve(t));
+            return res.value.map(Miles.retrieve);
         });
     }
 

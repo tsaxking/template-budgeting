@@ -8,6 +8,8 @@ import { router as types } from './api/types';
 import { router as buckets } from './api/buckets';
 import { router as balanceCorrection } from './api/balance-correction';
 import { router as miles } from './api/miles';
+import { router as goals } from './api/goals';
+import { router as budgets } from './api/budgets';
 
 router.route('/subscriptions', subscriptions);
 router.route('/transactions', transactions);
@@ -15,3 +17,5 @@ router.route('/types', types);
 router.route('/buckets', buckets);
 router.route('/balance-correction', balanceCorrection);
 router.route('/miles', miles);
+router.route('/goals', goals);
+router.route('/budgets', budgets);

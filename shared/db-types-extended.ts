@@ -71,3 +71,22 @@ export type Subtype = {
     typeId: string;
     type: 'withdrawal' | 'deposit';
 };
+
+export type Goals = {
+    id: string;
+    name: string;
+    amount: number;
+    archived: 0 | 1;
+    created: number;
+    description: string;
+    budgetId: string | null;
+};
+
+export type Budgets = {
+    id: string;
+    name: string;
+    amount: number;
+    archived: 0 | 1;
+    created: number;
+    description: string;
+}
