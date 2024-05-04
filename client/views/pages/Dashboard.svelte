@@ -12,7 +12,6 @@ import TransactionChart from '../components/transactions/TransactionChart.svelte
 import SubscriptionTable from '../components/subscriptions/SubscriptionTable.svelte';
 
 let buckets: Bucket[] = [];
-let search: string = '';
 
 const now = new Date();
 let from: number;
@@ -22,8 +21,6 @@ let toStr: string;
 
 $: from = new Date(fromStr).getTime();
 $: to = new Date(toStr).getTime();
-
-$: console.log(fromStr, toStr);
 
 const transaction = () => {
     const m = new Modal();
