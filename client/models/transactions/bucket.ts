@@ -2,7 +2,7 @@ import { attemptAsync } from '../../../shared/check';
 import { EventEmitter } from '../../../shared/event-emitter';
 import { Cache } from '../cache';
 import { Transaction } from './transaction';
-import { BucketType } from '../../../shared/db-types-extended';
+import { BucketType, SubscriptionInterval } from '../../../shared/db-types-extended';
 import { ServerRequest } from '../../utilities/requests';
 import { Bucket as B } from '../../../shared/db-types-extended';
 import { socket } from '../../utilities/socket';
@@ -104,7 +104,7 @@ export class Bucket extends Cache<BucketEvents> {
             const res = await ServerRequest.post<B[]>('/api/buckets/all');
             if (res.isErr()) throw res.error;
 
-            const buckets = res.value.map(bucket => Bucket.retrieve(bucket));
+            const buckets = res.value.map(Bucket.retrieve);
             return buckets;
         });
     }
@@ -120,7 +120,7 @@ export class Bucket extends Cache<BucketEvents> {
             const res = await ServerRequest.post<B[]>('/api/buckets/archived');
             if (res.isErr()) throw res.error;
 
-            return res.value.map(bucket => Bucket.retrieve(bucket));
+            return res.value.map(Bucket.retrieve);
         });
     }
 
