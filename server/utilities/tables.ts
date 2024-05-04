@@ -389,7 +389,7 @@ export type Subscriptions = {
     name: string;
     startDate: number;
     endDate: number | undefined;
-    interval: number;
+    interval: 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly';
     bucketId: string;
     subtypeId: string;
     description: string;
@@ -500,7 +500,7 @@ export type Insert_subscriptions_new = {
     name: string;
     startDate: number;
     endDate: number | undefined;
-    interval: number;
+    interval: 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly';
     bucketId: string;
     subtypeId: string;
     description: string;
@@ -519,7 +519,7 @@ export type Update_subscriptions_update = {
     name: string;
     startDate: number;
     endDate: number | undefined;
-    interval: number;
+    interval: 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly';
     bucketId: string;
     subtypeId: string;
     description: string;
