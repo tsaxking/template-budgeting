@@ -185,29 +185,14 @@ export class Bucket extends Cache<BucketEvents> {
         });
     }
 
-    async newSubscription(data: {
-        name: string;
-        amount: number;
-        interval: number;
-        taxDeductible: boolean;
-        description: string;
-        picture: string;
-        startDate: number;
-        endDate: number | null;
-        subtypeId: string;
-    }) {
-        return Subscription.new({
-            ...data,
-            bucketId: this.id
-        });
-    }
-
-    async getSubscriptions() {
+    async getSubscriptions(from: number, to: number) {
         return attemptAsync(async () => {
             const subs = await Subscription.all();
             if (subs.isErr()) throw subs.error;
 
-            return subs.value.filter(s => s.bucketId === this.id);
+            return subs.value.filter(s => {
+                return s.bucketId === this.id && s.startDate <= to && (s.endDate || Infinity) >= from;
+            });
         });
     }
 
@@ -233,7 +218,7 @@ export class Bucket extends Cache<BucketEvents> {
         return attemptAsync(async () => {
             const [transactions, subscriptions] = await Promise.all([
                 Transaction.search([this.id], from, to),
-                this.getSubscriptions()
+                this.getSubscriptions(from, to)
             ]);
 
             if (transactions.isErr()) throw transactions.error;

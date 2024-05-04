@@ -41,8 +41,9 @@ router.post<{
     bucketId: string;
     name: string;
     amount: number;
-    interval: number;
+    interval: 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly';
     taxDeductible: boolean;
+    period: number;
     description: string;
     startDate: number;
     endDate: number | null;
@@ -54,7 +55,8 @@ router.post<{
         bucketId: 'string',
         name: 'string',
         amount: 'number',
-        interval: 'number',
+        interval: ['hourly', 'daily', 'weekly', 'monthly', 'yearly'],
+        period: 'number',
         taxDeductible: 'boolean',
         description: 'string',
         startDate: 'number',
@@ -149,7 +151,8 @@ router.post<{
     id: string;
     name: string;
     amount: number;
-    interval: number;
+    interval: 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly';
+    period: number;
     taxDeductible: boolean;
     description: string;
     picture: string;
@@ -163,7 +166,8 @@ router.post<{
         id: 'string',
         name: 'string',
         amount: 'number',
-        interval: 'number',
+        interval: ['hourly', 'daily', 'weekly', 'monthly', 'yearly'],
+        period: 'number',
         taxDeductible: 'boolean',
         description: 'string',
         picture: 'string',

@@ -64,19 +64,19 @@ const create = async () => {
 
 <form on:submit|preventDefault={create}>
     <div class="mb-3">
-        <label for="transaction-name" class="form-label"> Name </label>
+        <label for="transaction-name-{id}" class="form-label"> Name </label>
         <input
             type="text"
-            id="transaction-name"
+            id="transaction-name-{id}"
             class="form-control"
             bind:value="{name}"
         />
     </div>
     <div class="mb-3">
-        <label for="transaction-amount" class="form-label"> Amount </label>
+        <label for="transaction-amount-{id}" class="form-label"> Amount </label>
         <input
             type="number"
-            id="transaction-amount"
+            id="transaction-amount-{id}"
             class="form-control"
             bind:value="{amount}"
             step="0.01"
@@ -116,24 +116,26 @@ const create = async () => {
         </div>
     </div>
     <div class="mb-3">
+        <label for="subscription-from-{id}">From</label>
         <DateTimeInput bind:date={startDate} />
     </div>
     <div class="mb-3">
+        <label for="subscription-to-{id}">To</label>
         <DateTimeInput bind:date={endDate} />
     </div>
     <div class="mb-3">
         <!-- interval select -->
-        <label for="transaction-interval" class="form-label"> Interval </label>
+        <label for="transaction-interval-{id}" class="form-label"> Interval </label>
         <Select
             bind:value="{interval}"
             options={['daily', 'weekly', 'monthly', 'yearly']}></Select>
     </div>
     <div class="mb-3">
-        <label for="transaction-period" class="form-label"> Interval day/time ({capitalize(interval)}) </label>
+        <label for="transaction-period-{id}" class="form-label"> Interval day/time ({capitalize(interval)}) </label>
         <div class="input-group">
             <input
                 type="number"
-                id="transaction-period"
+                id="transaction-period-{id}"
                 class="form-control"
                 bind:value="{period}"
                 min={
@@ -171,7 +173,7 @@ const create = async () => {
 
     </div>
     <div class="mb-3">
-        <label for="transaction-bucket" class="form-label"> Bucket </label>
+        <label for="transaction-bucket-{id}" class="form-label"> Bucket </label>
         <Select
             bind:value="{bucketId}"
             options="{buckets.map(b => b.name)}"
@@ -190,10 +192,10 @@ const create = async () => {
         ></textarea>
     </div>
     <div class="mb-3">
-        <label for="transaction-type mb-1" class="form-label"> Type </label>
+        <label for="transaction-type-{id}" class="form-label mb-1"> Type </label>
         <TypeSelector bind:value="{t}" />
         {#if t}
-            <label for="transaction-subtype mb-1"> Subtype </label>
+            <label for="transaction-subtype-{id}"> Subtype </label>
             <SubtypeSelector bind:value="{s}" bind:type="{t}" />
         {/if}
     </div>
@@ -202,10 +204,10 @@ const create = async () => {
             <input
                 type="checkbox"
                 class="form-check-input"
-                id="transaction-tax-deductible"
+                id="transaction-tax-deductible-{id}"
                 bind:checked="{taxDeductible}"
             />
-            <label class="form-check-label" for="transaction-tax-deductible">
+            <label class="form-check-label" for="transaction-tax-deductible-{id}">
                 Tax Deductible
             </label>
         </div>
