@@ -114,7 +114,7 @@ Bucket.on('update', () => (buckets = buckets));
     <div class="row mb-3">
         {#each buckets as bucket}
             <DashboardCard title="{bucket.name}" expandable="{true}">
-                <BucketBasics {bucket} {to} />
+                <BucketBasics bind:bucket={bucket} bind:to={to} />
             </DashboardCard>
         {/each}
         <DashboardCard title="Transactions" expandable="{true}">

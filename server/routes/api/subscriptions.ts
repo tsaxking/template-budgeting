@@ -6,13 +6,13 @@ export const router = new Route();
 
 router.post('/all', async (_req, res) => {
     const subs = await Subscription.active();
-    if (subs.isErr()) return res.sendStatus('unknown:error');
+    if (subs.isErr()) return res.sendStatus('unknown:error', subs.error);
     res.json(subs.value);
 });
 
 router.post('/archived', async (_req, res) => {
     const subs = await Subscription.archived();
-    if (subs.isErr()) return res.sendStatus('unknown:error');
+    if (subs.isErr()) return res.sendStatus('unknown:error', subs.error);
     res.json(subs.value);
 });
 
@@ -27,7 +27,7 @@ router.post<{
         const { bucketId } = req.body;
 
         const subs = await Subscription.fromBucket(bucketId);
-        if (subs.isErr()) return res.sendStatus('unknown:error');
+        if (subs.isErr()) return res.sendStatus('unknown:error', subs.error);
 
         res.json(subs.value);
     }
@@ -39,7 +39,6 @@ router.post<{
     amount: number;
     interval: 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly';
     taxDeductible: boolean;
-    period: number;
     description: string;
     startDate: number;
     endDate: number | null;
@@ -52,7 +51,6 @@ router.post<{
         name: 'string',
         amount: 'number',
         interval: ['hourly', 'daily', 'weekly', 'monthly', 'yearly'],
-        period: 'number',
         taxDeductible: 'boolean',
         description: 'string',
         startDate: 'number',
@@ -87,8 +85,10 @@ router.post<{
             type
         });
 
+        if (s.isErr()) return res.sendStatus('unknown:error', s.error);
+
         res.sendStatus('subscriptions:created');
-        req.io.emit('subscriptions:created', s);
+        req.io.emit('subscriptions:created', s.value);
     }
 );
 
@@ -106,7 +106,7 @@ router.post<{
 
         const sub = await Subscription.fromId(id);
         if (sub.isErr()) {
-            return res.sendStatus('unknown:error');
+            return res.sendStatus('unknown:error', sub.error);
         }
 
         if (!sub.value) {
@@ -115,7 +115,7 @@ router.post<{
 
         const r = await sub.value.setArchive(archive);
         if (r.isErr()) {
-            return res.sendStatus('unknown:error');
+            return res.sendStatus('unknown:error', r.error);
         }
 
         if (archive) {
@@ -178,7 +178,8 @@ router.post<{
         const sub = await Subscription.fromId(id);
 
         if (sub.isErr()) {
-            return res.sendStatus('unknown:error');
+            console.error(sub.error);
+            return res.sendStatus('unknown:error', sub.error);
         }
 
         if (!sub.value) {
@@ -199,7 +200,7 @@ router.post<{
             type,
         });
         if (r.isErr()) {
-            return res.sendStatus('unknown:error');
+            return res.sendStatus('unknown:error', r.error);
         }
         res.sendStatus('subscriptions:updated');
         req.io.emit('subscriptions:updated', sub);

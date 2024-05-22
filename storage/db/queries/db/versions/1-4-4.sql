@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS Goals (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
-    amount SMALLMONEY NOT NULL,
+    amount DECIMAL NOT NULL,
     archived BOOLEAN NOT NULL DEFAULT FALSE,
     created BIGINT NOT NULL,
     description TEXT NOT NULL,
@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS Goals (
 CREATE TABLE IF NOT EXISTS Budgets (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
-    amount SMALLMONEY NOT NULL,
+    amount DECIMAL NOT NULL,
     archived BOOLEAN NOT NULL DEFAULT FALSE,
     created BIGINT NOT NULL,
     description TEXT NOT NULL

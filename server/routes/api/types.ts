@@ -11,8 +11,8 @@ router.post('/get-types', async (_req, res) => {
         Subtype.all()
     ]);
 
-    if (types.isErr() || subtypes.isErr())
-        return res.sendStatus('unknown:error');
+    if (types.isErr()) return res.sendStatus('unknown:error', types.error);
+    if (subtypes.isErr()) return res.sendStatus('unknown:error', subtypes.error);
 
     res.json({
         types: types.value,
@@ -23,7 +23,7 @@ router.post('/get-types', async (_req, res) => {
 router.post('/get-subtypes', async (req, res) => {
     const subtypes = await Subtype.all()
 
-    if (subtypes.isErr()) return res.sendStatus('unknown:error');
+    if (subtypes.isErr()) return res.sendStatus('unknown:error', subtypes.error);
 
     res.json(subtypes.value);
 });
@@ -41,7 +41,7 @@ router.post<{
         const t = await Type.new({
             name,
         });
-        if (t.isErr()) return res.sendStatus('unknown:error');
+        if (t.isErr()) return res.sendStatus('unknown:error', t.error);
 
         res.sendStatus('transaction-types:type-created');
         req.io.emit('transaction-types:type-created', t.value);
@@ -68,7 +68,7 @@ router.post<{
             type,
         });
 
-        if (s.isErr()) return res.sendStatus('unknown:error');
+        if (s.isErr()) return res.sendStatus('unknown:error', s.error);
 
         res.sendStatus('transaction-types:subtype-created');
         req.io.emit('transaction-types:subtype-created', s.value);
@@ -88,8 +88,8 @@ router.post<{
         const { id, name } = req.body;
 
         const t = await Type.fromId(id);
-        if (t.isErr()) return res.sendStatus('unknown:error');
-        if (!t.value) return res.sendStatus('unknown:error');
+        if (t.isErr()) return res.sendStatus('unknown:error', t.error);
+        if (!t.value) return res.sendStatus('unknown:error', {error: 'type-not-found'});
 
         t.value.update({
             name
@@ -117,8 +117,8 @@ router.post<{
         const { id, name, typeId, type } = req.body;
 
         const s = await Subtype.fromId(id);
-        if (s.isErr()) return res.sendStatus('unknown:error');
-        if (!s.value) return res.sendStatus('unknown:error');
+        if (s.isErr()) return res.sendStatus('unknown:error', s.error);
+        if (!s.value) return res.sendStatus('unknown:error', {error: 'subtype-not-found'});
 
         s.value.update({
             name,

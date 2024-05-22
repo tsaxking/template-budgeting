@@ -17,12 +17,11 @@ export let to: number;
 let balance = 0;
 let corrections: BalanceCorrection[] = [];
 
-const generate = () => {
+const generate = (bucket: Bucket) => {
     Promise.all([
         bucket.getBalance(0, to),
         bucket.getBalanceCorrections(0, to)
     ]).then(([b, c]) => {
-        console.log(b, c);
         if (b.isErr()) return console.error(b.error);
         balance = b.value;
         if (c.isErr()) return console.error(c.error);
@@ -46,10 +45,7 @@ const editBucket = () => {
     });
 };
 
-onMount(() => {
-    generate();
-    return () => {};
-});
+$: generate(bucket);
 
 const correction = () => {
     const m = new Modal();
@@ -83,15 +79,15 @@ const editCorrection = (correction: BalanceCorrection) => {
     });
 };
 
-bucket.on('updated', generate);
-bucket.on('balance-correction', generate);
+bucket.on('updated', () => generate(bucket));
+bucket.on('balance-correction',  () => generate(bucket));
 
-Transaction.on('new', generate);
-Transaction.on('update', generate);
-Transaction.on('archive', generate);
-BalanceCorrection.on('new', generate);
-BalanceCorrection.on('update', generate);
-BalanceCorrection.on('archive', generate);
+Transaction.on('new',  () => generate(bucket));
+Transaction.on('update',  () => generate(bucket));
+Transaction.on('archive',  () => generate(bucket));
+BalanceCorrection.on('new',  () => generate(bucket));
+BalanceCorrection.on('update',  () => generate(bucket));
+BalanceCorrection.on('archive',  () => generate(bucket));
 </script>
 
 <div class="container-fluid">
@@ -100,7 +96,7 @@ BalanceCorrection.on('archive', generate);
         <table class="table table-striped table-hover">
             <thead>
                 <tr>
-                    <th colspan="2" class="text-center"> Basics </th>
+                    <th colspan="2" class="text-center"> Basics: </th>
                 </tr>
             </thead>
             <tbody>

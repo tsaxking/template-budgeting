@@ -171,7 +171,7 @@ export class Res {
             const s = Status.from(
                 id,
                 this.req,
-                JSON.stringify(bigIntEncode(data))
+                data
             );
 
             s.redirect = redirect || s.redirect || '';

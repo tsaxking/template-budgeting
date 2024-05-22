@@ -25,7 +25,7 @@ router.post<{
             await Promise.all(buckets.map(b => Transaction.fromBucket(b)))
         );
 
-        if (transactions.isErr()) return res.sendStatus('unknown:error');
+        if (transactions.isErr()) return res.sendStatus('unknown:error', transactions.error);
 
         const filtered = transactions.value.flat().filter(t => {
             return +t.date >= +from && +t.date <= +to;
@@ -79,7 +79,7 @@ router.post<{
             taxDeductible: +taxDeductible
         });
 
-        if (t.isErr()) return res.sendStatus('unknown:error');
+        if (t.isErr()) return res.sendStatus('unknown:error', t.error);
 
         res.sendStatus('transactions:created');
         req.io.emit('transactions:created', t.value);
@@ -123,7 +123,7 @@ router.post<{
         } = req.body;
 
         const t = await Transaction.fromId(id);
-        if (t.isErr()) return res.sendStatus('unknown:error');
+        if (t.isErr()) return res.sendStatus('unknown:error', t.error);
         if (!t.value) return res.sendStatus('transactions:invalid-id');
 
         const r = await t.value.update({
@@ -137,7 +137,7 @@ router.post<{
             taxDeductible: +taxDeductible
         });
 
-        if (r.isErr()) return res.sendStatus('unknown:error');
+        if (r.isErr()) return res.sendStatus('unknown:error', r.error);
 
         res.sendStatus('transactions:updated');
 
@@ -158,14 +158,14 @@ router.post<{
         const { id, archived } = req.body;
 
         const t = await Transaction.fromId(id);
-        if (t.isErr()) return res.sendStatus('unknown:error');
+        if (t.isErr()) return res.sendStatus('unknown:error', t.error);
 
         if (!t.value) {
             return res.sendStatus('transactions:invalid-id');
         }
 
         const r = await t.value.setArchive(archived);
-        if (r.isErr()) return res.sendStatus('unknown:error');
+        if (r.isErr()) return res.sendStatus('unknown:error', r.error);
 
         if (archived) {
             res.sendStatus('transactions:archived');
@@ -197,13 +197,13 @@ router.post<{
         const { id: transactionId } = req.body;
 
         const t = await Transaction.fromId(transactionId);
-        if (t.isErr()) return res.sendStatus('unknown:error');
+        if (t.isErr()) return res.sendStatus('unknown:error', t.error);
         if (!t.value) {
             return res.sendStatus('transactions:invalid-id');
         }
 
         const r = await t.value.setPicture(fileId);
-        if (r.isErr()) return res.sendStatus('unknown:error');
+        if (r.isErr()) return res.sendStatus('unknown:error', r.error);
 
         res.sendStatus('transactions:picture-updated');
         req.io.emit('transactions:picture-updated', t.value);
@@ -253,7 +253,7 @@ router.post<{
             taxDeductible: +taxDeductible
         });
 
-        if (fromT.isErr()) return res.sendStatus('unknown:error');
+        if (fromT.isErr()) return res.sendStatus('unknown:error', fromT.error);
 
         const toT = await Transaction.new({
             amount,
@@ -266,7 +266,7 @@ router.post<{
             taxDeductible: +taxDeductible
         });
 
-        if (toT.isErr()) return res.sendStatus('unknown:error');
+        if (toT.isErr()) return res.sendStatus('unknown:error', toT.error);
         res.sendStatus('transactions:created');
         req.io.emit('transactions:created', fromT.value);
         req.io.emit('transactions:created', toT.value);

@@ -7,13 +7,13 @@ export const router = new Route();
 
 router.post('/all', async (_req, res) => {
     const buckets = await Buckets.all();
-    if (buckets.isErr()) return res.sendStatus('unknown:error');
+    if (buckets.isErr()) return res.sendStatus('unknown:error', buckets.error);
     res.json(buckets.value);
 });
 
 router.post('/archived', async (_req, res) => {
     const buckets = await Buckets.archived();
-    if (buckets.isErr()) return res.sendStatus('unknown:error');
+    if (buckets.isErr()) return res.sendStatus('unknown:error', buckets.error);
     res.json(buckets.value);
 });
 
@@ -36,7 +36,7 @@ router.post<{
             description,
             type
         });
-        if (b.isErr()) return res.sendStatus('unknown:error');
+        if (b.isErr()) return res.sendStatus('unknown:error', b.error);
 
         res.sendStatus('buckets:created');
         req.io.emit('buckets:created', b.value);
@@ -90,12 +90,12 @@ router.post<{
 
         const b = await Buckets.fromId(bucketId);
 
-        if (b.isErr()) return res.sendStatus('unknown:error');
+        if (b.isErr()) return res.sendStatus('unknown:error', b.error);
         if (!b.value) return res.sendStatus('page:not-found');
 
         const r = await b.value.setArchive(archived);
 
-        if (r.isErr()) return res.sendStatus('unknown:error');
+        if (r.isErr()) return res.sendStatus('unknown:error', r.error);
 
         if (archived) {
             res.sendStatus('buckets:archived', { bucketId });

@@ -9,7 +9,7 @@ export const router = new Route();
 router.post('/all', async (_req, res) => {
     const balanceCorrections = await DB.all('balance-correction/all');
 
-    if (balanceCorrections.isErr()) return res.sendStatus('unknown:error');
+    if (balanceCorrections.isErr()) return res.sendStatus('unknown:error', balanceCorrections.error);
 
     res.json(balanceCorrections.value);
 });
@@ -34,7 +34,7 @@ router.post<{
             date
         });
 
-        if (b.isErr()) return res.sendStatus('unknown:error');
+        if (b.isErr()) return res.sendStatus('unknown:error', b.error);
 
         res.sendStatus('balance-correction:created');
         req.io.emit('balance-correction:created', b);
@@ -58,7 +58,7 @@ router.post<{
         const { id, balance, bucketId, date } = req.body;
 
         const b = await BalanceCorrection.get(id);
-        if (b.isErr()) return res.sendStatus('unknown:error');
+        if (b.isErr()) return res.sendStatus('unknown:error', b.error);
         if (!b.value) return res.sendStatus('page:not-found');
         
         await b.value.update({
@@ -88,7 +88,7 @@ router.post<{
         const { id } = req.body;
 
         const b = await BalanceCorrection.get(id);
-        if (b.isErr()) return res.sendStatus('unknown:error');
+        if (b.isErr()) return res.sendStatus('unknown:error', b.error);
         if (!b.value) return res.sendStatus('page:not-found');
         b.value.destroy();
 

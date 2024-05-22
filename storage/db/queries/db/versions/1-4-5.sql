@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS BudgetParsing (
     id TEXT PRIMARY KEY,
     budgetId TEXT NOT NULL,
-    amount MONEY NOT NULL,
+    amount DECIMAL NOT NULL,
     description TEXT NOT NULL,
     date DATE NOT NULL,
     createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

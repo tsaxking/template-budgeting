@@ -143,6 +143,7 @@ const create = async () => {
             <SubtypeSelector bind:value="{s}" bind:type="{t}" />
         {/if}
     </div>
+    {#if type === 'withdrawal'}
     <div class="mb-3">
         <div class="form-check form-switch">
             <input
@@ -156,5 +157,6 @@ const create = async () => {
             </label>
         </div>
     </div>
+    {/if}
     <button type="submit" class="btn btn-primary"> Create </button>
 </form>
