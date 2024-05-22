@@ -53,16 +53,14 @@ const mount = async (buckets: Bucket[]) => {
         }
     }, [] as number[]);
 
-    console.log({ balance });
-
     dates = data.map(t => new Date(t.date));
 
     withdrawals = data.map(t => {
-        if (t instanceof Transaction && t.type === 'withdrawal') return t.amount;
+        if (t instanceof Transaction && t.type === 'withdrawal') return -t.amount;
         return 0;
     });
     deposits = data.map(t => {
-        if (t instanceof Transaction && t.type === 'deposit') return -t.amount;
+        if (t instanceof Transaction && t.type === 'deposit') return t.amount;
         return 0;
     });
 };

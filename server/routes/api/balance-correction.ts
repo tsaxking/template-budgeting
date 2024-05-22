@@ -1,6 +1,5 @@
 import { Route } from '../../structure/app/app';
 import { DB } from '../../utilities/databases';
-import { uuid } from '../../utilities/uuid';
 import { validate } from '../../middleware/data-type';
 import { BalanceCorrection } from '../../structure/cache/balance-correction';
 
