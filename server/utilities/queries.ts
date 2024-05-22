@@ -105,7 +105,7 @@ import { Insert_transactions_new } from './tables';
 import { Update_transactions_set_archive } from './tables';
 import { Update_transactions_update_picture } from './tables';
 import { Update_transactions_update } from './tables';
-import { Select_transactions_withdrawls } from './tables';
+import { Select_transactions_withdrawals } from './tables';
 import { Select_types_all_subtypes } from './tables';
 import { Select_types_all_types } from './tables';
 import { Insert_types_new_subtype } from './tables';
@@ -269,7 +269,7 @@ export type Queries = {
         unknown
     ];
     'transactions/update': [[Update_transactions_update], unknown];
-    'transactions/withdrawls': [[Select_transactions_withdrawls], Transactions];
+    'transactions/withdrawals': [[Select_transactions_withdrawals], Transactions];
     'types/all-subtypes': [[Select_types_all_subtypes], Subtypes];
     'types/all-types': [[Select_types_all_types], TransactionTypes];
     'types/new-subtype': [[Insert_types_new_subtype], unknown];

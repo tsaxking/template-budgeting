@@ -365,7 +365,7 @@ export type Buckets = {
     id: string;
     name: string;
     description: string;
-    created: string;
+    created: number;
     archived: number;
     type: string;
 };
@@ -452,7 +452,7 @@ export type Update_buckets_set_archive = {
 export type Update_buckets_update = {
     name: string;
     description: string;
-    created: string;
+    created: number;
     type: string;
     id: string;
 };
@@ -591,7 +591,7 @@ export type Update_transactions_update = {
     id: string;
 };
 
-export type Select_transactions_withdrawls = undefined;
+export type Select_transactions_withdrawals = undefined;
 
 export type Select_types_all_subtypes = undefined;
 
