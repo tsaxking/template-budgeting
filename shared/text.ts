@@ -114,7 +114,7 @@ export const parseObject = (
 export const cost = (amount: number | string): string => {
     return +amount >= 0
         ? `$${fmtNumber((+amount).toFixed(2))}`
-        : `-$${fmtNumber(Math.abs(+amount).toFixed(2))}`;
+        : `-$${Math.abs(+amount).toFixed(2)}`;
 };
 
 export const fmtNumber = (num: number | string): string => {
