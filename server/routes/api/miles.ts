@@ -6,13 +6,13 @@ export const router = new Route();
 
 router.post('/active', async (_req, res) => {
     const miles = await Mile.active();
-    if (miles.isErr()) return res.sendStatus('unknown:error');
+    if (miles.isErr()) return res.sendStatus('unknown:error', miles.error);
     res.json(miles.value);
 });
 
 router.post('/archived', async (_req, res) => {
     const miles = await Mile.archived();
-    if (miles.isErr()) return res.sendStatus('unknown:error');
+    if (miles.isErr()) return res.sendStatus('unknown:error', miles.error);
     res.json(miles.value);
 });
 
@@ -31,7 +31,7 @@ router.post<{
         const m = await Mile.new({
             amount, date
         });
-        if (m.isErr()) return res.sendStatus('unknown:error');
+        if (m.isErr()) return res.sendStatus('unknown:error', m.error);
 
         res.sendStatus('miles:created');
         req.io.emit('miles:created', m.value);
@@ -60,7 +60,7 @@ router.post<{
             amount, date
         });
 
-        if (r.isErr()) return res.sendStatus('unknown:error');
+        if (r.isErr()) return res.sendStatus('unknown:error', r.error);
 
         res.sendStatus('miles:updated');
         req.io.emit('miles:updated', m.value);

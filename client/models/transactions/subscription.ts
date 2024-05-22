@@ -75,7 +75,6 @@ export class Subscription extends Cache<SubscriptionEvents> {
         name: string;
         amount: number;
         interval: SubscriptionInterval;
-        period: number;
         taxDeductible: boolean;
         description: string;
         startDate: number;
@@ -98,7 +97,6 @@ export class Subscription extends Cache<SubscriptionEvents> {
     public startDate: number;
     public endDate: number | null;
     public interval: SubscriptionInterval; // in ms
-    public period: number;
     public bucketId: string;
     public amount: number; // in cents
     public subtypeId: string;
@@ -118,12 +116,11 @@ export class Subscription extends Cache<SubscriptionEvents> {
         this.taxDeductible = data.taxDeductible;
         this.description = data.description;
         this.picture = data.picture;
-        this.startDate = data.startDate;
-        this.endDate = data.endDate;
+        this.startDate = +data.startDate;
+        this.endDate = data.endDate ? +data.endDate : null;
         this.subtypeId = data.subtypeId;
         this.archived = data.archived;
         this.type = data.type;
-        this.period = data.period;
 
         if (!Subscription.cache.has(data.id))
             Subscription.cache.set(data.id, this);
@@ -149,7 +146,6 @@ export class Subscription extends Cache<SubscriptionEvents> {
         subtypeId: string;
         bucketId: string;
         type: 'withdrawal' | 'deposit';
-        period: number;
     }) {
         return ServerRequest.post('/api/subscriptions/update', {
             ...data,
@@ -235,7 +231,6 @@ export class Subscription extends Cache<SubscriptionEvents> {
                 case 'yearly':
                     date.setFullYear(date.getFullYear() + 1);
                     date.setMonth(0);
-                    date.setDate(this.period);
                     break;
                 case 'monthly':
                     date.setMonth(date.getMonth() + 1);

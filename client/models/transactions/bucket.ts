@@ -191,7 +191,7 @@ export class Bucket extends Cache<BucketEvents> {
             if (subs.isErr()) throw subs.error;
 
             return subs.value.filter(s => {
-                return s.bucketId === this.id && s.startDate <= to && (s.endDate || Infinity) >= from;
+                return s.bucketId === this.id// && s.startDate <= to && (s.endDate || Infinity) >= from;
             });
         });
     }
@@ -245,8 +245,6 @@ export class Bucket extends Cache<BucketEvents> {
                 ...transactions.value,
                 ...corrections.value
             ].sort((a, b) => +a.date - +b.date);
-
-            // console.log({ data });
 
             let balance = 0;
             for (const d of data) {

@@ -14,7 +14,7 @@
 
     let subscriptions: Subscription[] = [];
 
-    const generate = () => {
+    const generate = (buckets: Bucket[]) => {
         Promise.all(buckets.map(b => b.getSubscriptions(from, to)))
             .then(subs => {
                 const s = resolveAll(subs);
@@ -49,13 +49,10 @@
         m.show();
     };
     
-    onMount(() => {
-        generate();
-        return () => {};
-    });
+    $: generate(buckets);
 
-    Subscription.on('new', generate);
-    Subscription.on('update', generate);
+    Subscription.on('new', () => generate(buckets));
+    Subscription.on('update', () => generate(buckets));
 </script>
 
 <div class="container-flu">
@@ -66,7 +63,7 @@
                     <tr>
                         <th>Name</th>
                         <th>Cost</th>
-                        <th>Bucket</th>
+                        <!-- <th>Bucket</th> -->
                         <th>Interval</th>
                         <th>Next Payment</th>
                     </tr>

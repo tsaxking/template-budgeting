@@ -10,7 +10,6 @@
     import { Random } from '../../../../shared/math';
     import { Subscription } from '../../../models/transactions/subscription';
     import type { SubscriptionInterval } from '../../../../shared/db-types-extended';
-    import { capitalize } from '../../../../shared/text';
 
     export let subscription: Subscription;
 
@@ -32,15 +31,16 @@
         let name = subscription.name;
         let amount = subscription.amount;
         let interval: SubscriptionInterval = subscription.interval;
-        let period = subscription.period;
         let taxDeductible = !!subscription.taxDeductible;
         let description = subscription.description;
         let startDate = subscription.start;
-        let endDate = subscription.end;
+        let endDate = subscription.end || new Date();
         let subtypeId = subscription.subtypeId;
         let type: 'withdrawal' | 'deposit' = subscription.type;    
     let t: Type | undefined;
     let s: Subtype | undefined;
+
+    let hasEnd = false;
     
     $: subtypeId = s?.id || '';
     const d = createEventDispatcher();
@@ -54,10 +54,9 @@
             taxDeductible: !!taxDeductible,
             description,
             startDate: startDate.getTime(),
-            endDate: endDate?.getTime() || null,
+            endDate: hasEnd ? endDate.getTime() : null,
             subtypeId,
             type,
-            period
         });
     
         d('subscription-updated');
@@ -121,7 +120,21 @@
             <DateTimeInput bind:date={startDate} />
         </div>
         <div class="mb-3">
-            <DateTimeInput bind:date={endDate} />
+            <div class="form-check form-switch">
+                <input
+                    type="checkbox"
+                    class="form-check-input"
+                    id="subscription-has-end-{id}"
+                    bind:checked="{hasEnd}"
+                />
+                <label class="form-check" for="subscription-has-end-{id}">
+                    Has End
+                </label>
+            </div>
+            {#if hasEnd}
+                <label for="subscription-to-{id}">To</label>
+                <DateTimeInput bind:date={endDate} />
+            {/if}
         </div>
         <div class="mb-3">
             <!-- interval select -->
@@ -129,49 +142,6 @@
             <Select
                 bind:value="{interval}"
                 options={['daily', 'weekly', 'monthly', 'yearly']}></Select>
-        </div>
-        <div class="mb-3">
-            <label for="transaction-period" class="form-label"> Interval day/time ({capitalize(interval)}) </label>
-            <div class="input-group">
-                <!-- TODO: Get rid of period from subscriptions, it's already taken care of based on start date -->
-                <input
-                    type="number"
-                    id="transaction-period"
-                    class="form-control"
-                    bind:value="{period}"
-                    min={
-                        interval === 'hourly' ? 0 : 1
-                    }
-                    max={
-                        interval === 'hourly' ? 23 :
-                        interval === 'daily' ? 31 :
-                        interval === 'weekly' ? 7 :
-                        interval === 'monthly' ? 31 :
-                        interval === 'yearly' ? 365 : 1
-                    }
-                    step="1"
-                />
-                <span class="input-group-text">
-                    {#if interval === 'hourly'}
-                        hours
-                    {:else if interval === 'daily'}
-                        days (0-23 hours)
-                    {:else if interval === 'weekly'}
-                        weeks (1-7 days)
-                    {:else if interval === 'monthly'}
-                        months (1-31 days)
-                    {:else if interval === 'yearly'}
-                        years (1-365 days)
-                    {/if}
-                </span>
-            </div>
-            <small 
-                class="form-text text-muted"
-            >
-                If the interval is monthly, this is which day of the month the subscription will be charged, etc.
-            </small>
-    
-    
         </div>
         <div class="mb-3">
             <label for="transaction-bucket" class="form-label"> Bucket </label>
@@ -200,6 +170,7 @@
                 <SubtypeSelector bind:value="{s}" bind:type="{t}" />
             {/if}
         </div>
+        {#if type === 'withdrawal'}
         <div class="mb-3">
             <div class="form-check form-switch">
                 <input
@@ -213,5 +184,6 @@
                 </label>
             </div>
         </div>
+        {/if}
         <button type="submit" class="btn btn-primary"> Create </button>
     </form>

@@ -25,17 +25,18 @@ onMount(() => {
     };
 });
 
-    let bucketId = '';
-    let name = '';
-    let amount = 0;
-    let interval: SubscriptionInterval = 'monthly';
-    let period = 1;
-    let taxDeductible = false;
-    let description = '';
-    let startDate = new Date();
-    let endDate: Date | undefined = new Date();
-    let subtypeId = '';
-    let type: 'withdrawal' | 'deposit' = 'withdrawal'; // TODO: add this to subscriptions
+let bucketId = '';
+let name = '';
+let amount = 0;
+let interval: SubscriptionInterval = 'monthly';
+let taxDeductible = false;
+let description = '';
+let startDate = new Date();
+let endDate: Date = new Date();
+let subtypeId = '';
+let type: 'withdrawal' | 'deposit' = 'withdrawal'; // TODO: add this to subscriptions
+
+let hasEnd = false;
 
 let t: Type | undefined;
 let s: Subtype | undefined;
@@ -52,10 +53,9 @@ const create = async () => {
         taxDeductible,
         description,
         startDate: startDate.getTime(),
-        endDate: endDate?.getTime() || null,
+        endDate: hasEnd ? endDate.getTime() : null,
         subtypeId,
         type,
-        period
     });
 
     d('subscription-created');
@@ -120,8 +120,21 @@ const create = async () => {
         <DateTimeInput bind:date={startDate} />
     </div>
     <div class="mb-3">
-        <label for="subscription-to-{id}">To</label>
-        <DateTimeInput bind:date={endDate} />
+        <div class="form-check form-switch">
+            <input
+                type="checkbox"
+                class="form-check-input"
+                id="subscription-has-end-{id}"
+                bind:checked="{hasEnd}"
+            />
+            <label class="form-check" for="subscription-has-end-{id}">
+                Has End
+            </label>
+        </div>
+        {#if hasEnd}
+            <label for="subscription-to-{id}">To</label>
+            <DateTimeInput bind:date={endDate} />
+        {/if}
     </div>
     <div class="mb-3">
         <!-- interval select -->
@@ -129,48 +142,6 @@ const create = async () => {
         <Select
             bind:value="{interval}"
             options={['daily', 'weekly', 'monthly', 'yearly']}></Select>
-    </div>
-    <div class="mb-3">
-        <label for="transaction-period-{id}" class="form-label"> Interval day/time ({capitalize(interval)}) </label>
-        <div class="input-group">
-            <input
-                type="number"
-                id="transaction-period-{id}"
-                class="form-control"
-                bind:value="{period}"
-                min={
-                    interval === 'hourly' ? 0 : 1
-                }
-                max={
-                    interval === 'hourly' ? 23 :
-                    interval === 'daily' ? 31 :
-                    interval === 'weekly' ? 7 :
-                    interval === 'monthly' ? 31 :
-                    interval === 'yearly' ? 365 : 1
-                }
-                step="1"
-            />
-            <span class="input-group-text">
-                {#if interval === 'hourly'}
-                    hours
-                {:else if interval === 'daily'}
-                    days (0-23 hours)
-                {:else if interval === 'weekly'}
-                    weeks (1-7 days)
-                {:else if interval === 'monthly'}
-                    months (1-31 days)
-                {:else if interval === 'yearly'}
-                    years (1-365 days)
-                {/if}
-            </span>
-        </div>
-        <small 
-            class="form-text text-muted"
-        >
-            If the interval is monthly, this is which day of the month the subscription will be charged, etc.
-        </small>
-
-
     </div>
     <div class="mb-3">
         <label for="transaction-bucket-{id}" class="form-label"> Bucket </label>
@@ -199,18 +170,20 @@ const create = async () => {
             <SubtypeSelector bind:value="{s}" bind:type="{t}" />
         {/if}
     </div>
-    <div class="mb-3">
-        <div class="form-check form-switch">
-            <input
-                type="checkbox"
-                class="form-check-input"
-                id="transaction-tax-deductible-{id}"
-                bind:checked="{taxDeductible}"
-            />
-            <label class="form-check-label" for="transaction-tax-deductible-{id}">
-                Tax Deductible
-            </label>
+    {#if type === 'withdrawal'}
+        <div class="mb-3">
+            <div class="form-check form-switch">
+                <input
+                    type="checkbox"
+                    class="form-check-input"
+                    id="transaction-tax-deductible-{id}"
+                    bind:checked="{taxDeductible}"
+                />
+                <label class="form-check-label" for="transaction-tax-deductible-{id}">
+                    Tax Deductible
+                </label>
+            </div>
         </div>
-    </div>
+    {/if}
     <button type="submit" class="btn btn-primary"> Create </button>
 </form>

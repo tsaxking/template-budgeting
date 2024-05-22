@@ -19,7 +19,6 @@ let withdrawals: number[] = [];
 let deposits: number[] = [];
 
 let dates: Date[] = [];
-
 const mount = async (buckets: Bucket[]) => {
     const [correctionsResult, transactionsResult] = await Promise.all([
         resolveAll(
@@ -42,29 +41,30 @@ const mount = async (buckets: Bucket[]) => {
         (a, b) => a.date - b.date
     );
 
-    balance = data.map((t, i) => {
-        if (t instanceof Transaction) {
-            let amount = t.amount;
-            if (t.type === 'withdrawal') amount = amount * -1;
-            if (i === 0) return amount;
-            else return balance[i - 1] + amount;
+    balance = data.reduce((acc, cur, i) =>  {
+        if (cur instanceof BalanceCorrection) {
+            acc.push(cur.balance);
+            return acc;
         } else {
-            return t.balance;
+            let amount = cur.amount;
+            amount = cur.type === 'withdrawal' ? -amount : amount;
+            acc.push((acc[i - 1] || 0) + amount);
+            return acc;
         }
-    });
+    }, [] as number[]);
+
+    console.log({ balance });
 
     dates = data.map(t => new Date(t.date));
 
-    withdrawals = (
-        data.filter(
-            t => t instanceof Transaction && t.type === 'withdrawal'
-        ) as Transaction[]
-    ).map(t => -t.amount);
-    deposits = (
-        data.filter(
-            t => t instanceof Transaction && t.type === 'deposit'
-        ) as Transaction[]
-    ).map(t => t.amount);
+    withdrawals = data.map(t => {
+        if (t instanceof Transaction && t.type === 'withdrawal') return t.amount;
+        return 0;
+    });
+    deposits = data.map(t => {
+        if (t instanceof Transaction && t.type === 'deposit') return -t.amount;
+        return 0;
+    });
 };
 
 onMount(() => {
