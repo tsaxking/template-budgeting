@@ -1,9 +1,8 @@
 import { validate } from '../../middleware/data-type';
 import { Route } from '../../structure/app/app';
-import { DB } from '../../utilities/databases';
-import { uuid } from '../../utilities/uuid';
 import { fileStream } from '../../middleware/stream';
 import { resolveAll } from '../../../shared/check';
+import { Transaction } from '../../structure/cache/transactions';
 
 export const router = new Route();
 
@@ -22,12 +21,8 @@ router.post<{
     async (req, res) => {
         const { buckets, from, to } = req.body;
 
-        const transactions = resolveAll(
-            await Promise.all(
-                buckets.map(b =>
-                    DB.all('transactions/from-bucket', { bucketId: b })
-                )
-            )
+        const transactions = await resolveAll(
+            await Promise.all(buckets.map(b => Transaction.fromBucket(b)))
         );
 
         if (transactions.isErr()) return res.sendStatus('unknown:error');
@@ -73,10 +68,7 @@ router.post<{
             taxDeductible
         } = req.body;
 
-        const id = uuid();
-
-        await DB.run('transactions/new', {
-            id,
+        const t = await Transaction.new({
             amount,
             type,
             status,
@@ -87,19 +79,10 @@ router.post<{
             taxDeductible: +taxDeductible
         });
 
-        res.sendStatus('transactions:created');
+        if (t.isErr()) return res.sendStatus('unknown:error');
 
-        req.io.emit('transactions:created', {
-            id,
-            amount,
-            type,
-            status,
-            date,
-            bucketId,
-            description,
-            subtypeId,
-            taxDeductible
-        });
+        res.sendStatus('transactions:created');
+        req.io.emit('transactions:created', t.value);
     }
 );
 
@@ -126,7 +109,7 @@ router.post<{
         subtypeId: 'string',
         taxDeductible: 'boolean'
     }),
-    (req, res) => {
+    async (req, res) => {
         const {
             id,
             amount,
@@ -139,14 +122,11 @@ router.post<{
             taxDeductible
         } = req.body;
 
-        const t = DB.get('transactions/from-id', { id });
+        const t = await Transaction.fromId(id);
+        if (t.isErr()) return res.sendStatus('unknown:error');
+        if (!t.value) return res.sendStatus('transactions:invalid-id');
 
-        if (!t) {
-            return res.sendStatus('transactions:invalid-id');
-        }
-
-        DB.run('transactions/update', {
-            id,
+        const r = await t.value.update({
             amount,
             type,
             status,
@@ -157,19 +137,11 @@ router.post<{
             taxDeductible: +taxDeductible
         });
 
+        if (r.isErr()) return res.sendStatus('unknown:error');
+
         res.sendStatus('transactions:updated');
 
-        req.io.emit('transactions:updated', {
-            id,
-            amount,
-            type,
-            status,
-            date,
-            bucketId,
-            description,
-            subtypeId,
-            taxDeductible
-        });
+        req.io.emit('transactions:updated', t.value);
     }
 );
 
@@ -185,16 +157,15 @@ router.post<{
     async (req, res) => {
         const { id, archived } = req.body;
 
-        const t = DB.get('transactions/from-id', { id });
+        const t = await Transaction.fromId(id);
+        if (t.isErr()) return res.sendStatus('unknown:error');
 
-        if (!t) {
+        if (!t.value) {
             return res.sendStatus('transactions:invalid-id');
         }
 
-        await DB.run('transactions/set-archive', {
-            id,
-            archived: archived ? 1 : 0
-        });
+        const r = await t.value.setArchive(archived);
+        if (r.isErr()) return res.sendStatus('unknown:error');
 
         if (archived) {
             res.sendStatus('transactions:archived');
@@ -217,7 +188,7 @@ router.post<{
         extensions: ['png', 'jpg', 'jpeg'],
         maxFileSize: 1024 * 1024 * 5 // 5MB
     }),
-    (req, res) => {
+    async (req, res) => {
         const [file] = req.files;
 
         if (!file) return res.sendStatus('files:no-files');
@@ -225,22 +196,17 @@ router.post<{
         const { id: fileId } = file;
         const { id: transactionId } = req.body;
 
-        const t = DB.get('transactions/from-id', { id: transactionId });
-
-        if (!t) {
+        const t = await Transaction.fromId(transactionId);
+        if (t.isErr()) return res.sendStatus('unknown:error');
+        if (!t.value) {
             return res.sendStatus('transactions:invalid-id');
         }
 
-        DB.run('transactions/update-picture', {
-            id: transactionId,
-            picture: fileId
-        });
+        const r = await t.value.setPicture(fileId);
+        if (r.isErr()) return res.sendStatus('unknown:error');
 
         res.sendStatus('transactions:picture-updated');
-        req.io.emit('transactions:picture-updated', {
-            id: transactionId,
-            picture: fileId
-        });
+        req.io.emit('transactions:picture-updated', t.value);
     }
 );
 
@@ -263,7 +229,7 @@ router.post<{
         taxDeductible: 'boolean',
         date: 'number'
     }),
-    (req, res) => {
+    async (req, res) => {
         const {
             amount,
             from,
@@ -274,55 +240,35 @@ router.post<{
             taxDeductible
         } = req.body;
 
-        const fromId = uuid();
-        const toId = uuid();
         const status = 'completed';
 
-        DB.run('transactions/new', {
-            amount: amount,
+        const fromT = await Transaction.new({
+            amount,
             type: 'withdrawal',
             status,
             date,
             bucketId: from,
             description,
             subtypeId,
-            taxDeductible: +taxDeductible,
-            id: fromId
-        });
-        DB.run('transactions/new', {
-            amount: amount,
-            type: 'deposit',
-            status,
-            date,
-            bucketId: to,
-            description,
-            subtypeId,
-            taxDeductible: +taxDeductible,
-            id: toId
+            taxDeductible: +taxDeductible
         });
 
-        res.sendStatus('transactions:created');
-        req.io.emit('transactions:created', {
-            amount: amount,
-            type: 'withdrawal',
-            status,
-            date,
-            bucketId: from,
-            description,
-            subtypeId,
-            taxDeductible,
-            id: fromId
-        });
-        req.io.emit('transactions:created', {
-            amount: amount,
+        if (fromT.isErr()) return res.sendStatus('unknown:error');
+
+        const toT = await Transaction.new({
+            amount,
             type: 'deposit',
             status,
             date,
             bucketId: to,
             description,
             subtypeId,
-            taxDeductible,
-            id: toId
+            taxDeductible: +taxDeductible
         });
+
+        if (toT.isErr()) return res.sendStatus('unknown:error');
+        res.sendStatus('transactions:created');
+        req.io.emit('transactions:created', fromT.value);
+        req.io.emit('transactions:created', toT.value);
     }
 );

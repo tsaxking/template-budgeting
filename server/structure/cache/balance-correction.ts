@@ -2,12 +2,25 @@ import { Cache } from "./cache";
 import { BalanceCorrection as B } from "../../utilities/tables";
 import { DB } from "../../utilities/databases";
 import { attemptAsync } from "../../../shared/check";
+import { uuid } from "../../utilities/uuid";
 
 export class BalanceCorrection extends Cache {
-    public static new(data: B) {
+    public static new(data: {
+        balance: number;
+        date: number;
+        bucketId: string;
+    }) {
         return attemptAsync(async () => {
-            DB.run('balance-correction/new', data);
-            const balanceCorrection = new BalanceCorrection(data);
+            const id = uuid();
+            const res = await DB.run('balance-correction/new', {
+                id,
+                ...data
+            });
+            if (res.isErr()) throw res.error;
+            const balanceCorrection = new BalanceCorrection({
+                id,
+                ...data
+            });
             return balanceCorrection;
         });
     }
@@ -42,7 +55,11 @@ export class BalanceCorrection extends Cache {
         this.bucketId = data.bucketId;
     }
 
-    update(data: B) {
+    update(data: {
+        date: number;
+        balance: number;
+        bucketId: string;
+    }) {
         return attemptAsync(async () => {
             const res = await DB.run('balance-correction/update', { ...data, id: this.id });
             if (res.isErr()) throw res.error;

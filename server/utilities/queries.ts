@@ -277,6 +277,8 @@ export type Queries = {
     'types/subtype-from-type': [[Select_types_subtype_from_type], Subtypes];
     'types/update-subtype': [[Update_types_update_subtype], unknown];
     'types/update-type': [[Update_types_update_type], unknown];
+    'types/type-from-id': [[{ id: string }], TransactionTypes];
+    'types/subtype-from-id': [[{ id: string }], Subtypes];
     'balance-correction/delete': [[Delete_balance_correction_delete], unknown];
     'balance-correction/from-id': [
         [Select_balance_correction_from_id],

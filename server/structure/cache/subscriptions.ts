@@ -42,22 +42,23 @@ export class Subscription extends Cache {
         bucketId: string;
         subtypeId: string;
         description: string;
-        picture: string | undefined;
         taxDeductible: number;
         amount: number;
-        archived: number;
         type: 'deposit' | 'withdrawal';
     }) {
         return attemptAsync(async () => {
             const id = uuid();
             const res = await DB.run('subscriptions/new', {
                 ...data,
-                id
+                id,
+                picture: undefined
             });
             if (res.isErr()) throw res.error;
             return new Subscription({
                 id,
-                ...data
+                ...data,
+                archived: 0,
+                picture: undefined
             });
         });
     }
@@ -116,7 +117,6 @@ export class Subscription extends Cache {
         picture: string | undefined;
         taxDeductible: number;
         amount: number;
-        archived: number;
         type: 'deposit' | 'withdrawal';
     }) {
         return attemptAsync(async () => {
@@ -135,7 +135,6 @@ export class Subscription extends Cache {
             this.picture = data.picture;
             this.taxDeductible = data.taxDeductible;
             this.amount = data.amount;
-            this.archived = data.archived;
             this.type = data.type;
         });
     }

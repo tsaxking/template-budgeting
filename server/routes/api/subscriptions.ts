@@ -1,18 +1,17 @@
 import { validate } from '../../middleware/data-type';
 import { Route } from '../../structure/app/app';
-import { DB } from '../../utilities/databases';
-import { uuid } from '../../utilities/uuid';
+import { Subscription } from '../../structure/cache/subscriptions';
 
 export const router = new Route();
 
 router.post('/all', async (_req, res) => {
-    const subs = await DB.all('subscriptions/active');
+    const subs = await Subscription.active();
     if (subs.isErr()) return res.sendStatus('unknown:error');
     res.json(subs.value);
 });
 
 router.post('/archived', async (_req, res) => {
-    const subs = await DB.all('subscriptions/archived');
+    const subs = await Subscription.archived();
     if (subs.isErr()) return res.sendStatus('unknown:error');
     res.json(subs.value);
 });
@@ -27,10 +26,7 @@ router.post<{
     async (req, res) => {
         const { bucketId } = req.body;
 
-        const subs = await DB.all('subscriptions/from-bucket', {
-            bucketId
-        });
-
+        const subs = await Subscription.fromBucket(bucketId);
         if (subs.isErr()) return res.sendStatus('unknown:error');
 
         res.json(subs.value);
@@ -64,7 +60,7 @@ router.post<{
         subtypeId: 'string',
         type: ['deposit', 'withdrawal']
     }),
-    (req, res) => {
+    async (req, res) => {
         const {
             bucketId,
             name,
@@ -78,17 +74,13 @@ router.post<{
             type
         } = req.body;
 
-        const id = uuid();
-
-        DB.run('subscriptions/new', {
-            id,
+        const s = await Subscription.new({
             bucketId,
             name,
             amount,
             interval,
             taxDeductible: +taxDeductible,
             description,
-            picture: '',
             startDate,
             endDate: endDate || undefined,
             subtypeId,
@@ -96,19 +88,7 @@ router.post<{
         });
 
         res.sendStatus('subscriptions:created');
-        req.io.emit('subscriptions:created', {
-            id,
-            bucketId,
-            name,
-            amount,
-            interval,
-            taxDeductible,
-            description,
-            startDate,
-            endDate,
-            subtypeId,
-            type
-        });
+        req.io.emit('subscriptions:created', s);
     }
 );
 
@@ -121,21 +101,22 @@ router.post<{
         id: 'string',
         archive: 'boolean'
     }),
-    (req, res) => {
+    async (req, res) => {
         const { id, archive } = req.body;
 
-        const sub = DB.get('subscriptions/from-id', {
-            id
-        });
+        const sub = await Subscription.fromId(id);
+        if (sub.isErr()) {
+            return res.sendStatus('unknown:error');
+        }
 
-        if (!sub) {
+        if (!sub.value) {
             return res.sendStatus('subscriptions:invalid-id');
         }
 
-        DB.run('subscriptions/set-archive', {
-            id,
-            archived: archive ? 1 : 0
-        });
+        const r = await sub.value.setArchive(archive);
+        if (r.isErr()) {
+            return res.sendStatus('unknown:error');
+        }
 
         if (archive) {
             res.sendStatus('subscriptions:archived');
@@ -160,6 +141,7 @@ router.post<{
     endDate: number;
     subtypeId: string;
     bucketId: string;
+    type: 'deposit' | 'withdrawal';
 }>(
     '/update',
     validate({
@@ -174,9 +156,10 @@ router.post<{
         startDate: 'number',
         endDate: 'number',
         subtypeId: 'string',
-        bucketId: 'string'
+        bucketId: 'string',
+        type: ['deposit', 'withdrawal']
     }),
-    (req, res) => {
+    async (req, res) => {
         const {
             id,
             name,
@@ -188,19 +171,21 @@ router.post<{
             startDate,
             endDate,
             subtypeId,
-            bucketId
+            bucketId,
+            type
         } = req.body;
 
-        const sub = DB.get('subscriptions/from-id', {
-            id
-        });
+        const sub = await Subscription.fromId(id);
 
-        if (!sub) {
+        if (sub.isErr()) {
+            return res.sendStatus('unknown:error');
+        }
+
+        if (!sub.value) {
             return res.sendStatus('subscriptions:invalid-id');
         }
 
-        DB.run('subscriptions/update', {
-            id,
+        const r = await sub.value.update({
             name,
             amount,
             interval,
@@ -210,22 +195,13 @@ router.post<{
             startDate,
             endDate,
             subtypeId,
-            bucketId
+            bucketId,
+            type,
         });
-
+        if (r.isErr()) {
+            return res.sendStatus('unknown:error');
+        }
         res.sendStatus('subscriptions:updated');
-        req.io.emit('subscriptions:updated', {
-            id,
-            name,
-            amount,
-            interval,
-            taxDeductible,
-            description,
-            picture,
-            startDate,
-            endDate,
-            subtypeId,
-            bucketId
-        });
+        req.io.emit('subscriptions:updated', sub);
     }
 );

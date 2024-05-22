@@ -1,20 +1,19 @@
 import { validate } from '../../middleware/data-type';
 import { Route } from '../../structure/app/app';
-import { DB } from '../../utilities/databases';
-import { uuid } from '../../utilities/uuid';
+import { Mile } from '../../structure/cache/miles';
 
 export const router = new Route();
 
-router.post('/active', (_req, res) => {
-    const miles = DB.all('miles/active');
-
-    res.json(miles);
+router.post('/active', async (_req, res) => {
+    const miles = await Mile.active();
+    if (miles.isErr()) return res.sendStatus('unknown:error');
+    res.json(miles.value);
 });
 
-router.post('/archived', (_req, res) => {
-    const miles = DB.all('miles/archived');
-
-    res.json(miles);
+router.post('/archived', async (_req, res) => {
+    const miles = await Mile.archived();
+    if (miles.isErr()) return res.sendStatus('unknown:error');
+    res.json(miles.value);
 });
 
 router.post<{
@@ -26,24 +25,16 @@ router.post<{
         amount: 'number',
         date: 'number'
     }),
-    (req, res) => {
+    async (req, res) => {
         const { amount, date } = req.body;
 
-        const id = uuid();
-
-        DB.run('miles/new', {
-            id,
-            amount,
-            date,
-            archived: 0
+        const m = await Mile.new({
+            amount, date
         });
+        if (m.isErr()) return res.sendStatus('unknown:error');
 
         res.sendStatus('miles:created');
-        req.io.emit('miles:created', {
-            id,
-            amount,
-            date
-        });
+        req.io.emit('miles:created', m.value);
     }
 );
 
@@ -58,24 +49,21 @@ router.post<{
         date: 'number',
         id: 'string'
     }),
-    (req, res) => {
+    async (req, res) => {
         const { id, amount, date } = req.body;
 
-        const m = DB.get('miles/from-id', { id });
-        if (!m) return res.sendStatus('miles:invalid-id');
+        const m = await Mile.fromId(id);
+        if (m.isErr()) return res.sendStatus('miles:invalid-id');
+        if (!m.value) return res.sendStatus('miles:invalid-id');
 
-        DB.run('miles/update', {
-            id,
-            amount,
-            date
+        const r = await m.value.update({
+            amount, date
         });
+
+        if (r.isErr()) return res.sendStatus('unknown:error');
 
         res.sendStatus('miles:updated');
-        req.io.emit('miles:updated', {
-            id,
-            amount,
-            date
-        });
+        req.io.emit('miles:updated', m.value);
     }
 );
 
@@ -88,16 +76,14 @@ router.post<{
         id: 'string',
         archive: 'boolean'
     }),
-    (req, res) => {
+    async (req, res) => {
         const { id, archive } = req.body;
 
-        const m = DB.get('miles/from-id', { id });
-        if (!m) return res.sendStatus('miles:invalid-id');
+        const m = await Mile.fromId(id);
+        if (m.isErr()) return res.sendStatus('miles:invalid-id');
+        if (!m.value) return res.sendStatus('miles:invalid-id');
 
-        DB.run('miles/set-archive', {
-            id,
-            archived: archive ? 1 : 0
-        });
+        m.value.setArchive(archive);
 
         if (archive) {
             res.sendStatus('miles:archived');

@@ -2,6 +2,7 @@ import { Route } from '../../structure/app/app';
 import { DB } from '../../utilities/databases';
 import { uuid } from '../../utilities/uuid';
 import { validate } from '../../middleware/data-type';
+import { BalanceCorrection } from '../../structure/cache/balance-correction';
 
 export const router = new Route();
 
@@ -27,26 +28,16 @@ router.post<{
     async (req, res) => {
         const { balance, bucketId, date } = req.body;
 
-        const b = await DB.get('buckets/from-id', { id: bucketId });
-
-        if (b.isErr() || !b.value) return res.sendStatus('buckets:invalid-id');
-
-        const id = uuid();
-
-        DB.run('balance-correction/new', {
-            id,
+        const b = await BalanceCorrection.new({
             balance,
             bucketId,
             date
         });
+
+        if (b.isErr()) return res.sendStatus('unknown:error');
 
         res.sendStatus('balance-correction:created');
-        req.io.emit('balance-correction:created', {
-            id,
-            balance,
-            bucketId,
-            date
-        });
+        req.io.emit('balance-correction:created', b);
     }
 );
 
@@ -63,15 +54,14 @@ router.post<{
         bucketId: 'string',
         date: 'number'
     }),
-    (req, res) => {
+    async (req, res) => {
         const { id, balance, bucketId, date } = req.body;
 
-        const b = DB.get('buckets/from-id', { id: bucketId });
-
-        if (!b) return res.sendStatus('buckets:invalid-id');
-
-        DB.run('balance-correction/update', {
-            id,
+        const b = await BalanceCorrection.get(id);
+        if (b.isErr()) return res.sendStatus('unknown:error');
+        if (!b.value) return res.sendStatus('page:not-found');
+        
+        await b.value.update({
             balance,
             bucketId,
             date
@@ -94,10 +84,13 @@ router.post<{
     validate({
         id: 'string'
     }),
-    (req, res) => {
+    async (req, res) => {
         const { id } = req.body;
 
-        DB.run('balance-correction/delete', { id });
+        const b = await BalanceCorrection.get(id);
+        if (b.isErr()) return res.sendStatus('unknown:error');
+        if (!b.value) return res.sendStatus('page:not-found');
+        b.value.destroy();
 
         res.sendStatus('balance-correction:deleted');
         req.io.emit('balance-correction:deleted', { id });
