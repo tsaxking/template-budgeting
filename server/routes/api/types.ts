@@ -1,14 +1,14 @@
 import { Route } from '../../structure/app/app';
-import { DB } from '../../utilities/databases';
-import { uuid } from '../../utilities/uuid';
 import { validate } from '../../middleware/data-type';
+import { Type } from '../../structure/cache/types';
+import { Subtype } from '../../structure/cache/subtypes';
 
 export const router = new Route();
 
 router.post('/get-types', async (_req, res) => {
     const [types, subtypes] = await Promise.all([
-        DB.all('types/all-types'),
-        DB.all('types/all-subtypes')
+        Type.all(),
+        Subtype.all()
     ]);
 
     if (types.isErr() || subtypes.isErr())
@@ -21,7 +21,7 @@ router.post('/get-types', async (_req, res) => {
 });
 
 router.post('/get-subtypes', async (req, res) => {
-    const subtypes = await DB.all('types/all-subtypes');
+    const subtypes = await Subtype.all()
 
     if (subtypes.isErr()) return res.sendStatus('unknown:error');
 
@@ -35,27 +35,16 @@ router.post<{
     validate({
         name: 'string'
     }),
-    (req, res) => {
+    async (req, res) => {
         const { name } = req.body;
 
-        const dateCreated = Date.now();
-        const dateModified = dateCreated;
-        const id = uuid();
-
-        DB.run('types/new-type', {
-            id,
+        const t = await Type.new({
             name,
-            dateCreated,
-            dateModified
         });
+        if (t.isErr()) return res.sendStatus('unknown:error');
 
         res.sendStatus('transaction-types:type-created');
-        req.io.emit('transaction-types:type-created', {
-            id,
-            name,
-            dateCreated,
-            dateModified
-        });
+        req.io.emit('transaction-types:type-created', t.value);
     }
 );
 
@@ -70,31 +59,19 @@ router.post<{
         typeId: 'string',
         type: ['withdrawal', 'deposit']
     }),
-    (req, res) => {
+    async (req, res) => {
         const { name, typeId, type } = req.body;
 
-        const dateCreated = Date.now();
-        const dateModified = dateCreated;
-        const id = uuid();
-
-        DB.run('types/new-subtype', {
-            id,
+        const s = await Subtype.new({
             name,
             typeId,
-            dateCreated,
-            dateModified,
-            type
+            type,
         });
+
+        if (s.isErr()) return res.sendStatus('unknown:error');
 
         res.sendStatus('transaction-types:subtype-created');
-        req.io.emit('transaction-types:subtype-created', {
-            id,
-            name,
-            typeId,
-            dateCreated,
-            dateModified,
-            type
-        });
+        req.io.emit('transaction-types:subtype-created', s.value);
     }
 );
 
@@ -107,24 +84,19 @@ router.post<{
         id: 'string',
         name: 'string'
     }),
-    (req, res) => {
+    async (req, res) => {
         const { id, name } = req.body;
 
-        const dateModified = Date.now();
+        const t = await Type.fromId(id);
+        if (t.isErr()) return res.sendStatus('unknown:error');
+        if (!t.value) return res.sendStatus('unknown:error');
 
-        DB.run('types/update-type', {
-            id,
-            name,
-            dateModified,
-            dateCreated: dateModified
+        t.value.update({
+            name
         });
 
         res.sendStatus('transaction-types:type-updated');
-        req.io.emit('transaction-types:type-updated', {
-            id,
-            name,
-            dateModified
-        });
+        req.io.emit('transaction-types:type-updated', t);
     }
 );
 
@@ -141,31 +113,20 @@ router.post<{
         typeId: 'string',
         type: ['withdrawal', 'deposit']
     }),
-    (req, res) => {
+    async (req, res) => {
         const { id, name, typeId, type } = req.body;
 
-        if (['withdrawal', 'deposit'].indexOf(type) === -1) {
-            return res.sendStatus('transaction-types:invalid-type');
-        }
+        const s = await Subtype.fromId(id);
+        if (s.isErr()) return res.sendStatus('unknown:error');
+        if (!s.value) return res.sendStatus('unknown:error');
 
-        const dateModified = Date.now();
-
-        DB.run('types/update-subtype', {
-            id,
+        s.value.update({
             name,
             typeId,
-            dateModified,
-            dateCreated: dateModified,
             type
         });
 
         res.sendStatus('transaction-types:subtype-updated');
-        req.io.emit('transaction-types:subtype-updated', {
-            id,
-            name,
-            typeId,
-            dateModified,
-            type
-        });
+        req.io.emit('transaction-types:subtype-updated', s.value);
     }
 );

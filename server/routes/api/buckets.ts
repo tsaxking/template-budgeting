@@ -1,19 +1,18 @@
 import { BucketType } from '../../../shared/db-types-extended';
 import { validate } from '../../middleware/data-type';
 import { Route } from '../../structure/app/app';
-import { DB } from '../../utilities/databases';
-import { uuid } from '../../utilities/uuid';
+import { Buckets } from '../../structure/cache/bucket';
 
 export const router = new Route();
 
 router.post('/all', async (_req, res) => {
-    const buckets = await DB.all('buckets/all');
+    const buckets = await Buckets.all();
     if (buckets.isErr()) return res.sendStatus('unknown:error');
     res.json(buckets.value);
 });
 
 router.post('/archived', async (_req, res) => {
-    const buckets = await DB.all('buckets/archived');
+    const buckets = await Buckets.archived();
     if (buckets.isErr()) return res.sendStatus('unknown:error');
     res.json(buckets.value);
 });
@@ -29,28 +28,18 @@ router.post<{
         description: 'string',
         type: ['debit', 'credit', 'savings', 'other']
     }),
-    (req, res) => {
+    async (req, res) => {
         const { name, description, type } = req.body;
 
-        const created = Date.now();
-        const id = uuid();
-
-        DB.run('buckets/new', {
-            id,
+        const b = await Buckets.new({
             name,
             description,
-            type,
-            created
+            type
         });
+        if (b.isErr()) return res.sendStatus('unknown:error');
 
         res.sendStatus('buckets:created');
-        req.io.emit('buckets:created', {
-            id,
-            name,
-            description,
-            type,
-            created
-        });
+        req.io.emit('buckets:created', b.value);
     }
 );
 
@@ -70,25 +59,17 @@ router.post<{
     async (req, res) => {
         const { id, name, description, type } = req.body;
 
-        const b = await DB.get('buckets/from-id', { id });
+        const b = await Buckets.fromId(id);
 
         if (b.isOk() && b.value) {
-            DB.run('buckets/update', {
-                id,
+            await b.value.update({
                 name,
                 description,
-                type,
-                created: b.value.created
+                type
             });
 
             res.sendStatus('buckets:updated');
-            req.io.emit('buckets:updated', {
-                id,
-                name,
-                description,
-                type,
-                created: b.value.created
-            });
+            req.io.emit('buckets:updated', b.value);
         } else {
             res.sendStatus('buckets:invalid-id');
         }
@@ -104,19 +85,17 @@ router.post<{
         bucketId: 'string',
         archived: 'boolean'
     }),
-    (req, res) => {
+    async (req, res) => {
         const { bucketId, archived } = req.body;
 
-        const b = DB.get('buckets/from-id', { id: bucketId });
+        const b = await Buckets.fromId(bucketId);
 
-        if (!b) {
-            return res.sendStatus('buckets:invalid-id');
-        }
+        if (b.isErr()) return res.sendStatus('unknown:error');
+        if (!b.value) return res.sendStatus('page:not-found');
 
-        DB.run('buckets/set-archive', {
-            id: bucketId,
-            archived: archived ? 1 : 0
-        });
+        const r = await b.value.setArchive(archived);
+
+        if (r.isErr()) return res.sendStatus('unknown:error');
 
         if (archived) {
             res.sendStatus('buckets:archived', { bucketId });

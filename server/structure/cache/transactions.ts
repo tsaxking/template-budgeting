@@ -57,8 +57,6 @@ export class Transaction extends Cache {
         description: string;
         subtypeId: string;
         taxDeductible: number;
-        archived: number;
-        picture: string | undefined;
     }) {
         return attemptAsync(async () => {
             const id = uuid();
@@ -69,7 +67,9 @@ export class Transaction extends Cache {
             if (res.isErr()) throw res.error;
             return new Transaction({
                 id,
-                ...data
+                ...data,
+                archived: 0,
+                picture: undefined
             });
         });
     }
@@ -137,7 +137,6 @@ export class Transaction extends Cache {
         description: string;
         subtypeId: string;
         taxDeductible: number;
-        archived: number;
     }) {
         return attemptAsync(async () => {
             const res = await DB.run('transactions/update', {
@@ -153,7 +152,17 @@ export class Transaction extends Cache {
             this.description = data.description;
             this.subtypeId = data.subtypeId;
             this.taxDeductible = data.taxDeductible;
-            this.archived = data.archived;
+        });
+    }
+
+    setPicture(fileId: string) {
+        return attemptAsync(async () => {
+            const res = await DB.run('transactions/update-picture', {
+                id: this.id,
+                picture: fileId
+            });
+            if (res.isErr()) throw res.error;
+            this.picture = fileId;
         });
     }
 }
