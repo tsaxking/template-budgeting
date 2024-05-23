@@ -4,7 +4,7 @@ import { resolveAll } from '../../../../shared/check';
 import { Bucket } from '../../../models/transactions/bucket';
 import { Line } from 'svelte-chartjs';
 import { onMount } from 'svelte';
-import { date } from '../../../../shared/clock';
+import { date, segment } from '../../../../shared/clock';
 import { BalanceCorrection } from '../../../models/transactions/balance-correction';
 
 // TODO: Build a chart that shows the balance over time
@@ -41,28 +41,73 @@ const mount = async (buckets: Bucket[]) => {
         (a, b) => a.date - b.date
     );
 
-    balance = data.reduce((acc, cur, i) =>  {
-        if (cur instanceof BalanceCorrection) {
-            acc.push(cur.balance);
-            return acc;
-        } else {
-            let amount = cur.amount;
-            amount = cur.type === 'withdrawal' ? -amount : amount;
-            acc.push((acc[i - 1] || 0) + amount);
-            return acc;
+    dates = segment(data.map(d => new Date(+d.date)), 20);
+
+    balance = [];
+    withdrawals = [];
+    deposits = [];
+
+    for (const [i, d] of dates.entries()) {
+        let transactions: (Transaction | BalanceCorrection)[] = data.filter(
+            t => date(t.date) === date(d)
+        );
+        if (i == 0) {
+            transactions = data.filter(t => t.date <= d.getTime() && t.date >= from);
         }
-    }, [] as number[]);
 
-    dates = data.map(t => new Date(t.date));
+        balance.push(
+            transactions.reduce((acc, cur, i) => {
+                if (cur instanceof BalanceCorrection) {
+                    acc += cur.balance;
+                    return acc;
+                } else {
+                    let amount = cur.amount;
+                    amount = cur.type === 'withdrawal' ? -amount : amount;
+                    acc += (acc + amount);
+                    return acc;
+                }
+            }, 0)
+        );
 
-    withdrawals = data.map(t => {
-        if (t instanceof Transaction && t.type === 'withdrawal') return -t.amount;
-        return 0;
-    });
-    deposits = data.map(t => {
-        if (t instanceof Transaction && t.type === 'deposit') return t.amount;
-        return 0;
-    });
+        withdrawals.push(
+            transactions.reduce((acc, cur) => {
+                if (cur instanceof Transaction && cur.type === 'withdrawal') {
+                    acc += -cur.amount;
+                }
+                return acc;
+            }, 0)
+        );
+
+        deposits.push(
+            transactions.reduce((acc, cur) => {
+                if (cur instanceof Transaction && cur.type === 'deposit') {
+                    acc += cur.amount;
+                }
+                return acc;
+            }, 0)
+        );
+    }
+
+    // balance = data.reduce((acc, cur, i) =>  {
+    //     if (cur instanceof BalanceCorrection) {
+    //         acc.push(cur.balance);
+    //         return acc;
+    //     } else {
+    //         let amount = cur.amount;
+    //         amount = cur.type === 'withdrawal' ? -amount : amount;
+    //         acc.push((acc[i - 1] || 0) + amount);
+    //         return acc;
+    //     }
+    // }, [] as number[]);
+
+    // withdrawals = data.map(t => {
+    //     if (t instanceof Transaction && t.type === 'withdrawal') return -t.amount;
+    //     return 0;
+    // });
+    // deposits = data.map(t => {
+    //     if (t instanceof Transaction && t.type === 'deposit') return t.amount;
+    //     return 0;
+    // });
 };
 
 onMount(() => {
