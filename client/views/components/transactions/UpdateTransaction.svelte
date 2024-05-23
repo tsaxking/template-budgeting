@@ -167,5 +167,5 @@ const update = async () => {
         </div>
     </div>
     {/if}
-    <button type="submit" class="btn btn-primary"> Create </button>
+    <button type="submit" class="btn btn-primary"> Update </button>
 </form>

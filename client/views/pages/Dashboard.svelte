@@ -10,6 +10,7 @@ import NewSubscription from '../components/subscriptions/NewSubscription.svelte'
 import { onMount } from 'svelte';
 import TransactionChart from '../components/transactions/TransactionChart.svelte';
 import SubscriptionTable from '../components/subscriptions/SubscriptionTable.svelte';
+import NewTransfer from '../components/transactions/NewTransfer.svelte';
 
 let buckets: Bucket[] = [];
 
@@ -43,6 +44,19 @@ const subscription = () => {
     });
     m.show();
     t.$on('subscription-created', () => {
+        m.hide();
+        m.destroy();
+    });
+};
+
+const transfer = () => {
+    const m = new Modal();
+    m.setTitle('New Transfer');
+    const t = new NewTransfer({
+        target: m.target.querySelector('.modal-body') as HTMLElement
+    });
+    m.show();
+    t.$on('transfer-created', () => {
         m.hide();
         m.destroy();
     });
@@ -108,6 +122,10 @@ Bucket.on('update', () => (buckets = buckets));
             <button class="btn btn-warning" on:click="{subscription}">
                 <i class="material-icons"> add </i>
                 New Subscription
+            </button>
+            <button class="btn btn-info" on:click="{transfer}">
+                <i class="material-icons"> trending_flat </i>
+                Transfer
             </button>
         </div>
     </div>

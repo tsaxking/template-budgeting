@@ -75,18 +75,6 @@ export class Transaction extends Cache<TransactionEvents> {
         });
     }
 
-    public static transfer(data: {
-        from: string;
-        to: string;
-        amount: number;
-        description: string;
-        subtypeId: string;
-        taxDeductible: boolean;
-        date: number;
-    }) {
-        return ServerRequest.post('/api/transactions/transfer', data);
-    }
-
     public static new(data: {
         amount: number;
         type: 'withdrawal' | 'deposit';
@@ -155,8 +143,6 @@ export class Transaction extends Cache<TransactionEvents> {
             description: data.description || this.description,
             subtypeId: data.subtypeId || this.subtypeId,
             taxDeductible: data.taxDeductible || this.taxDeductible,
-            archived: data.archived || this.archived,
-            picture: data.picture || this.picture
         });
     }
 
