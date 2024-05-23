@@ -49,8 +49,8 @@ export class Budget extends Cache<BudgetEvents> {
 
     public static async all() {
         return attemptAsync(async () => {
-            if (Budget.cache.size)
-                return Array.from(Budget.cache.values());
+            // if (Budget.cache.size)
+            //     return Array.from(Budget.cache.values());
 
             const res = await ServerRequest.post<Budgets[]>(
                 '/api/budgets/all'

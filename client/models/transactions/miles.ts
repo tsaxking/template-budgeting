@@ -42,8 +42,8 @@ export class Miles extends Cache<TypeEvents> {
 
     public static all() {
         return attemptAsync(async () => {
-            const cache = Array.from(Miles.cache.values());
-            if (cache.length) return cache.filter(s => !s.archived);
+            // const cache = Array.from(Miles.cache.values());
+            // if (cache.length) return cache.filter(s => !s.archived);
 
             const res = await ServerRequest.post<M[]>('/api/miles/active');
 

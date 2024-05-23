@@ -49,23 +49,21 @@ const mount = async (buckets: Bucket[]) => {
 
     for (const [i, d] of dates.entries()) {
         let transactions: (Transaction | BalanceCorrection)[] = [];
+        const upTo = data.filter(t => t.date <= d.getTime());
         if (i == 0) {
-            transactions = data.filter(t => t.date <= d.getTime() && t.date >= from);
+            transactions = data.filter(t => t.date <= d.getTime() && t.date > from);
         } else {
-            transactions = data.filter(t => t.date <= d.getTime() && t.date >= dates[i - 1].getTime());
+            transactions = data.filter(t => t.date <= d.getTime() && t.date > dates[i - 1].getTime());
         }
 
         balance.push(
-            transactions.reduce((acc, cur, i) => {
+            upTo.reduce((acc, cur) => {
                 if (cur instanceof BalanceCorrection) {
-                    acc += cur.balance;
-                    return acc;
+                    acc = cur.balance;
                 } else {
-                    let amount = cur.amount;
-                    amount = cur.type === 'withdrawal' ? -amount : amount;
-                    acc += (acc + amount);
-                    return acc;
+                    acc += cur.type === 'withdrawal' ? -cur.amount : cur.amount;
                 }
+                return acc;
             }, 0)
         );
 
