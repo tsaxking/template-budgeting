@@ -211,7 +211,6 @@ export const segment = (dates: Date[], segments: number): Date[] => {
 
     const range = max.getTime() - min.getTime();
     return Array.from({ length: segments }).map((_, i) => {
-        const start = min.getTime() + (range / segments) * i;
-        return new Date(start);
+        return new Date(min.getTime() + (range / segments) * (i + 1));
     });
 };

@@ -95,11 +95,11 @@ export class Bucket extends Cache<BucketEvents> {
 
     public static async all() {
         return attemptAsync(async () => {
-            if (Bucket.cache.size > 0) {
-                const buckets = Array.from(Bucket.cache.values());
-                if (buckets.some(b => !b.archived))
-                    return buckets.filter(b => !b.archived);
-            }
+            // if (Bucket.cache.size > 0) {
+            //     const buckets = Array.from(Bucket.cache.values());
+            //     if (buckets.some(b => !b.archived))
+            //         return buckets.filter(b => !b.archived);
+            // }
 
             const res = await ServerRequest.post<B[]>('/api/buckets/all');
             if (res.isErr()) throw res.error;

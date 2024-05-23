@@ -55,8 +55,8 @@ export class Goal extends Cache<GoalEvents> {
 
     public static async all() {
         return attemptAsync(async () => {
-            if (Goal.cache.size)
-                return Array.from(Goal.cache.values());
+            // if (Goal.cache.size)
+            //     return Array.from(Goal.cache.values());
 
             const res = await ServerRequest.post<Goals[]>(
                 '/api/goals/all'

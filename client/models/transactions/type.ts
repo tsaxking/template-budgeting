@@ -46,8 +46,8 @@ export class Type extends Cache<TypeEvents> {
 
     public static all() {
         return attemptAsync(async () => {
-            const cache = Array.from(Type.cache.values());
-            if (cache.length) return cache;
+            // const cache = Array.from(Type.cache.values());
+            // if (cache.length) return cache;
 
             const res = await ServerRequest.post<{
                 types: TransactionType[];
