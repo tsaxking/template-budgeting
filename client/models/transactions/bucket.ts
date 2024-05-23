@@ -2,7 +2,7 @@ import { attemptAsync } from '../../../shared/check';
 import { EventEmitter } from '../../../shared/event-emitter';
 import { Cache } from '../cache';
 import { Transaction } from './transaction';
-import { BucketType, SubscriptionInterval } from '../../../shared/db-types-extended';
+import { BucketType } from '../../../shared/db-types-extended';
 import { ServerRequest } from '../../utilities/requests';
 import { Bucket as B } from '../../../shared/db-types-extended';
 import { socket } from '../../utilities/socket';
@@ -185,13 +185,13 @@ export class Bucket extends Cache<BucketEvents> {
         });
     }
 
-    async getSubscriptions(from: number, to: number) {
+    async getSubscriptions(_from: number, _to: number) {
         return attemptAsync(async () => {
             const subs = await Subscription.all();
             if (subs.isErr()) throw subs.error;
 
             return subs.value.filter(s => {
-                return s.bucketId === this.id// && s.startDate <= to && (s.endDate || Infinity) >= from;
+                return s.bucketId === this.id // && s.startDate <= _to && (s.endDate || Infinity) >= _from;
             });
         });
     }
@@ -257,6 +257,21 @@ export class Bucket extends Cache<BucketEvents> {
             }
 
             return balance;
+        });
+    }
+
+    async transfer(
+        to: Bucket,
+        amount: number,
+        date: number,
+        description: string
+    ) {
+        return ServerRequest.post('/api/transactions/transfer', {
+            from: this.id,
+            to: to.id,
+            amount,
+            date,
+            description
         });
     }
 }

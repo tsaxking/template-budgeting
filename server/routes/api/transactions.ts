@@ -95,7 +95,7 @@ router.post<{
     bucketId: string;
     description: string;
     subtypeId: string;
-    taxDeductible: boolean;
+    taxDeductible: 0 | 1;
 }>(
     '/update',
     validate({
@@ -107,7 +107,7 @@ router.post<{
         bucketId: 'string',
         description: 'string',
         subtypeId: 'string',
-        taxDeductible: 'boolean'
+        taxDeductible: [0, 1]
     }),
     async (req, res) => {
         const {
@@ -215,8 +215,6 @@ router.post<{
     from: string;
     to: string;
     description: string;
-    subtypeId: string;
-    taxDeductible: boolean;
     date: number;
 }>(
     '/transfer',
@@ -225,8 +223,6 @@ router.post<{
         from: 'string',
         to: 'string',
         description: 'string',
-        subtypeId: 'string',
-        taxDeductible: 'boolean',
         date: 'number'
     }),
     async (req, res) => {
@@ -236,8 +232,6 @@ router.post<{
             date,
             to,
             description,
-            subtypeId,
-            taxDeductible
         } = req.body;
 
         const status = 'completed';
@@ -249,8 +243,8 @@ router.post<{
             date,
             bucketId: from,
             description,
-            subtypeId,
-            taxDeductible: +taxDeductible
+            subtypeId: '',
+            taxDeductible: 0
         });
 
         if (fromT.isErr()) return res.sendStatus('unknown:error', fromT.error);
@@ -262,8 +256,8 @@ router.post<{
             date,
             bucketId: to,
             description,
-            subtypeId,
-            taxDeductible: +taxDeductible
+            subtypeId: '',
+            taxDeductible: 0
         });
 
         if (toT.isErr()) return res.sendStatus('unknown:error', toT.error);
