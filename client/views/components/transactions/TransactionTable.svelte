@@ -1,7 +1,7 @@
 <script lang="ts">
 import { Transaction } from '../../../models/transactions/transaction';
 import { Bucket } from '../../../models/transactions/bucket';
-import { resolveAll } from '../../../../shared/check';
+import { attemptAsync, resolveAll } from '../../../../shared/check';
 import { Subtype } from '../../../models/transactions/subtype';
 import { Type } from '../../../models/transactions/type';
 import { cost } from '../../../../shared/text';
@@ -17,37 +17,48 @@ let search = '';
 let transactions: {
     transaction: Transaction;
     bucket: Bucket | undefined;
-    subtype: Subtype;
-    type: Type;
+    subtype?: Subtype;
+    type?: Type;
 }[] = [];
 let transactionView: {
     transaction: Transaction;
     bucket: Bucket | undefined;
-    subtype: Subtype;
-    type: Type;
+    subtype?: Subtype;
+    type?: Type;
 }[] = [];
 
 $: {
     Bucket.transactionsFromBuckets(buckets, from, to).then(async ts => {
         if (ts.isErr()) return console.error(ts.error);
-        transactions = await Promise.all(
+        const t = resolveAll(await Promise.all(
             ts.value.reverse().map(async t => {
-                const [bucket, typeInfo] = await Promise.all([
-                    Bucket.fromId(t.bucketId),
-                    t.getTypeInfo()
-                ]);
+                    return attemptAsync(async () => {
+                        const [bucket, typeInfo] = await Promise.all([
+                        Bucket.fromId(t.bucketId),
+                        t.getTypeInfo()
+                    ]);
 
-                if (bucket.isErr()) throw bucket.error;
-                if (typeInfo.isErr()) throw typeInfo.error;
+                    if (bucket.isErr()) throw bucket.error;
+                    if (typeInfo.isErr()) {
+                        console.log('Type error');
+                        return {
+                            transaction: t,
+                            bucket: bucket.value
+                        }
+                    }
 
-                return {
-                    transaction: t,
-                    bucket: bucket.value,
-                    subtype: typeInfo.value.subtype,
-                    type: typeInfo.value.type
-                };
+                    return {
+                        transaction: t,
+                        bucket: bucket.value,
+                        subtype: typeInfo.value.subtype,
+                        type: typeInfo.value.type
+                    };
+                });
             })
-        );
+        ));
+        if (t.isErr()) return console.error(t.error);
+
+        transactions = t.value;
     });
 }
 
@@ -56,11 +67,11 @@ $: {
         if (!search) return true;
         return [
             t.transaction.description,
-            t.type.name,
-            t.subtype.name,
+            t.type?.name,
+            t.subtype?.name,
             t.bucket ? t.bucket.name : ''
         ]
-            .map(t => t.toLowerCase())
+            .map(t => t?.toLowerCase() || '')
             .join('')
             .includes(search.toLowerCase());
     });
@@ -170,8 +181,8 @@ $: {
                                     >{cost(-+t.transaction.amount)}</td
                                 >
                             {/if}
-                            <td>{t.type.name}</td>
-                            <td>{t.subtype.name}</td>
+                            <td>{t.type?.name || ''}</td>
+                            <td>{t.subtype?.name || ''}</td>
                             <td>{t.bucket ? t.bucket.name : 'None'}</td>
                             <td>{t.transaction.description}</td>
                         </tr>

@@ -12,14 +12,11 @@ Type.on('new', t => {
 const d = createEventDispatcher();
 
 export let value: Type | undefined;
-console.log(value);
 let selected: string | undefined = value?.id || '';
 $: {
     value = value ? value : types.find(type => type.id === selected);
     d('change', value);
 }
-
-$: console.log({ selected });
 
 const create = async () => {
     prompt('Enter the name of the new type').then(n => {
