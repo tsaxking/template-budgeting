@@ -48,11 +48,11 @@ const mount = async (buckets: Bucket[]) => {
     deposits = [];
 
     for (const [i, d] of dates.entries()) {
-        let transactions: (Transaction | BalanceCorrection)[] = data.filter(
-            t => date(t.date) === date(d)
-        );
+        let transactions: (Transaction | BalanceCorrection)[] = [];
         if (i == 0) {
             transactions = data.filter(t => t.date <= d.getTime() && t.date >= from);
+        } else {
+            transactions = data.filter(t => t.date <= d.getTime() && t.date >= dates[i - 1].getTime());
         }
 
         balance.push(
