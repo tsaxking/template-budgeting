@@ -65,6 +65,56 @@ import { Update_sessions_sign_in } from './tables';
 import { Update_sessions_sign_out } from './tables';
 import { Insert_db_change_version } from './tables';
 import { Delete_db_delete_version } from './tables';
+import { Transactions } from './tables';
+import { Buckets } from './tables';
+import { BalanceCorrection } from './tables';
+import { Miles } from './tables';
+import { Subscriptions } from './tables';
+import { TransactionTypes } from './tables';
+import { Subtypes } from './tables';
+import { Select_balance_correction_all } from './tables';
+import { Insert_balance_correction_new } from './tables';
+import { Update_balance_correction_update } from './tables';
+import { Select_buckets_all } from './tables';
+import { Select_buckets_archived } from './tables';
+import { Insert_buckets_new } from './tables';
+import { Update_buckets_set_archive } from './tables';
+import { Update_buckets_update } from './tables';
+import { Select_miles_active } from './tables';
+import { Select_miles_archived } from './tables';
+import { Select_miles_from_id } from './tables';
+import { Insert_miles_new } from './tables';
+import { Update_miles_set_archive } from './tables';
+import { Update_miles_update } from './tables';
+import { Select_subscriptions_active } from './tables';
+import { Select_subscriptions_archived } from './tables';
+import { Select_subscriptions_from_bucket } from './tables';
+import { Select_subscriptions_from_id } from './tables';
+import { Insert_subscriptions_new } from './tables';
+import { Update_subscriptions_set_archive } from './tables';
+import { Update_subscriptions_update } from './tables';
+import { Select_transactions_archived } from './tables';
+import { Select_transactions_between } from './tables';
+import { Select_transactions_deposits } from './tables';
+import { Select_transactions_from_bucket } from './tables';
+import { Select_transactions_from_id } from './tables';
+import { Select_transactions_from_status } from './tables';
+import { Select_transactions_from_subtype } from './tables';
+import { Select_transactions_from_tax_deductible } from './tables';
+import { Insert_transactions_new } from './tables';
+import { Update_transactions_set_archive } from './tables';
+import { Update_transactions_update_picture } from './tables';
+import { Update_transactions_update } from './tables';
+import { Select_transactions_withdrawals } from './tables';
+import { Select_types_all_subtypes } from './tables';
+import { Select_types_all_types } from './tables';
+import { Insert_types_new_subtype } from './tables';
+import { Insert_types_new_type } from './tables';
+import { Select_types_subtype_from_type } from './tables';
+import { Update_types_update_subtype } from './tables';
+import { Update_types_update_type } from './tables';
+import { Delete_balance_correction_delete } from './tables';
+import { Select_balance_correction_from_id } from './tables';
 
 export type Queries = {
     'permissions/all': [[Select_permissions_all], Permissions];
@@ -152,42 +202,86 @@ export type Queries = {
         ],
         unknown
     ];
-    'blacklist/delete': [
+    'blacklist/delete': [[{ id: string }], unknown];
+    'blacklist/from-account': [[{ accountId: string }], Blacklist];
+    'blacklist/from-ip': [[{ ip: string }], Blacklist];
+    'blacklist/delete-by-ip': [[{ ip: string }]];
+    'blacklist/delete-by-account': [[{ accountId: string }]];
+    'balance-correction/all': [
+        [Select_balance_correction_all],
+        BalanceCorrection
+    ];
+    'balance-correction/new': [[Insert_balance_correction_new], unknown];
+    'balance-correction/update': [[Update_balance_correction_update], unknown];
+    'buckets/all': [[Select_buckets_all], Buckets];
+    'buckets/archived': [[Select_buckets_archived], Buckets];
+    'buckets/new': [[Insert_buckets_new], unknown];
+    'buckets/set-archive': [[Update_buckets_set_archive], unknown];
+    'buckets/update': [[Update_buckets_update], unknown];
+    'buckets/from-id': [
         [
             {
                 id: string;
             }
         ],
+        Buckets
+    ];
+    'miles/active': [[Select_miles_active], Miles];
+    'miles/archived': [[Select_miles_archived], Miles];
+    'miles/from-id': [[Select_miles_from_id], Miles];
+    'miles/new': [[Insert_miles_new], unknown];
+    'miles/set-archive': [[Update_miles_set_archive], unknown];
+    'miles/update': [[Update_miles_update], unknown];
+    'subscriptions/active': [[Select_subscriptions_active], Subscriptions];
+    'subscriptions/archived': [[Select_subscriptions_archived], Subscriptions];
+    'subscriptions/from-bucket': [
+        [Select_subscriptions_from_bucket],
+        Subscriptions
+    ];
+    'subscriptions/from-id': [[Select_subscriptions_from_id], Subscriptions];
+    'subscriptions/new': [[Insert_subscriptions_new], unknown];
+    'subscriptions/set-archive': [[Update_subscriptions_set_archive], unknown];
+    'subscriptions/update': [[Update_subscriptions_update], unknown];
+    'transactions/archived': [[Select_transactions_archived], Transactions];
+    'transactions/between': [[Select_transactions_between], Transactions];
+    'transactions/deposits': [[Select_transactions_deposits], Transactions];
+    'transactions/from-bucket': [
+        [Select_transactions_from_bucket],
+        Transactions
+    ];
+    'transactions/from-id': [[Select_transactions_from_id], Transactions];
+    'transactions/from-status': [
+        [Select_transactions_from_status],
+        Transactions
+    ];
+    'transactions/from-subtype': [
+        [Select_transactions_from_subtype],
+        Transactions
+    ];
+    'transactions/from-tax-deductible': [
+        [Select_transactions_from_tax_deductible],
+        Transactions
+    ];
+    'transactions/new': [[Insert_transactions_new], unknown];
+    'transactions/set-archive': [[Update_transactions_set_archive], unknown];
+    'transactions/update-picture': [
+        [Update_transactions_update_picture],
         unknown
     ];
-    'blacklist/from-account': [
-        [
-            {
-                accountId: string;
-            }
-        ],
-        Blacklist
-    ];
-    'blacklist/from-ip': [
-        [
-            {
-                ip: string;
-            }
-        ],
-        Blacklist
-    ];
-    'blacklist/delete-by-ip': [
-        [
-            {
-                ip: string;
-            }
-        ]
-    ];
-    'blacklist/delete-by-account': [
-        [
-            {
-                accountId: string;
-            }
-        ]
+    'transactions/update': [[Update_transactions_update], unknown];
+    'transactions/withdrawals': [[Select_transactions_withdrawals], Transactions];
+    'types/all-subtypes': [[Select_types_all_subtypes], Subtypes];
+    'types/all-types': [[Select_types_all_types], TransactionTypes];
+    'types/new-subtype': [[Insert_types_new_subtype], unknown];
+    'types/new-type': [[Insert_types_new_type], unknown];
+    'types/subtype-from-type': [[Select_types_subtype_from_type], Subtypes];
+    'types/update-subtype': [[Update_types_update_subtype], unknown];
+    'types/update-type': [[Update_types_update_type], unknown];
+    'types/type-from-id': [[{ id: string }], TransactionTypes];
+    'types/subtype-from-id': [[{ id: string }], Subtypes];
+    'balance-correction/delete': [[Delete_balance_correction_delete], unknown];
+    'balance-correction/from-id': [
+        [Select_balance_correction_from_id],
+        BalanceCorrection
     ];
 };
