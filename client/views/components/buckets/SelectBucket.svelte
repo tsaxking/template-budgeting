@@ -62,7 +62,7 @@ Bucket.on('new', b => {
 });
 </script>
 
-<div class="btn-group" role="group" aria-label="buckets">
+<div class="btn-group button-selector" role="group" aria-label="buckets">
     {#each buckets as bucket, i}
         <input
             type="checkbox"
@@ -83,3 +83,10 @@ Bucket.on('new', b => {
         New Bucket
     </button>
 </div>
+
+<style>
+    .button-selector {
+        width: 100vw;
+        overflow-x: auto;
+    }
+</style>
