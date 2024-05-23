@@ -174,6 +174,7 @@ export class Subscription extends Cache<SubscriptionEvents> {
         const dates: Date[] = [];
         let next = start;
         while (next <= t) {
+            dates.push(next);
             switch (this.interval) {
                 case 'daily':
                     next = new Date(next.getTime() + 1000 * 60 * 60 * 24);
@@ -195,7 +196,6 @@ export class Subscription extends Cache<SubscriptionEvents> {
                     break;
                 default:
             }
-            dates.push(next);
         }
 
         return dates.map(d => {
