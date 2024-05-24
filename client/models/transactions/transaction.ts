@@ -176,11 +176,10 @@ export class Transaction extends Cache<TransactionEvents> {
             if (subtype.isErr()) throw subtype.error;
 
             const s = subtype.value.find(s => s.id === this.subtypeId);
-            if (!s) throw new Error('Subtype not found');
+            if (!s) return null;
 
             const t = type.value.find(t => t.id === s.typeId);
-            if (!t) throw new Error('Type not found');
-
+            if (!t) return null;
             return {
                 type: t,
                 subtype: s

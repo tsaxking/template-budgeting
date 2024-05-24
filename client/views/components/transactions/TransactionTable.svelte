@@ -11,7 +11,6 @@ import { confirm } from '../../../utilities/notifications';
 import { Random } from '../../../../shared/math';
 import { onMount } from 'svelte';
 // import JQuery from 'jquery';
-import DataTable from 'datatables.net-dt';
 
 const id = Random.uuid();
 
@@ -56,8 +55,8 @@ $: {
                     return {
                         transaction: t,
                         bucket: bucket.value,
-                        subtype: typeInfo.value.subtype,
-                        type: typeInfo.value.type
+                        subtype: typeInfo.value?.subtype,
+                        type: typeInfo.value?.type
                     };
                 });
             })
