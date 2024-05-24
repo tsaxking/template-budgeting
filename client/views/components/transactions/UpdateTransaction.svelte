@@ -18,8 +18,8 @@ let buckets: Bucket[] = [];
 onMount(() => {
     transaction.getTypeInfo().then(data => {
         if (data.isErr()) return console.error(data.error);
-        t = data.value.type;
-        s = data.value.subtype;
+        t = data.value?.type || undefined;
+        s = data.value?.subtype || undefined;
     });
 
     Bucket.all().then(b => {
