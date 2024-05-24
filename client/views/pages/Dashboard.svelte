@@ -11,6 +11,7 @@ import { onMount } from 'svelte';
 import TransactionChart from '../components/transactions/TransactionChart.svelte';
 import SubscriptionTable from '../components/subscriptions/SubscriptionTable.svelte';
 import NewTransfer from '../components/transactions/NewTransfer.svelte';
+import TransactionBarChart from '../components/transactions/TransactionBarChart.svelte';
 
 let buckets: Bucket[] = [];
 
@@ -20,8 +21,12 @@ let to: number;
 let fromStr: string;
 let toStr: string;
 
-$: from = new Date(fromStr).getTime();
-$: to = new Date(toStr).getTime();
+$:{ from = new Date(fromStr).getTime();
+    reset();
+}
+$: {to = new Date(toStr).getTime(); reset();}
+
+const reset = () => buckets = buckets;
 
 const transaction = () => {
     const m = new Modal();
@@ -82,7 +87,7 @@ onMount(() => {
     return () => {};
 });
 
-Bucket.on('update', () => (buckets = buckets));
+Bucket.on('update', reset);
 </script>
 
 <div class="container-fluid">
@@ -132,7 +137,7 @@ Bucket.on('update', () => (buckets = buckets));
     <div class="row mb-3">
         {#each buckets as bucket}
             <DashboardCard title="{bucket.name}" expandable="{true}">
-                <BucketBasics bind:bucket={bucket} bind:to={to} />
+                <BucketBasics {bucket} {to} />
             </DashboardCard>
         {/each}
         <DashboardCard title="Transactions" expandable="{true}">
@@ -143,6 +148,9 @@ Bucket.on('update', () => (buckets = buckets));
         </DashboardCard>
         <DashboardCard title="Chart" expandable="{true}">
             <TransactionChart {from} {to} {buckets} />
+        </DashboardCard>
+        <DashboardCard title="Bar Chart" expandable="{true}">
+            <TransactionBarChart {buckets} {from} {to} />
         </DashboardCard>
     </div>
 </div>
