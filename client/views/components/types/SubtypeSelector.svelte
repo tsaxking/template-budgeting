@@ -6,6 +6,8 @@ import Select from '../bootstrap/Select.svelte';
 import { createEventDispatcher, onMount } from 'svelte';
 import { Modal } from '../../../utilities/modals';
 import NewSubtype from './NewSubtype.svelte';
+
+
 export let type: Type;
 export let subtypes: Subtype[] = [];
 
