@@ -84,7 +84,7 @@ Miles.on('update', () => getMiles(from, to));
 Miles.on('archived', () => getMiles(from, to));
 
 let subtotal = 0;
-$: subtotal = viewMiles.reduce((acc, m) => acc + m.amount, 0);
+$: subtotal = viewMiles.reduce((acc, m) => acc + +m.amount, 0);
 </script>
 
 <div class="container-fluid">

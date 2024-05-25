@@ -103,7 +103,7 @@ export class Miles extends Cache<TypeEvents> {
     update(amount: number, date: number, description: string) {
         return ServerRequest.post('/api/miles/update', {
             id: this.id,
-            amount,
+            amount: +amount,
             date,
             description
         });
