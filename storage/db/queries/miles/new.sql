@@ -2,10 +2,12 @@ INSERT INTO Miles (
     id,
     amount,
     date,
-    archived
+    archived,
+    description
 ) VALUES (
     :id,
     :amount,
     :date,
-    0
+    0,
+    :description
 );

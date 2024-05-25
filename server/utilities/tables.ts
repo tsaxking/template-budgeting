@@ -382,6 +382,7 @@ export type Miles = {
     amount: number;
     date: number;
     archived: number;
+    description: string;
 };
 
 export type Subscriptions = {
@@ -470,6 +471,7 @@ export type Insert_miles_new = {
     amount: number;
     date: number;
     archived: number;
+    description: string;
 };
 
 export type Update_miles_set_archive = {
@@ -480,6 +482,7 @@ export type Update_miles_set_archive = {
 export type Update_miles_update = {
     date: number;
     amount: number;
+    description: string;
     id: string;
 };
 

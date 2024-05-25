@@ -1,0 +1,1 @@
+ALTER TABLE Miles ADD COLUMN description TEXT NOT NULL;

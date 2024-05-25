@@ -19,18 +19,21 @@ router.post('/archived', async (_req, res) => {
 router.post<{
     amount: number;
     date: number;
+    description: string;
 }>(
     '/new',
     validate({
         amount: 'number',
-        date: 'number'
+        date: 'number',
+        description: 'string'
     }),
     async (req, res) => {
-        const { amount, date } = req.body;
+        const { amount, date, description } = req.body;
 
         const m = await Mile.new({
             amount,
-            date
+            date,
+            description
         });
         if (m.isErr()) return res.sendStatus('unknown:error', m.error);
 
@@ -43,15 +46,17 @@ router.post<{
     amount: number;
     date: number;
     id: string;
+    description: string;
 }>(
-    '/miles-update',
+    '/update',
     validate({
         amount: 'number',
         date: 'number',
-        id: 'string'
+        id: 'string',
+        description: 'string'
     }),
     async (req, res) => {
-        const { id, amount, date } = req.body;
+        const { id, amount, date, description } = req.body;
 
         const m = await Mile.fromId(id);
         if (m.isErr()) return res.sendStatus('miles:invalid-id');
@@ -59,7 +64,8 @@ router.post<{
 
         const r = await m.value.update({
             amount,
-            date
+            date,
+            description
         });
 
         if (r.isErr()) return res.sendStatus('unknown:error', r.error);
