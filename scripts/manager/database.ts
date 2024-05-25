@@ -21,8 +21,7 @@ export const versionInfo = async () => {
         DB.latestVersion()
     ]);
 
-    console.log(`Current: ${current.join('.')}\nLatest: ${latest.join('.')}`);
-    await select('', ['[Back]']);
+    await select(`Current: ${current.join('.')}\nLatest: ${latest.join('.')}`, ['[Back]']);
     return main();
 };
 
@@ -248,7 +247,7 @@ export const restoreBackup = async () => {
 export const backup = async () => {
     const res = await DB.makeBackup();
     if (res.isOk()) {
-        backToMain('Backup created');
+        backToMain(`Backup created: ${res.value}`);
     } else {
         backToMain('Error creating backup: ' + res.error.message);
     }
