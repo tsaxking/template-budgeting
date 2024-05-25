@@ -1,8 +1,8 @@
-import { Cache } from "./cache";
-import { Buckets as B } from "../../utilities/tables";
-import { DB } from "../../utilities/databases";
-import { attemptAsync } from "../../../shared/check";
-import { uuid } from "../../utilities/uuid";
+import { Cache } from './cache';
+import { Buckets as B } from '../../utilities/tables';
+import { DB } from '../../utilities/databases';
+import { attemptAsync } from '../../../shared/check';
+import { uuid } from '../../utilities/uuid';
 
 export class Buckets extends Cache {
     public static new(data: {
@@ -16,13 +16,13 @@ export class Buckets extends Cache {
             DB.run('buckets/new', {
                 ...data,
                 id,
-                created,
+                created
             });
             return new Buckets({
                 id,
                 ...data,
                 created,
-                archived: 0,
+                archived: 0
             });
         });
     }
@@ -69,18 +69,14 @@ export class Buckets extends Cache {
         this.type = data.type;
     }
 
-    update(data: {
-        name: string;
-        description: string;
-        type: string;
-    }) {
+    update(data: { name: string; description: string; type: string }) {
         return attemptAsync(async () => {
             const res = await DB.run('buckets/update', {
                 created: this.created,
                 description: data.description,
                 id: this.id,
                 name: data.name,
-                type: data.type,
+                type: data.type
             });
             if (res.isErr()) throw res.error;
             this.name = data.name;
@@ -93,7 +89,7 @@ export class Buckets extends Cache {
         return attemptAsync(async () => {
             const res = await DB.run('buckets/set-archive', {
                 archived: archived ? 1 : 0,
-                id: this.id,
+                id: this.id
             });
             if (res.isErr()) throw res.error;
             this.archived = archived ? 1 : 0;

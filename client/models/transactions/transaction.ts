@@ -142,7 +142,7 @@ export class Transaction extends Cache<TransactionEvents> {
             bucketId: data.bucketId || this.bucketId,
             description: data.description || this.description,
             subtypeId: data.subtypeId || this.subtypeId,
-            taxDeductible: data.taxDeductible || this.taxDeductible,
+            taxDeductible: data.taxDeductible || this.taxDeductible
         });
     }
 

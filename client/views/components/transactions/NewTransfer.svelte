@@ -16,7 +16,6 @@ let description = '';
 
 const d = createEventDispatcher();
 
-
 onMount(() => {
     Bucket.all().then(b => {
         if (b.isErr()) return console.error(b.error);
@@ -42,28 +41,26 @@ const submit = async () => {
 
     d('transfer-created');
 };
-
-
 </script>
 
-<form on:submit|preventDefault={submit}>
+<form on:submit|preventDefault="{submit}">
     <div class="mb-3">
         <label for="{id}-amount" class="form-label">Amount</label>
-        <input 
+        <input
             type="number"
             id="{id}-amount"
             class="form-control"
             bind:value="{amount}"
             step="0.01"
-        >
+        />
     </div>
     <div class="mb-3">
         <label for="{id}-date" class="form-label">Date</label>
-        <DateTimeInput bind:date="{date}" />
+        <DateTimeInput bind:date />
     </div>
     <div class="mb-3">
         <label for="{id}-description" class="form-label">Description</label>
-        <textarea 
+        <textarea
             id="{id}-description"
             class="form-control"
             bind:value="{description}"
@@ -71,7 +68,7 @@ const submit = async () => {
     </div>
     <div class="mb-3">
         <label for="{id}-from" class="form-label">From</label>
-        <Select 
+        <Select
             options="{buckets.map(b => b.name)}"
             values="{buckets.map(b => b.id)}"
             bind:value="{from}"
@@ -79,7 +76,7 @@ const submit = async () => {
     </div>
     <div class="mb-3">
         <label for="{id}-to" class="form-label">To</label>
-        <Select 
+        <Select
             options="{buckets.map(b => b.name)}"
             values="{buckets.map(b => b.id)}"
             bind:value="{to}"

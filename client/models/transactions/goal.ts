@@ -19,9 +19,7 @@ type GlobalGoalEvents = {
 export class Goal extends Cache<GoalEvents> {
     public static cache = new Map<string, Goal>();
 
-    public static readonly emitter = new EventEmitter<
-        keyof GlobalGoalEvents
-    >();
+    public static readonly emitter = new EventEmitter<keyof GlobalGoalEvents>();
 
     public static on<K extends keyof GlobalGoalEvents>(
         event: K,
@@ -58,9 +56,7 @@ export class Goal extends Cache<GoalEvents> {
             // if (Goal.cache.size)
             //     return Array.from(Goal.cache.values());
 
-            const res = await ServerRequest.post<Goals[]>(
-                '/api/goals/all'
-            );
+            const res = await ServerRequest.post<Goals[]>('/api/goals/all');
             if (res.isErr()) throw res.error;
             return res.value.map(Goal.retrieve);
         });

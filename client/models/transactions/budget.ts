@@ -52,9 +52,7 @@ export class Budget extends Cache<BudgetEvents> {
             // if (Budget.cache.size)
             //     return Array.from(Budget.cache.values());
 
-            const res = await ServerRequest.post<Budgets[]>(
-                '/api/budgets/all'
-            );
+            const res = await ServerRequest.post<Budgets[]>('/api/budgets/all');
             if (res.isErr()) throw res.error;
             return res.value.map(Budget.retrieve);
         });
@@ -68,7 +66,7 @@ export class Budget extends Cache<BudgetEvents> {
             const all = await Budget.all();
             if (all.isErr()) throw all.error;
 
-            return all.value.find((b) => b.id === id);
+            return all.value.find(b => b.id === id);
         });
     }
 

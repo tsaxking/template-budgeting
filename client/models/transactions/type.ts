@@ -80,9 +80,7 @@ export class Type extends Cache<TypeEvents> {
 
         if (!Type.cache.has(this.id)) Type.cache.set(this.id, this);
         else {
-            throw new Error(
-                `Type with id ${this.id} already exists in cache.`
-            );
+            throw new Error(`Type with id ${this.id} already exists in cache.`);
         }
     }
 

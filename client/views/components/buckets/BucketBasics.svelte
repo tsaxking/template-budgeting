@@ -80,14 +80,14 @@ const editCorrection = (correction: BalanceCorrection) => {
 };
 
 bucket.on('updated', () => generate(bucket));
-bucket.on('balance-correction',  () => generate(bucket));
+bucket.on('balance-correction', () => generate(bucket));
 
-Transaction.on('new',  () => generate(bucket));
-Transaction.on('update',  () => generate(bucket));
-Transaction.on('archive',  () => generate(bucket));
-BalanceCorrection.on('new',  () => generate(bucket));
-BalanceCorrection.on('update',  () => generate(bucket));
-BalanceCorrection.on('archive',  () => generate(bucket));
+Transaction.on('new', () => generate(bucket));
+Transaction.on('update', () => generate(bucket));
+Transaction.on('archive', () => generate(bucket));
+BalanceCorrection.on('new', () => generate(bucket));
+BalanceCorrection.on('update', () => generate(bucket));
+BalanceCorrection.on('archive', () => generate(bucket));
 </script>
 
 <div class="container-fluid">

@@ -8,7 +8,8 @@ export const router = new Route();
 router.post('/all', async (_req, res) => {
     const balanceCorrections = await DB.all('balance-correction/all');
 
-    if (balanceCorrections.isErr()) return res.sendStatus('unknown:error', balanceCorrections.error);
+    if (balanceCorrections.isErr())
+        return res.sendStatus('unknown:error', balanceCorrections.error);
 
     res.json(balanceCorrections.value);
 });
@@ -59,7 +60,7 @@ router.post<{
         const b = await BalanceCorrection.get(id);
         if (b.isErr()) return res.sendStatus('unknown:error', b.error);
         if (!b.value) return res.sendStatus('page:not-found');
-        
+
         await b.value.update({
             balance,
             bucketId,
