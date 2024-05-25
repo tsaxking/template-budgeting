@@ -29,7 +29,8 @@ router.post<{
         const { amount, date } = req.body;
 
         const m = await Mile.new({
-            amount, date
+            amount,
+            date
         });
         if (m.isErr()) return res.sendStatus('unknown:error', m.error);
 
@@ -57,7 +58,8 @@ router.post<{
         if (!m.value) return res.sendStatus('miles:invalid-id');
 
         const r = await m.value.update({
-            amount, date
+            amount,
+            date
         });
 
         if (r.isErr()) return res.sendStatus('unknown:error', r.error);

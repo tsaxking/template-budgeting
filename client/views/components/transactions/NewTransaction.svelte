@@ -144,19 +144,22 @@ const create = async () => {
         {/if}
     </div>
     {#if type === 'withdrawal'}
-    <div class="mb-3">
-        <div class="form-check form-switch">
-            <input
-                type="checkbox"
-                class="form-check-input"
-                id="transaction-tax-deductible"
-                bind:checked="{taxDeductible}"
-            />
-            <label class="form-check-label" for="transaction-tax-deductible">
-                Tax Deductible
-            </label>
+        <div class="mb-3">
+            <div class="form-check form-switch">
+                <input
+                    type="checkbox"
+                    class="form-check-input"
+                    id="transaction-tax-deductible"
+                    bind:checked="{taxDeductible}"
+                />
+                <label
+                    class="form-check-label"
+                    for="transaction-tax-deductible"
+                >
+                    Tax Deductible
+                </label>
+            </div>
         </div>
-    </div>
     {/if}
     <button type="submit" class="btn btn-primary"> Create </button>
 </form>

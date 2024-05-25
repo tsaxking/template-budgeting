@@ -25,7 +25,8 @@ router.post<{
             await Promise.all(buckets.map(b => Transaction.fromBucket(b)))
         );
 
-        if (transactions.isErr()) return res.sendStatus('unknown:error', transactions.error);
+        if (transactions.isErr())
+            return res.sendStatus('unknown:error', transactions.error);
 
         const filtered = transactions.value.flat().filter(t => {
             return +t.date >= +from && +t.date <= +to;
@@ -226,13 +227,7 @@ router.post<{
         date: 'number'
     }),
     async (req, res) => {
-        const {
-            amount,
-            from,
-            date,
-            to,
-            description,
-        } = req.body;
+        const { amount, from, date, to, description } = req.body;
 
         const status = 'completed';
 

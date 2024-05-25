@@ -1,29 +1,31 @@
-import { Cache } from "./cache";
-import { Subscriptions as S } from "../../utilities/tables";
-import { DB } from "../../utilities/databases";
-import { attemptAsync } from "../../../shared/check";
-import { uuid } from "../../utilities/uuid";
+import { Cache } from './cache';
+import { Subscriptions as S } from '../../utilities/tables';
+import { DB } from '../../utilities/databases';
+import { attemptAsync } from '../../../shared/check';
+import { uuid } from '../../utilities/uuid';
 
 export class Subscription extends Cache {
     public static active() {
         return attemptAsync(async () => {
             const data = await DB.all('subscriptions/active');
             if (data.isErr()) throw data.error;
-            return data.value.map((d) => new Subscription(d));
+            return data.value.map(d => new Subscription(d));
         });
     }
     public static archived() {
         return attemptAsync(async () => {
             const data = await DB.all('subscriptions/archived');
             if (data.isErr()) throw data.error;
-            return data.value.map((d) => new Subscription(d));
+            return data.value.map(d => new Subscription(d));
         });
     }
     public static fromBucket(id: string) {
         return attemptAsync(async () => {
-            const data = await DB.all('subscriptions/from-bucket', { bucketId: id });
+            const data = await DB.all('subscriptions/from-bucket', {
+                bucketId: id
+            });
             if (data.isErr()) throw data.error;
-            return data.value.map((d) => new Subscription(d));
+            return data.value.map(d => new Subscription(d));
         });
     }
     public static fromId(id: string) {
@@ -76,7 +78,7 @@ export class Subscription extends Cache {
     public amount: number;
     public archived: number;
     public type: 'deposit' | 'withdrawal';
-    
+
     constructor(data: S) {
         super();
 

@@ -37,7 +37,12 @@ export type Miles = {
     archived: 0 | 1;
 };
 
-export type SubscriptionInterval = 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly';
+export type SubscriptionInterval =
+    | 'hourly'
+    | 'daily'
+    | 'weekly'
+    | 'monthly'
+    | 'yearly';
 
 export type Subscription = {
     id: string;
@@ -53,7 +58,7 @@ export type Subscription = {
     picture: string | null;
     taxDeductible: 0 | 1;
     archived: 0 | 1;
-    type: "deposit" | "withdrawal";
+    type: 'deposit' | 'withdrawal';
 };
 
 export type TransactionType = {
@@ -89,4 +94,4 @@ export type Budgets = {
     archived: 0 | 1;
     created: number;
     description: string;
-}
+};

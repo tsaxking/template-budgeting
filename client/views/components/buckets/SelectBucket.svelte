@@ -49,6 +49,7 @@ onMount(() => {
     Bucket.all().then(b => {
         if (b.isErr()) return console.error(b.error);
         buckets = b.value;
+        selected = buckets.map(b => b.id);
     });
 
     return () => {
@@ -72,7 +73,7 @@ Bucket.on('new', b => {
             value="{bucket.id}"
         />
         <label
-            class="btn btn-outline-{colors[colors.length % (i + 1)]}"
+            class="btn btn-outline-{colors[i % colors.length]}"
             for="bucket-check-{i}"
         >
             {capitalize(bucket.name)}
@@ -85,8 +86,8 @@ Bucket.on('new', b => {
 </div>
 
 <style>
-    .button-selector {
-        width: 100vw;
-        overflow-x: auto;
-    }
+.button-selector {
+    width: 100vw;
+    overflow-x: auto;
+}
 </style>

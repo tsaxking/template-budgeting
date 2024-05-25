@@ -507,7 +507,7 @@ export type Insert_subscriptions_new = {
     picture: string | undefined;
     taxDeductible: number;
     amount: number;
-    type:'deposit' | 'withdrawal';
+    type: 'deposit' | 'withdrawal';
 };
 
 export type Update_subscriptions_set_archive = {

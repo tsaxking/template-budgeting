@@ -197,7 +197,7 @@ router.post<{
             endDate,
             subtypeId,
             bucketId,
-            type,
+            type
         });
         if (r.isErr()) {
             return res.sendStatus('unknown:error', r.error);

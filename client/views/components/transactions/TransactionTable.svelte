@@ -35,32 +35,34 @@ let transactionView: {
 $: {
     Bucket.transactionsFromBuckets(buckets, from, to).then(async ts => {
         if (ts.isErr()) return console.error(ts.error);
-        const t = resolveAll(await Promise.all(
-            ts.value.reverse().map(async t => {
+        const t = resolveAll(
+            await Promise.all(
+                ts.value.reverse().map(async t => {
                     return attemptAsync(async () => {
                         const [bucket, typeInfo] = await Promise.all([
-                        Bucket.fromId(t.bucketId),
-                        t.getTypeInfo()
-                    ]);
+                            Bucket.fromId(t.bucketId),
+                            t.getTypeInfo()
+                        ]);
 
-                    if (bucket.isErr()) throw bucket.error;
-                    if (typeInfo.isErr()) {
-                        console.log('Type error');
+                        if (bucket.isErr()) throw bucket.error;
+                        if (typeInfo.isErr()) {
+                            console.log('Type error');
+                            return {
+                                transaction: t,
+                                bucket: bucket.value
+                            };
+                        }
+
                         return {
                             transaction: t,
-                            bucket: bucket.value
-                        }
-                    }
-
-                    return {
-                        transaction: t,
-                        bucket: bucket.value,
-                        subtype: typeInfo.value?.subtype,
-                        type: typeInfo.value?.type
-                    };
-                });
-            })
-        ));
+                            bucket: bucket.value,
+                            subtype: typeInfo.value?.subtype,
+                            type: typeInfo.value?.type
+                        };
+                    });
+                })
+            )
+        );
         if (t.isErr()) return console.error(t.error);
 
         transactions = t.value;
@@ -69,21 +71,23 @@ $: {
 }
 
 $: {
-    transactionView = transactions.filter(t => {
-        if (!search) return true;
-        return [
-            t.transaction.description,
-            t.type?.name,
-            t.subtype?.name,
-            t.bucket ? t.bucket.name : '',
-            t.transaction.amount.toString(),
-            new Date(t.transaction.date).toLocaleDateString(),
-            t.transaction.type,
-        ]
-            .map(t => t?.toLowerCase() || '')
-            .join('')
-            .includes(search.toLowerCase());
-    }).sort((a, b) => b.transaction.date - a.transaction.date);
+    transactionView = transactions
+        .filter(t => {
+            if (!search) return true;
+            return [
+                t.transaction.description,
+                t.type?.name,
+                t.subtype?.name,
+                t.bucket ? t.bucket.name : '',
+                t.transaction.amount.toString(),
+                new Date(t.transaction.date).toLocaleDateString(),
+                t.transaction.type
+            ]
+                .map(t => t?.toLowerCase() || '')
+                .join('')
+                .includes(search.toLowerCase());
+        })
+        .sort((a, b) => b.transaction.date - a.transaction.date);
 }
 
 const update = (t: Transaction) => {
@@ -175,7 +179,10 @@ onMount(() => {
     </div>
     <div class="row">
         <div class="table-responsive">
-            <table class="table table-striped table-hover" id="transaction-{id}-table">
+            <table
+                class="table table-striped table-hover"
+                id="transaction-{id}-table"
+            >
                 <thead>
                     <tr>
                         <th>Date</th>

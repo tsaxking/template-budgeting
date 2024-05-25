@@ -1,6 +1,9 @@
 import { Cache } from '../cache';
 
-import { Subscription as S, SubscriptionInterval } from '../../../shared/db-types-extended';
+import {
+    Subscription as S,
+    SubscriptionInterval
+} from '../../../shared/db-types-extended';
 import { EventEmitter } from '../../../shared/event-emitter';
 import { attemptAsync } from '../../../shared/check';
 import { ServerRequest } from '../../utilities/requests';

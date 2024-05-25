@@ -269,7 +269,10 @@ export type Queries = {
         unknown
     ];
     'transactions/update': [[Update_transactions_update], unknown];
-    'transactions/withdrawals': [[Select_transactions_withdrawals], Transactions];
+    'transactions/withdrawals': [
+        [Select_transactions_withdrawals],
+        Transactions
+    ];
     'types/all-subtypes': [[Select_types_all_subtypes], Subtypes];
     'types/all-types': [[Select_types_all_types], TransactionTypes];
     'types/new-subtype': [[Insert_types_new_subtype], unknown];

@@ -1,10 +1,8 @@
-import { Cache } from "./cache";
-import { Miles as M } from "../../utilities/tables";
-import { DB } from "../../utilities/databases";
-import { attemptAsync } from "../../../shared/check";
-import { uuid } from "../../utilities/uuid";
-
-
+import { Cache } from './cache';
+import { Miles as M } from '../../utilities/tables';
+import { DB } from '../../utilities/databases';
+import { attemptAsync } from '../../../shared/check';
+import { uuid } from '../../utilities/uuid';
 
 export class Mile extends Cache {
     public static active() {
@@ -32,10 +30,7 @@ export class Mile extends Cache {
         });
     }
 
-    public static new(data: {
-        amount: number;
-        date: number;
-    }) {
+    public static new(data: { amount: number; date: number }) {
         return attemptAsync(async () => {
             const id = uuid();
             const res = await DB.run('miles/new', {
@@ -65,10 +60,7 @@ export class Mile extends Cache {
         this.archived = data.archived;
     }
 
-    update(data: {
-        amount: number;
-        date: number;
-    }) {
+    update(data: { amount: number; date: number }) {
         return attemptAsync(async () => {
             const res = await DB.run('miles/update', {
                 ...data,

@@ -1,29 +1,31 @@
-import { Cache } from "./cache";
-import { Transactions as T } from "../../utilities/tables";
-import { DB } from "../../utilities/databases";
-import { attemptAsync } from "../../../shared/check";
-import { uuid } from "../../utilities/uuid";
+import { Cache } from './cache';
+import { Transactions as T } from '../../utilities/tables';
+import { DB } from '../../utilities/databases';
+import { attemptAsync } from '../../../shared/check';
+import { uuid } from '../../utilities/uuid';
 
 export class Transaction extends Cache {
     public static archived() {
         return attemptAsync(async () => {
             const data = await DB.all('transactions/archived');
             if (data.isErr()) throw data.error;
-            return data.value.map((d) => new Transaction(d));
+            return data.value.map(d => new Transaction(d));
         });
     }
     public static deposits() {
         return attemptAsync(async () => {
             const data = await DB.all('transactions/deposits');
             if (data.isErr()) throw data.error;
-            return data.value.map((d) => new Transaction(d));
+            return data.value.map(d => new Transaction(d));
         });
     }
     public static fromBucket(id: string) {
         return attemptAsync(async () => {
-            const data = await DB.all('transactions/from-bucket', { bucketId: id });
+            const data = await DB.all('transactions/from-bucket', {
+                bucketId: id
+            });
             if (data.isErr()) throw data.error;
-            return data.value.map((d) => new Transaction(d));
+            return data.value.map(d => new Transaction(d));
         });
     }
     public static fromId(id: string) {
@@ -38,14 +40,16 @@ export class Transaction extends Cache {
         return attemptAsync(async () => {
             const data = await DB.all('transactions/from-status', { status });
             if (data.isErr()) throw data.error;
-            return data.value.map((d) => new Transaction(d));
+            return data.value.map(d => new Transaction(d));
         });
     }
     public static fromSubType(id: string) {
         return attemptAsync(async () => {
-            const data = await DB.all('transactions/from-subtype', { subtypeId: id });
+            const data = await DB.all('transactions/from-subtype', {
+                subtypeId: id
+            });
             if (data.isErr()) throw data.error;
-            return data.value.map((d) => new Transaction(d));
+            return data.value.map(d => new Transaction(d));
         });
     }
     public static new(data: {
@@ -77,7 +81,7 @@ export class Transaction extends Cache {
         return attemptAsync(async () => {
             const data = await DB.all('transactions/withdrawals');
             if (data.isErr()) throw data.error;
-            return data.value.map((d) => new Transaction(d));
+            return data.value.map(d => new Transaction(d));
         });
     }
 
@@ -93,7 +97,7 @@ export class Transaction extends Cache {
     public archived: number;
     public picture: string | undefined;
 
-    constructor (data: T) {
+    constructor(data: T) {
         super();
         this.id = data.id;
         this.amount = data.amount;

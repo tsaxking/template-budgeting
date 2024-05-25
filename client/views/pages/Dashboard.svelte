@@ -12,6 +12,7 @@ import TransactionChart from '../components/transactions/TransactionChart.svelte
 import SubscriptionTable from '../components/subscriptions/SubscriptionTable.svelte';
 import NewTransfer from '../components/transactions/NewTransfer.svelte';
 import TransactionBarChart from '../components/transactions/TransactionBarChart.svelte';
+import TypesLineChart from '../components/transactions/TypesLineChart.svelte';
 
 let buckets: Bucket[] = [];
 
@@ -21,12 +22,16 @@ let to: number;
 let fromStr: string;
 let toStr: string;
 
-$:{ from = new Date(fromStr).getTime();
+$: {
+    from = new Date(fromStr).getTime();
     reset();
 }
-$: {to = new Date(toStr).getTime(); reset();}
+$: {
+    to = new Date(toStr).getTime();
+    reset();
+}
 
-const reset = () => buckets = buckets;
+const reset = () => (buckets = buckets);
 
 const transaction = () => {
     const m = new Modal();
@@ -144,13 +149,16 @@ Bucket.on('update', reset);
             <TransactionTable {from} {to} {buckets} />
         </DashboardCard>
         <DashboardCard title="Subscriptions" expandable="{true}">
-            <SubscriptionTable {buckets} {from} {to}/>
+            <SubscriptionTable {buckets} {from} {to} />
         </DashboardCard>
-        <DashboardCard title="Chart" expandable="{true}">
+        <DashboardCard title="Balance/Time" expandable="{true}">
             <TransactionChart {from} {to} {buckets} />
         </DashboardCard>
-        <DashboardCard title="Bar Chart" expandable="{true}">
+        <DashboardCard title="Total Expenses" expandable="{true}">
             <TransactionBarChart {buckets} {from} {to} />
+        </DashboardCard>
+        <DashboardCard title="Types/Time" expandable="{true}">
+            <TypesLineChart {buckets} {from} {to} />
         </DashboardCard>
     </div>
 </div>

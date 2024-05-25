@@ -55,14 +55,14 @@ const create = async () => {
         startDate: startDate.getTime(),
         endDate: hasEnd ? endDate.getTime() : null,
         subtypeId,
-        type,
+        type
     });
 
     d('subscription-created');
-}
+};
 </script>
 
-<form on:submit|preventDefault={create}>
+<form on:submit|preventDefault="{create}">
     <div class="mb-3">
         <label for="transaction-name-{id}" class="form-label"> Name </label>
         <input
@@ -117,7 +117,7 @@ const create = async () => {
     </div>
     <div class="mb-3">
         <label for="subscription-from-{id}">From</label>
-        <DateTimeInput bind:date={startDate} />
+        <DateTimeInput bind:date="{startDate}" />
     </div>
     <div class="mb-3">
         <div class="form-check form-switch">
@@ -133,15 +133,18 @@ const create = async () => {
         </div>
         {#if hasEnd}
             <label for="subscription-to-{id}">To</label>
-            <DateTimeInput bind:date={endDate} />
+            <DateTimeInput bind:date="{endDate}" />
         {/if}
     </div>
     <div class="mb-3">
         <!-- interval select -->
-        <label for="transaction-interval-{id}" class="form-label"> Interval </label>
+        <label for="transaction-interval-{id}" class="form-label">
+            Interval
+        </label>
         <Select
             bind:value="{interval}"
-            options={['daily', 'weekly', 'monthly', 'yearly']}></Select>
+            options="{['daily', 'weekly', 'monthly', 'yearly']}"
+        ></Select>
     </div>
     <div class="mb-3">
         <label for="transaction-bucket-{id}" class="form-label"> Bucket </label>
@@ -163,7 +166,9 @@ const create = async () => {
         ></textarea>
     </div>
     <div class="mb-3">
-        <label for="transaction-type-{id}" class="form-label mb-1"> Type </label>
+        <label for="transaction-type-{id}" class="form-label mb-1">
+            Type
+        </label>
         <TypeSelector bind:value="{t}" />
         {#if t}
             <label for="transaction-subtype-{id}"> Subtype </label>
@@ -179,7 +184,10 @@ const create = async () => {
                     id="transaction-tax-deductible-{id}"
                     bind:checked="{taxDeductible}"
                 />
-                <label class="form-check-label" for="transaction-tax-deductible-{id}">
+                <label
+                    class="form-check-label"
+                    for="transaction-tax-deductible-{id}"
+                >
                     Tax Deductible
                 </label>
             </div>

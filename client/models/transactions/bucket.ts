@@ -191,7 +191,7 @@ export class Bucket extends Cache<BucketEvents> {
             if (subs.isErr()) throw subs.error;
 
             return subs.value.filter(s => {
-                return s.bucketId === this.id // && s.startDate <= _to && (s.endDate || Infinity) >= _from;
+                return s.bucketId === this.id; // && s.startDate <= _to && (s.endDate || Infinity) >= _from;
             });
         });
     }

@@ -7,9 +7,6 @@ import { onMount } from 'svelte';
 import { date, segment } from '../../../../shared/clock';
 import { BalanceCorrection } from '../../../models/transactions/balance-correction';
 
-// TODO: Build a chart that shows the balance over time
-// build the dates, then get the data for each date
-
 export let buckets: Bucket[] = [];
 export let from: number;
 export let to: number;
@@ -41,7 +38,10 @@ const mount = async (buckets: Bucket[]) => {
         (a, b) => a.date - b.date
     );
 
-    dates = segment(data.map(d => new Date(+d.date)), 20);
+    dates = segment(
+        data.map(d => new Date(+d.date)),
+        20
+    );
 
     balance = [];
     withdrawals = [];
@@ -51,9 +51,13 @@ const mount = async (buckets: Bucket[]) => {
         let transactions: (Transaction | BalanceCorrection)[] = [];
         const upTo = data.filter(t => t.date <= d.getTime());
         if (i == 0) {
-            transactions = data.filter(t => t.date <= d.getTime() && t.date > from);
+            transactions = data.filter(
+                t => t.date <= d.getTime() && t.date > from
+            );
         } else {
-            transactions = data.filter(t => t.date <= d.getTime() && t.date > dates[i - 1].getTime());
+            transactions = data.filter(
+                t => t.date <= d.getTime() && t.date > dates[i - 1].getTime()
+            );
         }
 
         balance.push(
@@ -85,6 +89,8 @@ const mount = async (buckets: Bucket[]) => {
             }, 0)
         );
     }
+
+    // dates = data.map(d => new Date(+d.date));
 
     // balance = data.reduce((acc, cur, i) =>  {
     //     if (cur instanceof BalanceCorrection) {
@@ -144,10 +150,8 @@ BalanceCorrection.on('archive', () => mount(buckets));
             }
         ]
     }}"
-
     options="{{
-            responsive: true,
-        }}"
-
-        style="width: 100%; height: 100%;"
+        responsive: true
+    }}"
+    style="width: 100%; height: 100%;"
 />
