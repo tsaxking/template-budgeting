@@ -22,7 +22,10 @@ let datasets: {
     backgroundColor: string;
 }[] = [];
 
-const reset = async (buckets: Bucket[], depositOrWithdrawal: ('deposit' | 'withdrawal')[]) => {
+const reset = async (
+    buckets: Bucket[],
+    depositOrWithdrawal: ('deposit' | 'withdrawal')[]
+) => {
     const transRes = resolveAll(
         await Promise.all(
             buckets.map(bucket => bucket.getTransactions(from, to))
@@ -73,7 +76,8 @@ const reset = async (buckets: Bucket[], depositOrWithdrawal: ('deposit' | 'withd
     //         };
     //     });
     // } else {
-        datasets = subtypes.map(s => {
+    datasets = subtypes
+        .map(s => {
             return {
                 label: s.name,
                 data: types.map(t => {
@@ -94,7 +98,8 @@ const reset = async (buckets: Bucket[], depositOrWithdrawal: ('deposit' | 'withd
                     .setAlpha(0.5)
                     .toString()
             };
-        }).filter(d => !d.data.every(d => d === 0));
+        })
+        .filter(d => !d.data.every(d => d === 0));
     // }
 };
 

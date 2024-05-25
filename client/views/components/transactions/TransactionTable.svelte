@@ -159,7 +159,7 @@ onMount(() => {
             <input
                 type="text"
                 class="form-control"
-                placeholder="Search"
+                placeholder="Search Transactions..."
                 bind:value="{search}"
             />
             <button class="btn btn-outline-secondary" type="button">

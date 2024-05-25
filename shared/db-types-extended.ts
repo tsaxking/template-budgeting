@@ -35,6 +35,7 @@ export type Miles = {
     amount: number;
     date: number;
     archived: 0 | 1;
+    description: string;
 };
 
 export type SubscriptionInterval =

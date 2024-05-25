@@ -30,7 +30,11 @@ export class Mile extends Cache {
         });
     }
 
-    public static new(data: { amount: number; date: number }) {
+    public static new(data: {
+        amount: number;
+        date: number;
+        description: string;
+    }) {
         return attemptAsync(async () => {
             const id = uuid();
             const res = await DB.run('miles/new', {
@@ -51,6 +55,7 @@ export class Mile extends Cache {
     public amount: number;
     public date: number;
     public archived: number;
+    public description: string;
 
     constructor(data: M) {
         super();
@@ -58,9 +63,10 @@ export class Mile extends Cache {
         this.amount = data.amount;
         this.date = data.date;
         this.archived = data.archived;
+        this.description = data.description;
     }
 
-    update(data: { amount: number; date: number }) {
+    update(data: { amount: number; date: number; description: string }) {
         return attemptAsync(async () => {
             const res = await DB.run('miles/update', {
                 ...data,
