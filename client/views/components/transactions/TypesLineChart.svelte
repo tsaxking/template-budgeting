@@ -140,7 +140,7 @@ const reset = async (
     }
 };
 
-$: reset(buckets, typeOrSubtype, depositOrWithdrawal);
+$: {if (to && from) reset(buckets, typeOrSubtype, depositOrWithdrawal);}
 </script>
 
 <div class="mb-3">
@@ -203,5 +203,5 @@ $: reset(buckets, typeOrSubtype, depositOrWithdrawal);
     options="{{
         responsive: true
     }}"
-    style="height: 300px;"
+    style="height: 100%; width: 100%;"
 />
