@@ -31,6 +31,7 @@ const mount = async (buckets: Bucket[]) => {
     if (transactionsResult.isErr())
         return console.error(transactionsResult.error);
 
+
     const corrections = correctionsResult.value.flat();
     const transactions = transactionsResult.value;
 
@@ -138,15 +139,18 @@ BalanceCorrection.on('archive', () => mount(buckets));
         datasets: [
             {
                 label: 'Balance',
-                data: balance
+                data: balance,
+                tension: 0.4
             },
             {
                 label: 'Withdrawals',
-                data: withdrawals
+                data: withdrawals,
+                tension: 0.4
             },
             {
                 label: 'Deposits',
-                data: deposits
+                data: deposits,
+                tension: 0.4
             }
         ]
     }}"
