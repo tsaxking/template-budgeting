@@ -22,9 +22,9 @@ $: viewMiles = miles.filter(m => {
         .map(v => v.toString().toLocaleLowerCase())
         .join('')
         .includes(search.toLocaleLowerCase());
-});
+}).sort((a, b) => +b.date - +a.date);
 
-const getMiles = async (from: number, to: number) => {
+const getMiles = async () => {
     const res = await Miles.all();
     console.log({ res });
     if (res.isErr()) return console.error(res.error);
@@ -76,12 +76,14 @@ const createMiles = () => {
     });
 };
 
-$: getMiles(from, to);
+$: {
+    if (from && to) getMiles();
+}
 
-Miles.on('new', () => getMiles(from, to));
-Miles.on('restored', () => getMiles(from, to));
-Miles.on('update', () => getMiles(from, to));
-Miles.on('archived', () => getMiles(from, to));
+Miles.on('new', () => getMiles());
+Miles.on('restored', () => getMiles());
+Miles.on('update', () => getMiles());
+Miles.on('archived', () => getMiles());
 
 let subtotal = 0;
 $: subtotal = viewMiles.reduce((acc, m) => acc + +m.amount, 0);

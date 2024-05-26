@@ -122,7 +122,7 @@ onMount(() => {
     };
 });
 
-$: mount(buckets);
+$: if (to && from) mount(buckets);
 
 Transaction.on('new', () => mount(buckets));
 Transaction.on('update', () => mount(buckets));

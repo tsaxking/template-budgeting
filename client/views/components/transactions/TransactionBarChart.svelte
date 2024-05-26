@@ -103,7 +103,7 @@ const reset = async (
     // }
 };
 
-$: reset(buckets, depositOrWithdrawal);
+$: if (to && from) reset(buckets, depositOrWithdrawal);
 </script>
 
 <div class="mb-3">

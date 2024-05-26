@@ -14,6 +14,7 @@ import NewTransfer from '../components/transactions/NewTransfer.svelte';
 import TransactionBarChart from '../components/transactions/TransactionBarChart.svelte';
 import TypesLineChart from '../components/transactions/TypesLineChart.svelte';
 import MilesTable from '../components/miles/MilesTable.svelte';
+import MilesLineChart from '../components/miles/MilesLineChart.svelte';
 
 let buckets: Bucket[] = [];
 
@@ -163,6 +164,9 @@ Bucket.on('update', reset);
         </DashboardCard>
         <DashboardCard title="Miles Table" expandable="{true}">
             <MilesTable {from} {to}/>
+        </DashboardCard>
+        <DashboardCard title="Miles Chart" expandable="{true}">
+            <MilesLineChart {from} {to}/>
         </DashboardCard>
     </div>
 </div>
