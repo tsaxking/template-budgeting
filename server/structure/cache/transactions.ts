@@ -5,6 +5,14 @@ import { attemptAsync } from '../../../shared/check';
 import { uuid } from '../../utilities/uuid';
 
 export class Transaction extends Cache {
+    public static all() {
+        return attemptAsync(async () => {
+            console.warn('Transaction.all() includes archived transactions');
+            const data = await DB.all('transactions/all');
+            if (data.isErr()) throw data.error;
+            return data.value.map(d => new Transaction(d));
+        });
+    }
     public static archived() {
         return attemptAsync(async () => {
             const data = await DB.all('transactions/archived');
@@ -61,6 +69,7 @@ export class Transaction extends Cache {
         description: string;
         subtypeId: string;
         taxDeductible: number;
+        transfer: 0 | 1;
     }) {
         return attemptAsync(async () => {
             const id = uuid();
@@ -96,6 +105,7 @@ export class Transaction extends Cache {
     public taxDeductible: number;
     public archived: number;
     public picture: string | undefined;
+    public transfer: 0 | 1;
 
     constructor(data: T) {
         super();
@@ -110,6 +120,7 @@ export class Transaction extends Cache {
         this.taxDeductible = data.taxDeductible;
         this.archived = data.archived;
         this.picture = data.picture;
+        this.transfer = data.transfer;
     }
 
     setArchive(archive: boolean) {
@@ -141,6 +152,7 @@ export class Transaction extends Cache {
         description: string;
         subtypeId: string;
         taxDeductible: number;
+        transfer: 0 | 1;
     }) {
         return attemptAsync(async () => {
             const res = await DB.run('transactions/update', {

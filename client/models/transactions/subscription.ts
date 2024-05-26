@@ -215,7 +215,8 @@ export class Subscription extends Cache<SubscriptionEvents> {
                     subtypeId: this.subtypeId,
                     taxDeductible: this.taxDeductible,
                     archived: 0,
-                    picture: this.picture
+                    picture: this.picture,
+                    transfer: 0
                 },
                 false
             );

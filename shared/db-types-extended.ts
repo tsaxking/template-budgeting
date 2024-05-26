@@ -10,6 +10,7 @@ export type Transaction = {
     taxDeductible: 0 | 1;
     archived: 0 | 1;
     picture: string | null;
+    transfer: 0 | 1;
 };
 
 export type BucketType = 'debit' | 'credit' | 'savings' | 'other';
