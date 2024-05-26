@@ -30,7 +30,7 @@ const reset = async (
 ) => {
     const transRes = resolveAll(
         await Promise.all(
-            buckets.map(bucket => bucket.getTransactions(from, to))
+            buckets.map(bucket => bucket.getTransactions(from, to, false)) // don't include transfers
         )
     );
     if (transRes.isErr()) return console.error(transRes.error);

@@ -59,14 +59,15 @@ export class Bucket extends Cache<BucketEvents> {
     public static transactionsFromBuckets(
         buckets: Bucket[],
         from: number,
-        to: number
+        to: number,
+        transfers = true
     ) {
         return attemptAsync(async () => {
             return (
                 await Promise.all(
                     buckets.map(async b => {
                         return b
-                            .getTransactions(from, to)
+                            .getTransactions(from, to, transfers)
                             .then(transactions => {
                                 if (transactions.isErr())
                                     throw transactions.error;
@@ -214,7 +215,7 @@ export class Bucket extends Cache<BucketEvents> {
         });
     }
 
-    async getTransactions(from: number, to: number) {
+    async getTransactions(from: number, to: number, transfers = true) {
         return attemptAsync(async () => {
             const [transactions, subscriptions] = await Promise.all([
                 Transaction.search([this.id], from, to),
@@ -227,7 +228,8 @@ export class Bucket extends Cache<BucketEvents> {
             return [
                 ...transactions.value,
                 ...subscriptions.value.map(s => s.build(from, to)).flat()
-            ].sort((a, b) => a.date - b.date);
+            ].sort((a, b) => a.date - b.date)
+            .filter(t => transfers ? true : !t.transfer); // if transfers is false, filter out transfers
         });
     }
 

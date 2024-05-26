@@ -23,7 +23,7 @@ const mount = async (buckets: Bucket[]) => {
                 buckets.map(b => b.getBalanceCorrections(from, to))
             )
         ),
-        Bucket.transactionsFromBuckets(buckets, from, to)
+        Bucket.transactionsFromBuckets(buckets, from, to, false) // don't include transfers
     ]);
 
     if (correctionsResult.isErr())
@@ -35,7 +35,7 @@ const mount = async (buckets: Bucket[]) => {
     const transactions = transactionsResult.value;
 
     const data = [...corrections, ...transactions].sort(
-        (a, b) => a.date - b.date
+        (a, b) => +a.date - +b.date
     );
 
     dates = segment(
