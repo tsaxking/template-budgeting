@@ -359,6 +359,7 @@ export type Transactions = {
     taxDeductible: number;
     archived: number;
     picture: string | undefined;
+    transfer: 0 | 1;
 };
 
 export type Buckets = {
@@ -570,6 +571,7 @@ export type Insert_transactions_new = {
     description: string;
     subtypeId: string;
     taxDeductible: number;
+    transfer: 0 | 1;
 };
 
 export type Update_transactions_set_archive = {
@@ -592,6 +594,7 @@ export type Update_transactions_update = {
     subtypeId: string;
     taxDeductible: number;
     id: string;
+    transfer: 0 | 1;
 };
 
 export type Select_transactions_withdrawals = undefined;

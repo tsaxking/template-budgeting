@@ -77,7 +77,8 @@ router.post<{
             bucketId,
             description,
             subtypeId,
-            taxDeductible: +taxDeductible
+            taxDeductible: +taxDeductible,
+            transfer: 0
         });
 
         if (t.isErr()) return res.sendStatus('unknown:error', t.error);
@@ -135,7 +136,8 @@ router.post<{
             bucketId,
             description,
             subtypeId,
-            taxDeductible: +taxDeductible
+            taxDeductible: +taxDeductible,
+            transfer: 0
         });
 
         if (r.isErr()) return res.sendStatus('unknown:error', r.error);
@@ -239,7 +241,8 @@ router.post<{
             bucketId: from,
             description,
             subtypeId: '',
-            taxDeductible: 0
+            taxDeductible: 0,
+            transfer: 1
         });
 
         if (fromT.isErr()) return res.sendStatus('unknown:error', fromT.error);
@@ -252,7 +255,8 @@ router.post<{
             bucketId: to,
             description,
             subtypeId: '',
-            taxDeductible: 0
+            taxDeductible: 0,
+            transfer: 1
         });
 
         if (toT.isErr()) return res.sendStatus('unknown:error', toT.error);

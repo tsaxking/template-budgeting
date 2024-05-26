@@ -7,5 +7,6 @@ SET
     bucketId = :bucketId,
     description = :description,
     subtypeId = :subtypeId,
-    taxDeductible = :taxDeductible
+    taxDeductible = :taxDeductible,
+    transfer = :transfer
 WHERE id = :id;

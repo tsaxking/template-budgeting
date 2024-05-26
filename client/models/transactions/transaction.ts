@@ -106,6 +106,7 @@ export class Transaction extends Cache<TransactionEvents> {
     public taxDeductible: 0 | 1;
     public archived: 0 | 1;
     public picture: string | null;
+    public transfer: 0 | 1;
 
     constructor(
         data: T,
@@ -123,6 +124,7 @@ export class Transaction extends Cache<TransactionEvents> {
         this.taxDeductible = data.taxDeductible;
         this.archived = data.archived;
         this.picture = data.picture;
+        this.transfer = data.transfer;
 
         if (save && !Transaction.cache.has(this.id)) {
             Transaction.cache.set(this.id, this);
