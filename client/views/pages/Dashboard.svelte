@@ -142,6 +142,15 @@ Bucket.on('update', reset);
         </div>
     </div>
     <div class="row mb-3">
+        <DashboardCard title="Balance/Time" expandable="{true}">
+            <TransactionChart {from} {to} {buckets} />
+        </DashboardCard>
+        <DashboardCard title="Total Expenses" expandable="{true}">
+            <TransactionBarChart {buckets} {from} {to} />
+        </DashboardCard>
+        <DashboardCard title="Types/Time" expandable="{true}">
+            <TypesLineChart {buckets} {from} {to} />
+        </DashboardCard>
         {#each buckets as bucket}
             <DashboardCard title="{bucket.name}" expandable="{true}">
                 <BucketBasics {bucket} {to} />
@@ -152,15 +161,6 @@ Bucket.on('update', reset);
         </DashboardCard>
         <DashboardCard title="Subscriptions" expandable="{true}">
             <SubscriptionTable {buckets} {from} {to} />
-        </DashboardCard>
-        <DashboardCard title="Balance/Time" expandable="{true}">
-            <TransactionChart {from} {to} {buckets} />
-        </DashboardCard>
-        <DashboardCard title="Total Expenses" expandable="{true}">
-            <TransactionBarChart {buckets} {from} {to} />
-        </DashboardCard>
-        <DashboardCard title="Types/Time" expandable="{true}">
-            <TypesLineChart {buckets} {from} {to} />
         </DashboardCard>
         <DashboardCard title="Miles Table" expandable="{true}">
             <MilesTable {from} {to} />
