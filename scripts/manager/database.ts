@@ -21,7 +21,9 @@ export const versionInfo = async () => {
         DB.latestVersion()
     ]);
 
-    await select(`Current: ${current.join('.')}\nLatest: ${latest.join('.')}`, ['[Back]']);
+    await select(`Current: ${current.join('.')}\nLatest: ${latest.join('.')}`, [
+        '[Back]'
+    ]);
     return main();
 };
 

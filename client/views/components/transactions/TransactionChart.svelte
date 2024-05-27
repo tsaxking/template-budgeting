@@ -17,6 +17,7 @@ let deposits: number[] = [];
 
 let dates: Date[] = [];
 const mount = async (buckets: Bucket[]) => {
+    // TODO: this is a mess, I want this to be more performant
     const [correctionsResult, transactionsResult] = await Promise.all([
         resolveAll(
             await Promise.all(
@@ -31,10 +32,11 @@ const mount = async (buckets: Bucket[]) => {
     if (transactionsResult.isErr())
         return console.error(transactionsResult.error);
 
-    const corrections = correctionsResult.value.flat();
+    const correctionTransactions = resolveAll(await Promise.all((correctionsResult.value.flat().map(c => c.build()))));
+    if (correctionTransactions.isErr()) return console.error(correctionTransactions.error);
     const transactions = transactionsResult.value;
 
-    const data = [...corrections, ...transactions].sort(
+    const data = [...correctionTransactions.value, ...transactions].sort(
         (a, b) => +a.date - +b.date
     );
 
@@ -48,7 +50,7 @@ const mount = async (buckets: Bucket[]) => {
     deposits = [];
 
     for (const [i, d] of dates.entries()) {
-        let transactions: (Transaction | BalanceCorrection)[] = [];
+        let transactions: Transaction[] = [];
         const upTo = data.filter(t => t.date <= d.getTime());
         if (i == 0) {
             transactions = data.filter(
@@ -62,18 +64,15 @@ const mount = async (buckets: Bucket[]) => {
 
         balance.push(
             upTo.reduce((acc, cur) => {
-                if (cur instanceof BalanceCorrection) {
-                    acc = cur.balance;
-                } else {
-                    acc += cur.type === 'withdrawal' ? -cur.amount : cur.amount;
-                }
+                acc += cur.type === 'withdrawal' ? -cur.amount : cur.amount;
                 return acc;
             }, 0)
         );
 
         withdrawals.push(
             transactions.reduce((acc, cur) => {
-                if (cur instanceof Transaction && cur.type === 'withdrawal') {
+                if (cur.metadata.type === 'balance-correction') return acc;
+                if (cur.type === 'withdrawal') {
                     acc += -cur.amount;
                 }
                 return acc;
@@ -82,36 +81,14 @@ const mount = async (buckets: Bucket[]) => {
 
         deposits.push(
             transactions.reduce((acc, cur) => {
-                if (cur instanceof Transaction && cur.type === 'deposit') {
+                if (cur.metadata.type === 'balance-correction') return acc;
+                if (cur.type === 'deposit') {
                     acc += cur.amount;
                 }
                 return acc;
             }, 0)
         );
     }
-
-    // dates = data.map(d => new Date(+d.date));
-
-    // balance = data.reduce((acc, cur, i) =>  {
-    //     if (cur instanceof BalanceCorrection) {
-    //         acc.push(cur.balance);
-    //         return acc;
-    //     } else {
-    //         let amount = cur.amount;
-    //         amount = cur.type === 'withdrawal' ? -amount : amount;
-    //         acc.push((acc[i - 1] || 0) + amount);
-    //         return acc;
-    //     }
-    // }, [] as number[]);
-
-    // withdrawals = data.map(t => {
-    //     if (t instanceof Transaction && t.type === 'withdrawal') return -t.amount;
-    //     return 0;
-    // });
-    // deposits = data.map(t => {
-    //     if (t instanceof Transaction && t.type === 'deposit') return t.amount;
-    //     return 0;
-    // });
 };
 
 onMount(() => {

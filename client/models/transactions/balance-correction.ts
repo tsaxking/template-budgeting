@@ -5,6 +5,9 @@ import { Cache } from '../cache';
 import { BalanceCorrection as B } from '../../../shared/db-types-extended';
 import { socket } from '../../utilities/socket';
 import { Bucket } from './bucket';
+import { Bucket as BK } from '../../../shared/db-types-extended';
+import { Transaction } from './transaction';
+import { Random } from '../../../shared/math';
 
 type BalanceCorrectionEvents = {
     update: undefined;
@@ -62,7 +65,9 @@ export class BalanceCorrection extends Cache<BalanceCorrectionEvents> {
             );
             if (res.isErr()) throw res.error;
 
-            return res.value.map(BalanceCorrection.retrieve);
+            return res.value
+                .map(BalanceCorrection.retrieve)
+                .sort((a, b) => a.date - b.date);
         });
     }
 
@@ -114,6 +119,44 @@ export class BalanceCorrection extends Cache<BalanceCorrectionEvents> {
             if (res.isErr()) throw res.error;
 
             return res.value;
+        });
+    }
+
+    async getBucket() {
+        return attemptAsync(async () => {
+            const bucket = Bucket.cache.get(this.bucketId);
+            if (bucket) return bucket;
+
+            const res = (await ServerRequest.post<BK>(
+                '/api/bucket/get',
+                this.bucketId
+            )).unwrap()
+
+            return Bucket.retrieve(res);
+        });
+    }
+
+    build() {
+        return attemptAsync(async () => {
+            const bucket = (await this.getBucket()).unwrap();
+            const balance = (await bucket.getBalance(this.date - 1)).unwrap(); // get balance before correction
+            return new Transaction({
+                id: Random.uuid(),
+                date: this.date,
+                amount: this.balance - balance,
+                bucketId: this.bucketId,
+                description: 'Balance correction',
+                status: 'completed',
+                subtypeId: '',
+                taxDeductible: 0,
+                type: this.balance > balance ? 'deposit' : 'withdrawal',
+                archived: 0,
+                picture: null,
+                transfer: 0
+            },{
+                save: false,
+                type: 'balance-correction'
+            })
         });
     }
 }

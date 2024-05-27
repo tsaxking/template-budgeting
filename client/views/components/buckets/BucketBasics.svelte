@@ -19,7 +19,7 @@ let corrections: BalanceCorrection[] = [];
 
 const generate = (bucket: Bucket) => {
     Promise.all([
-        bucket.getBalance(0, to),
+        bucket.getBalance(to),
         bucket.getBalanceCorrections(0, to)
     ]).then(([b, c]) => {
         if (b.isErr()) return console.error(b.error);
