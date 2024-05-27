@@ -200,7 +200,7 @@ $: {
 <Line
     data="{{
         labels: dates.map(date),
-        datasets
+        datasets: datasets.map(d => ({...d, tension: 0.4 }))
     }}"
     options="{{
         responsive: true
