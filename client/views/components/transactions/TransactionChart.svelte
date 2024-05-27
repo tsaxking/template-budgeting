@@ -115,15 +115,18 @@ BalanceCorrection.on('archive', () => mount(buckets));
         datasets: [
             {
                 label: 'Balance',
-                data: balance
+                data: balance,
+                tension: 0.4
             },
             {
                 label: 'Withdrawals',
-                data: withdrawals
+                data: withdrawals,
+                tension: 0.4
             },
             {
                 label: 'Deposits',
-                data: deposits
+                data: deposits,
+                tension: 0.4
             }
         ]
     }}"
