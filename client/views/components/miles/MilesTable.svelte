@@ -16,13 +16,15 @@ export let from: number;
 export let to: number;
 let search = '';
 
-$: viewMiles = miles.filter(m => {
-    if (!search) return true; // if search is empty, return all transactions
-    return [m.date, m.description, m.amount]
-        .map(v => v.toString().toLocaleLowerCase())
-        .join('')
-        .includes(search.toLocaleLowerCase());
-}).sort((a, b) => +b.date - +a.date);
+$: viewMiles = miles
+    .filter(m => {
+        if (!search) return true; // if search is empty, return all transactions
+        return [m.date, m.description, m.amount]
+            .map(v => v.toString().toLocaleLowerCase())
+            .join('')
+            .includes(search.toLocaleLowerCase());
+    })
+    .sort((a, b) => +b.date - +a.date);
 
 const getMiles = async () => {
     const res = await Miles.all();
@@ -44,8 +46,10 @@ const update = (m: Miles) => {
         b.classList.add('btn', 'btn-danger');
         b.innerHTML = '<i class="fas fa-trash"></i> Delete';
         b.addEventListener('click', async () => {
-            const confirmed = await confirm('Are you sure you want to delete this transaction?');
-        
+            const confirmed = await confirm(
+                'Are you sure you want to delete this transaction?'
+            );
+
             if (!confirmed) return;
             m.setArchive(true);
             modal.hide();

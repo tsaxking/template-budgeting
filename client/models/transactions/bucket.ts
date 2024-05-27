@@ -1,4 +1,4 @@
-import { attemptAsync } from '../../../shared/check';
+import { attemptAsync, resolveAll } from '../../../shared/check';
 import { EventEmitter } from '../../../shared/event-emitter';
 import { Cache } from '../cache';
 import { Transaction } from './transaction';
@@ -217,48 +217,66 @@ export class Bucket extends Cache<BucketEvents> {
 
     async getTransactions(from: number, to: number, transfers = true) {
         return attemptAsync(async () => {
-            const [transactions, subscriptions] = await Promise.all([
+            const [transactions, subscriptions, /*corrections*/] = await Promise.all([
                 Transaction.search([this.id], from, to),
-                this.getSubscriptions(from, to)
+                this.getSubscriptions(from, to),
+                // this.getBalanceCorrections(from, to)
             ]);
 
             if (transactions.isErr()) throw transactions.error;
             if (subscriptions.isErr()) throw subscriptions.error;
+            // if (corrections.isErr()) throw corrections.error;
+
+            // const correctionTransactions = resolveAll(await Promise.all(corrections.value.map(c => c.build()))).unwrap() as Transaction[];
 
             return [
                 ...transactions.value,
-                ...subscriptions.value.map(s => s.build(from, to)).flat()
+                ...subscriptions.value.map(s => s.build(from, to)).flat(),
+                // ...correctionTransactions
             ].sort((a, b) => a.date - b.date)
             .filter(t => transfers ? true : !t.transfer); // if transfers is false, filter out transfers
         });
     }
 
-    async getBalance(from: number, to: number) {
+    async getLastCorrection(date: number) {
         return attemptAsync(async () => {
-            const [transactions, corrections] = await Promise.all([
-                this.getTransactions(from, to),
-                this.getBalanceCorrections(from, to)
-            ]);
+            return (await this.getBalanceCorrections(0, date)).unwrap().sort((a, b) => a.date - b.date).pop();
+        });
+    }
 
-            if (transactions.isErr()) throw transactions.error;
-            if (corrections.isErr()) throw corrections.error;
+    async getBalance(date: number) {
+        return attemptAsync(async () => {
+            const last = (await this.getLastCorrection(date)).unwrap();
+            const start = last ? last.balance : 0;
+            return (await this.getTransactions(last ? last.date : 0, date)).unwrap().reduce((acc, t) => {
+                if (t.type === 'deposit') return acc + t.amount;
+                else return acc - t.amount;
+            }, start);
 
-            const data: (Transaction | BalanceCorrection)[] = [
-                ...transactions.value,
-                ...corrections.value
-            ].sort((a, b) => +a.date - +b.date);
+            // const [transactions, corrections] = await Promise.all([
+            //     this.getTransactions(from, to),
+            //     this.getBalanceCorrections(from, to)
+            // ]);
 
-            let balance = 0;
-            for (const d of data) {
-                if (d instanceof Transaction) {
-                    if (d.type === 'deposit') balance += d.amount;
-                    else balance -= d.amount;
-                } else {
-                    balance = d.balance;
-                }
-            }
+            // if (transactions.isErr()) throw transactions.error;
+            // if (corrections.isErr()) throw corrections.error;
 
-            return balance;
+            // const data: (Transaction | BalanceCorrection)[] = [
+            //     ...transactions.value,
+            //     ...corrections.value
+            // ].sort((a, b) => +a.date - +b.date);
+
+            // let balance = 0;
+            // for (const d of data) {
+            //     if (d instanceof Transaction) {
+            //         if (d.type === 'deposit') balance += d.amount;
+            //         else balance -= d.amount;
+            //     } else {
+            //         balance = d.balance;
+            //     }
+            // }
+
+            // return balance;
         });
     }
 

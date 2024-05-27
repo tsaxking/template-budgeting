@@ -163,10 +163,10 @@ Bucket.on('update', reset);
             <TypesLineChart {buckets} {from} {to} />
         </DashboardCard>
         <DashboardCard title="Miles Table" expandable="{true}">
-            <MilesTable {from} {to}/>
+            <MilesTable {from} {to} />
         </DashboardCard>
         <DashboardCard title="Miles Chart" expandable="{true}">
-            <MilesLineChart {from} {to}/>
+            <MilesLineChart {from} {to} />
         </DashboardCard>
     </div>
 </div>

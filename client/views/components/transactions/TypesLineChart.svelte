@@ -140,7 +140,9 @@ const reset = async (
     }
 };
 
-$: {if (to && from) reset(buckets, typeOrSubtype, depositOrWithdrawal);}
+$: {
+    if (to && from) reset(buckets, typeOrSubtype, depositOrWithdrawal);
+}
 </script>
 
 <div class="mb-3">

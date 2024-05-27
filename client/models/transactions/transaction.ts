@@ -92,7 +92,10 @@ export class Transaction extends Cache<TransactionEvents> {
         const exists = Transaction.cache.get(data.id);
         if (exists) return exists;
 
-        return new Transaction(data);
+        return new Transaction(data, {
+            save: true,
+            type: 'real'
+        });
     }
 
     public readonly id: string;
@@ -110,7 +113,10 @@ export class Transaction extends Cache<TransactionEvents> {
 
     constructor(
         data: T,
-        public readonly save = true
+        public readonly metadata: {
+            save: boolean;
+            type: 'real' | 'subscription' | 'balance-correction'
+        }
     ) {
         super();
         this.id = data.id;
@@ -126,15 +132,15 @@ export class Transaction extends Cache<TransactionEvents> {
         this.picture = data.picture;
         this.transfer = data.transfer;
 
-        if (save && !Transaction.cache.has(this.id)) {
+        if (metadata.save && !Transaction.cache.has(this.id)) {
             Transaction.cache.set(this.id, this);
-        } else if (save) {
+        } else if (metadata.save) {
             throw new Error('Transaction already exists');
         }
     }
 
     async update(data: Partial<T>) {
-        if (!this.save) throw new Error('Cannot update unsaved transaction');
+        if (!this.metadata.save) throw new Error('Cannot update unsaved transaction');
         return ServerRequest.post('/api/transactions/update', {
             id: this.id,
             amount: data.amount || this.amount,
@@ -149,7 +155,7 @@ export class Transaction extends Cache<TransactionEvents> {
     }
 
     async setArchive(archived: boolean) {
-        if (!this.save) throw new Error('Cannot archive unsaved transaction');
+        if (!this.metadata.save) throw new Error('Cannot archive unsaved transaction');
         return ServerRequest.post('/api/transactions/set-archive-status', {
             id: this.id,
             archived
@@ -157,7 +163,7 @@ export class Transaction extends Cache<TransactionEvents> {
     }
 
     changePicture(files: FileList) {
-        if (!this.save)
+        if (!this.metadata.save)
             throw new Error('Cannot change picture of unsaved transaction');
         return ServerRequest.streamFiles(
             '/api/transactions/change-picture',
@@ -191,7 +197,10 @@ export class Transaction extends Cache<TransactionEvents> {
 }
 
 socket.on('transactions:created', (data: T) => {
-    const t = new Transaction(data);
+    const t = new Transaction(data, {
+        save: true,
+        type: 'real'
+    });
     Transaction.emit('new', t);
     const b = Bucket.cache.get(t.bucketId);
     if (b) b.emit('new-transaction', t);

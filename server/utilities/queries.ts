@@ -273,10 +273,7 @@ export type Queries = {
         [Select_transactions_withdrawals],
         Transactions
     ];
-    'transactions/all': [
-        [],
-        Transactions
-    ];
+    'transactions/all': [[], Transactions];
     'types/all-subtypes': [[Select_types_all_subtypes], Subtypes];
     'types/all-types': [[Select_types_all_types], TransactionTypes];
     'types/new-subtype': [[Insert_types_new_subtype], unknown];
