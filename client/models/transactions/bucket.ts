@@ -56,6 +56,48 @@ export class Bucket extends Cache<BucketEvents> {
         });
     }
 
+    public static getDebitBalance(date: number) {
+        return attemptAsync(async () => {
+            const buckets = (await Bucket.all()).unwrap().filter(b => b.type === 'debit');
+            const balances = resolveAll(await Promise.all(buckets.map(b => b.getBalance(date)))).unwrap();
+            return balances.reduce((acc, b) => acc + b, 0);
+        });
+    }
+
+    public static getCreditBalance(date: number) {
+        return attemptAsync(async () => {
+            const buckets = (await Bucket.all()).unwrap().filter(b => b.type === 'credit');
+            const balances = resolveAll(await Promise.all(buckets.map(b => b.getBalance(date)))).unwrap();
+            return balances.reduce((acc, b) => acc + b, 0);
+        });
+    }
+
+    public static getTotalBalance(date: number) {
+        return attemptAsync(async () => {
+            const buckets = await Bucket.all();
+            if (buckets.isErr()) throw buckets.error;
+
+            const balances = resolveAll(await Promise.all(buckets.value.map(b => b.getBalance(date)))).unwrap();
+            return balances.reduce((acc, b) => acc + b, 0);
+        });
+    }
+
+    public static getSavingsBalance(date: number) {
+        return attemptAsync(async () => {
+            const buckets = (await Bucket.all()).unwrap().filter(b => b.type === 'savings');
+            const balances = resolveAll(await Promise.all(buckets.map(b => b.getBalance(date)))).unwrap();
+            return balances.reduce((acc, b) => acc + b, 0);
+        });
+    }
+
+    public static getOtherBalance(date: number) {
+        return attemptAsync(async () => {
+            const buckets = (await Bucket.all()).unwrap().filter(b => b.type === 'other');
+            const balances = resolveAll(await Promise.all(buckets.map(b => b.getBalance(date)))).unwrap();
+            return balances.reduce((acc, b) => acc + b, 0);
+        });
+    }
+
     public static transactionsFromBuckets(
         buckets: Bucket[],
         from: number,
