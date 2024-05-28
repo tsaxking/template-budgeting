@@ -15,6 +15,7 @@ import TransactionBarChart from '../components/transactions/TransactionBarChart.
 import TypesLineChart from '../components/transactions/TypesLineChart.svelte';
 import MilesTable from '../components/miles/MilesTable.svelte';
 import MilesLineChart from '../components/miles/MilesLineChart.svelte';
+import BalanceBasics from '../components/buckets/BalanceBasics.svelte';
 
 let buckets: Bucket[] = [];
 
@@ -142,6 +143,9 @@ Bucket.on('update', reset);
         </div>
     </div>
     <div class="row mb-3">
+        <DashboardCard title="Balance Basics" expandable="{true}">
+            <BalanceBasics />
+        </DashboardCard>
         <DashboardCard title="Balance/Time" expandable="{true}">
             <TransactionChart {from} {to} {buckets} />
         </DashboardCard>
