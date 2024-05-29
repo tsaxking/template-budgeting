@@ -206,6 +206,13 @@ socket.on('transactions:created', (data: T) => {
     if (b) b.emit('new-transaction', t);
 });
 
+socket.on('transactions:updated', (data: T) => {
+    const t = Transaction.retrieve(data);
+
+    t.emit('update', undefined);
+    Transaction.emit('update', t);
+});
+
 socket.on(
     'transactions:picture-updated',
     (data: { id: string; picture: string }) => {

@@ -143,7 +143,7 @@ export class BalanceCorrection extends Cache<BalanceCorrectionEvents> {
             return new Transaction({
                 id: Random.uuid(),
                 date: this.date,
-                amount: this.balance - balance,
+                amount: Math.abs(this.balance - balance), // pos/neg is determined by type
                 bucketId: this.bucketId,
                 description: 'Balance correction',
                 status: 'completed',
