@@ -4,6 +4,9 @@ import { Bucket } from '../../../models/transactions/bucket';
 import { capitalize } from '../../../../shared/text';
 import { Modal } from '../../../utilities/modals';
 import NewBucket from './NewBucket.svelte';
+// import MultiSelector from '../bootstrap/MultiSelector.svelte';
+// import { Color } from '../../../submodules/colors/color';
+// import { Gradient } from '../../../submodules/colors/gradient';
 
 let buckets: Bucket[] = [];
 let selected: string[] = [];
@@ -91,3 +94,14 @@ Bucket.on('new', b => {
     overflow-x: auto;
 }
 </style>
+
+<!-- <MultiSelector
+    options={buckets.map(b => b.name)}
+    values={buckets.map(b => b.id)}
+    bind:selectedValues={selected}
+    buttonText="Open Bucket"
+/>
+<button class="btn btn-primary" on:click="{createBucket}">
+    <div class="material-icons">add</div>
+    New Bucket
+</button> -->

@@ -3,6 +3,7 @@ import { ServerRequest } from '../../utilities/requests';
 import Password from './Password.svelte';
 import Recaptcha from './Recaptcha.svelte';
 import { prompt } from '../../utilities/notifications';
+import Select from './bootstrap/Select.svelte';
 
 export let title: string;
 
