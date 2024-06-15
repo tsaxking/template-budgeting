@@ -4,7 +4,7 @@ import { createEventDispatcher } from 'svelte';
 export let type: 'text' | 'textarea' | 'select' = 'text';
 export let placeholder: string = '';
 export let label: string;
-export let value: any;
+export let value: string;
 
 const id =
     'input-' +

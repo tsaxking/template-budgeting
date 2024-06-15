@@ -346,3 +346,303 @@ export type Insert_db_change_version = {
 };
 
 export type Delete_db_delete_version = undefined;
+
+export type Transactions = {
+    id: string;
+    amount: number;
+    type: string;
+    status: string;
+    date: number;
+    bucketId: string;
+    description: string;
+    subtypeId: string;
+    taxDeductible: number;
+    archived: number;
+    picture: string | undefined;
+    transfer: 0 | 1;
+};
+
+export type Buckets = {
+    id: string;
+    name: string;
+    description: string;
+    created: number;
+    archived: number;
+    type: string;
+};
+
+export type BalanceCorrection = {
+    id: string;
+    date: number;
+    balance: number;
+    bucketId: string;
+};
+
+export type Miles = {
+    id: string;
+    amount: number;
+    date: number;
+    archived: number;
+    description: string;
+};
+
+export type Subscriptions = {
+    id: string;
+    name: string;
+    startDate: number;
+    endDate: number | undefined;
+    interval: 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly';
+    bucketId: string;
+    subtypeId: string;
+    description: string;
+    picture: string | undefined;
+    taxDeductible: number;
+    amount: number;
+    archived: number;
+    type: 'deposit' | 'withdrawal';
+};
+
+export type TransactionTypes = {
+    id: string;
+    name: string;
+    dateCreated: number;
+    dateModified: number;
+};
+
+export type Subtypes = {
+    id: string;
+    name: string;
+    dateCreated: number;
+    dateModified: number;
+    type: string;
+    typeId: string;
+};
+
+export type Select_balance_correction_all = undefined;
+
+export type Insert_balance_correction_new = {
+    id: string;
+    date: number;
+    balance: number;
+    bucketId: string;
+};
+
+export type Update_balance_correction_update = {
+    balance: number;
+    date: number;
+    bucketId: string;
+    id: string;
+};
+
+export type Select_buckets_all = undefined;
+
+export type Select_buckets_archived = undefined;
+
+export type Insert_buckets_new = {
+    id: string;
+    description: string;
+    created: number;
+    type: string;
+    name: string;
+};
+
+export type Update_buckets_set_archive = {
+    archived: number;
+    id: string;
+};
+
+export type Update_buckets_update = {
+    name: string;
+    description: string;
+    created: number;
+    type: string;
+    id: string;
+};
+
+export type Select_miles_active = undefined;
+
+export type Select_miles_archived = undefined;
+
+export type Select_miles_from_id = {
+    id: string;
+};
+
+export type Insert_miles_new = {
+    id: string;
+    amount: number;
+    date: number;
+    archived: number;
+    description: string;
+};
+
+export type Update_miles_set_archive = {
+    archived: number;
+    id: string;
+};
+
+export type Update_miles_update = {
+    date: number;
+    amount: number;
+    description: string;
+    id: string;
+};
+
+export type Select_subscriptions_active = undefined;
+
+export type Select_subscriptions_archived = undefined;
+
+export type Select_subscriptions_from_bucket = {
+    bucketId: string;
+};
+
+export type Select_subscriptions_from_id = {
+    id: string;
+};
+
+export type Insert_subscriptions_new = {
+    id: string;
+    name: string;
+    startDate: number;
+    endDate: number | undefined;
+    interval: 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly';
+    bucketId: string;
+    subtypeId: string;
+    description: string;
+    picture: string | undefined;
+    taxDeductible: number;
+    amount: number;
+    type: 'deposit' | 'withdrawal';
+};
+
+export type Update_subscriptions_set_archive = {
+    archived: number;
+    id: string;
+};
+
+export type Update_subscriptions_update = {
+    name: string;
+    startDate: number;
+    endDate: number | undefined;
+    interval: 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly';
+    bucketId: string;
+    subtypeId: string;
+    description: string;
+    picture: string | undefined;
+    taxDeductible: number;
+    amount: number;
+    id: string;
+};
+
+export type Select_transactions_archived = undefined;
+
+export type Select_transactions_between = {
+    bucketId: string;
+};
+
+export type Select_transactions_deposits = undefined;
+
+export type Select_transactions_from_bucket = {
+    bucketId: string;
+};
+
+export type Select_transactions_from_id = {
+    id: string;
+};
+
+export type Select_transactions_from_status = {
+    status: string;
+};
+
+export type Select_transactions_from_subtype = {
+    subtypeId: string;
+};
+
+export type Select_transactions_from_tax_deductible = {
+    taxDecuctible: undefined;
+};
+
+export type Insert_transactions_new = {
+    id: string;
+    amount: number;
+    type: string;
+    status: string;
+    date: number;
+    bucketId: string;
+    description: string;
+    subtypeId: string;
+    taxDeductible: number;
+    transfer: 0 | 1;
+};
+
+export type Update_transactions_set_archive = {
+    archived: number;
+    id: string;
+};
+
+export type Update_transactions_update_picture = {
+    picture: string | undefined;
+    id: string;
+};
+
+export type Update_transactions_update = {
+    amount: number;
+    type: string;
+    status: string;
+    date: number;
+    bucketId: string;
+    description: string;
+    subtypeId: string;
+    taxDeductible: number;
+    id: string;
+    transfer: 0 | 1;
+};
+
+export type Select_transactions_withdrawals = undefined;
+
+export type Select_types_all_subtypes = undefined;
+
+export type Select_types_all_types = undefined;
+
+export type Insert_types_new_subtype = {
+    id: string;
+    name: string;
+    dateCreated: number;
+    dateModified: number;
+    type: string;
+    typeId: string;
+};
+
+export type Insert_types_new_type = {
+    id: string;
+    name: string;
+    dateCreated: number;
+    dateModified: number;
+};
+
+export type Select_types_subtype_from_type = {
+    typeId: string;
+};
+
+export type Update_types_update_subtype = {
+    name: string;
+    dateCreated: number;
+    dateModified: number;
+    type: string;
+    typeId: string;
+    id: string;
+};
+
+export type Update_types_update_type = {
+    name: string;
+    dateCreated: number;
+    dateModified: number;
+    id: string;
+};
+
+export type Delete_balance_correction_delete = {
+    id: string;
+};
+
+export type Select_balance_correction_from_id = {
+    id: string;
+};
