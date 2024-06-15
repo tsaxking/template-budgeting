@@ -5,6 +5,7 @@ import { Subtype as S } from '../../../shared/db-types-extended';
 import { attemptAsync } from '../../../shared/check';
 import { socket } from '../../utilities/socket';
 import { Type } from './type';
+import { Transaction } from './transaction';
 
 type SubtypeEvents = {
     update: void;
@@ -116,6 +117,10 @@ export class Subtype extends Cache<SubtypeEvents> {
 
             return types.value.find(t => t.id === this.typeId);
         });
+    }
+
+    getTransactions(from: number, to: number) {
+        return Transaction.fromSubType(this.id, from, to);
     }
 }
 

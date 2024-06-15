@@ -16,6 +16,7 @@ import TypesLineChart from '../components/transactions/TypesLineChart.svelte';
 import MilesTable from '../components/miles/MilesTable.svelte';
 import MilesLineChart from '../components/miles/MilesLineChart.svelte';
 import BalanceBasics from '../components/buckets/BalanceBasics.svelte';
+import SpendingChart from '../components/budgets/SpendingChart.svelte';
 
 let buckets: Bucket[] = [];
 
@@ -155,6 +156,9 @@ Bucket.on('update', reset);
         <DashboardCard title="Types/Time" expandable="{true}">
             <TypesLineChart {buckets} {from} {to} />
         </DashboardCard>
+        <!-- <DashboardCard title="Spending Chart" expandable="{true}">
+            <SpendingChart {from} {to} />
+        </DashboardCard> -->
         {#each buckets as bucket}
             <DashboardCard title="{bucket.name}" expandable="{true}">
                 <BucketBasics {bucket} {to} />

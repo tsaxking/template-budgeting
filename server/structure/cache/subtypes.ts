@@ -3,6 +3,7 @@ import { Subtypes as S } from '../../utilities/tables';
 import { DB } from '../../utilities/databases';
 import { attemptAsync } from '../../../shared/check';
 import { uuid } from '../../utilities/uuid';
+import { Transaction } from './transactions';
 
 export class Subtype extends Cache {
     public static all() {
@@ -70,6 +71,14 @@ export class Subtype extends Cache {
             });
             if (res.isErr()) throw res.error;
             this.name = data.name;
+        });
+    }
+
+    getTransactions(from: number, to: number) {
+        return attemptAsync(async () => {
+            return (await Transaction.fromSubType(this.id))
+                .unwrap()
+                .filter(t => +t.date >= from && +t.date <= to);
         });
     }
 }

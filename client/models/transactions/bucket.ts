@@ -58,16 +58,24 @@ export class Bucket extends Cache<BucketEvents> {
 
     public static getDebitBalance(date: number) {
         return attemptAsync(async () => {
-            const buckets = (await Bucket.all()).unwrap().filter(b => b.type === 'debit');
-            const balances = resolveAll(await Promise.all(buckets.map(b => b.getBalance(date)))).unwrap();
+            const buckets = (await Bucket.all())
+                .unwrap()
+                .filter(b => b.type === 'debit');
+            const balances = resolveAll(
+                await Promise.all(buckets.map(b => b.getBalance(date)))
+            ).unwrap();
             return balances.reduce((acc, b) => acc + b, 0);
         });
     }
 
     public static getCreditBalance(date: number) {
         return attemptAsync(async () => {
-            const buckets = (await Bucket.all()).unwrap().filter(b => b.type === 'credit');
-            const balances = resolveAll(await Promise.all(buckets.map(b => b.getBalance(date)))).unwrap();
+            const buckets = (await Bucket.all())
+                .unwrap()
+                .filter(b => b.type === 'credit');
+            const balances = resolveAll(
+                await Promise.all(buckets.map(b => b.getBalance(date)))
+            ).unwrap();
             return balances.reduce((acc, b) => acc + b, 0);
         });
     }
@@ -77,23 +85,33 @@ export class Bucket extends Cache<BucketEvents> {
             const buckets = await Bucket.all();
             if (buckets.isErr()) throw buckets.error;
 
-            const balances = resolveAll(await Promise.all(buckets.value.map(b => b.getBalance(date)))).unwrap();
+            const balances = resolveAll(
+                await Promise.all(buckets.value.map(b => b.getBalance(date)))
+            ).unwrap();
             return balances.reduce((acc, b) => acc + b, 0);
         });
     }
 
     public static getSavingsBalance(date: number) {
         return attemptAsync(async () => {
-            const buckets = (await Bucket.all()).unwrap().filter(b => b.type === 'savings');
-            const balances = resolveAll(await Promise.all(buckets.map(b => b.getBalance(date)))).unwrap();
+            const buckets = (await Bucket.all())
+                .unwrap()
+                .filter(b => b.type === 'savings');
+            const balances = resolveAll(
+                await Promise.all(buckets.map(b => b.getBalance(date)))
+            ).unwrap();
             return balances.reduce((acc, b) => acc + b, 0);
         });
     }
 
     public static getOtherBalance(date: number) {
         return attemptAsync(async () => {
-            const buckets = (await Bucket.all()).unwrap().filter(b => b.type === 'other');
-            const balances = resolveAll(await Promise.all(buckets.map(b => b.getBalance(date)))).unwrap();
+            const buckets = (await Bucket.all())
+                .unwrap()
+                .filter(b => b.type === 'other');
+            const balances = resolveAll(
+                await Promise.all(buckets.map(b => b.getBalance(date)))
+            ).unwrap();
             return balances.reduce((acc, b) => acc + b, 0);
         });
     }
@@ -259,11 +277,12 @@ export class Bucket extends Cache<BucketEvents> {
 
     async getTransactions(from: number, to: number, transfers = true) {
         return attemptAsync(async () => {
-            const [transactions, subscriptions, /*corrections*/] = await Promise.all([
-                Transaction.search([this.id], from, to),
-                this.getSubscriptions(from, to),
-                // this.getBalanceCorrections(from, to)
-            ]);
+            const [transactions, subscriptions /*corrections*/] =
+                await Promise.all([
+                    Transaction.search([this.id], from, to),
+                    this.getSubscriptions(from, to)
+                    // this.getBalanceCorrections(from, to)
+                ]);
 
             if (transactions.isErr()) throw transactions.error;
             if (subscriptions.isErr()) throw subscriptions.error;
@@ -273,16 +292,20 @@ export class Bucket extends Cache<BucketEvents> {
 
             return [
                 ...transactions.value,
-                ...subscriptions.value.map(s => s.build(from, to)).flat(),
+                ...subscriptions.value.map(s => s.build(from, to)).flat()
                 // ...correctionTransactions
-            ].sort((a, b) => a.date - b.date)
-            .filter(t => transfers ? true : !t.transfer); // if transfers is false, filter out transfers
+            ]
+                .sort((a, b) => a.date - b.date)
+                .filter(t => (transfers ? true : !t.transfer)); // if transfers is false, filter out transfers
         });
     }
 
     async getLastCorrection(date: number) {
         return attemptAsync(async () => {
-            return (await this.getBalanceCorrections(0, date)).unwrap().sort((a, b) => a.date - b.date).pop();
+            return (await this.getBalanceCorrections(0, date))
+                .unwrap()
+                .sort((a, b) => a.date - b.date)
+                .pop();
         });
     }
 
@@ -290,10 +313,12 @@ export class Bucket extends Cache<BucketEvents> {
         return attemptAsync(async () => {
             const last = (await this.getLastCorrection(date)).unwrap();
             const start = last ? last.balance : 0;
-            return (await this.getTransactions(last ? last.date : 0, date)).unwrap().reduce((acc, t) => {
-                if (t.type === 'deposit') return acc + t.amount;
-                else return acc - t.amount;
-            }, start);
+            return (await this.getTransactions(last ? last.date : 0, date))
+                .unwrap()
+                .reduce((acc, t) => {
+                    if (t.type === 'deposit') return acc + t.amount;
+                    else return acc - t.amount;
+                }, start);
 
             // const [transactions, corrections] = await Promise.all([
             //     this.getTransactions(from, to),

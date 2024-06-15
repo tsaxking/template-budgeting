@@ -32,8 +32,11 @@ const mount = async (buckets: Bucket[]) => {
     if (transactionsResult.isErr())
         return console.error(transactionsResult.error);
 
-    const correctionTransactions = resolveAll(await Promise.all((correctionsResult.value.flat().map(c => c.build()))));
-    if (correctionTransactions.isErr()) return console.error(correctionTransactions.error);
+    const correctionTransactions = resolveAll(
+        await Promise.all(correctionsResult.value.flat().map(c => c.build()))
+    );
+    if (correctionTransactions.isErr())
+        return console.error(correctionTransactions.error);
     const transactions = transactionsResult.value;
 
     const data = [...correctionTransactions.value, ...transactions].sort(

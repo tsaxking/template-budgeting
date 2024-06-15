@@ -3,6 +3,7 @@ import { TransactionTypes as T } from '../../utilities/tables';
 import { DB } from '../../utilities/databases';
 import { attemptAsync } from '../../../shared/check';
 import { uuid } from '../../utilities/uuid';
+import { Transaction } from './transactions';
 
 export class Type extends Cache {
     public static all() {
@@ -66,6 +67,14 @@ export class Type extends Cache {
             });
             if (res.isErr()) throw res.error;
             this.name = data.name;
+        });
+    }
+
+    getTransactions(from: number, to: number) {
+        return attemptAsync(async () => {
+            return (await Transaction.fromType(this.id))
+                .unwrap()
+                .filter(t => +t.date >= from && +t.date <= to);
         });
     }
 }

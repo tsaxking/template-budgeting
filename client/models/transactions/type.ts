@@ -5,6 +5,7 @@ import { TransactionType } from '../../../shared/db-types-extended';
 import { ServerRequest } from '../../utilities/requests';
 import { attemptAsync } from '../../../shared/check';
 import { socket } from '../../utilities/socket';
+import { Transaction } from './transaction';
 
 type TypeEvents = {
     update: void;
@@ -46,16 +47,14 @@ export class Type extends Cache<TypeEvents> {
 
     public static all() {
         return attemptAsync(async () => {
-            // const cache = Array.from(Type.cache.values());
-            // if (cache.length) return cache;
-
-            const res = await ServerRequest.post<{
-                types: TransactionType[];
-                subtypes: Subtype[];
-            }>('/api/types/get-types');
-            if (res.isErr()) throw res.error;
-
-            return res.value.types.map(Type.retrieve);
+            return (
+                await ServerRequest.post<{
+                    types: TransactionType[];
+                    subtypes: Subtype[];
+                }>('/api/types/get-types')
+            )
+                .unwrap()
+                .types.map(Type.retrieve);
         });
     }
 
@@ -106,6 +105,10 @@ export class Type extends Cache<TypeEvents> {
             typeId: this.id,
             type
         });
+    }
+
+    getTransactions(from: number, to: number) {
+        return Transaction.fromType(this.id, from, to);
     }
 }
 
