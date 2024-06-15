@@ -53,7 +53,6 @@ const reset = async (
         .filter((t, i, a) => a.findIndex(a => a.id === t.id) === i);
     const dateArr = segment(
         transactions.map(t => new Date(+t.date)),
-        20
     );
 
     dates = dateArr; // x-axis

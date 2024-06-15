@@ -31,8 +31,9 @@ Settings.on('set', ([key, value]) => {
 </script>
 
 {#if !minimized}
-    <div class="col-xl-4 col-md-6">
-        <div class="card dashboard-card {expanded ? 'expanded' : ''}">
+    <div class="col-xl-4 col-md-6 p-3">
+        <div class="dashboard-card {expanded ? 'expanded' : ''}">
+            <div class="card h-100 w-100">
             <div class="card-header">
                 <div class="d-flex justify-content-between">
                     {#if minimizable}
@@ -67,6 +68,7 @@ Settings.on('set', ([key, value]) => {
                 <slot />
             </div>
         </div>
+        </div>
     </div>
 {/if}
 
@@ -89,6 +91,6 @@ Settings.on('set', ([key, value]) => {
     width: 100vw !important;
     height: 100vh !important;
     transform: translate(-50%, -50%);
-    margin: 2em;
+    padding: 2em;
 }
 </style>
