@@ -15,7 +15,6 @@ const reset = async () => {
     const miles = res.value.filter(m => m.date >= from && m.date <= to);
     const dates = segment(
         miles.map(m => new Date(m.date)),
-        20
     );
     labels = dates.map(date);
 
