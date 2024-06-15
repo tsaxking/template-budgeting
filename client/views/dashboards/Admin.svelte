@@ -1,7 +1,6 @@
 <script lang="ts">
 import Main from '../components/main/Main.svelte';
 import Page from '../components/main/Page.svelte';
-import Dashboard from '../pages/Dashboard.svelte';
 import Accounts from '../pages/Accounts.svelte';
 import Roles from '../pages/Roles.svelte';
 import type { PageGroup } from '../../utilities/general-types';
@@ -50,7 +49,6 @@ const accountLinks: string[] = [
     {navItems}
     {accountLinks}
 >
-    <Page {active} {domain} title="dashboard"><Dashboard></Dashboard></Page>
     <Page {active} {domain} title="accounts"><Accounts></Accounts></Page>
     <Page {active} {domain} title="roles"><Roles></Roles></Page>
 </Main>

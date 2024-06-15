@@ -1,0 +1,2 @@
+ALTER TABLE BudgetParsing DROP COLUMN amount;
+ALTER TABLE BudgetParsing ADD COLUMN amount DECIMAL NOT NULL;
