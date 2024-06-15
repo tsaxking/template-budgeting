@@ -127,10 +127,9 @@ export class BalanceCorrection extends Cache<BalanceCorrectionEvents> {
             const bucket = Bucket.cache.get(this.bucketId);
             if (bucket) return bucket;
 
-            const res = (await ServerRequest.post<BK>(
-                '/api/bucket/get',
-                this.bucketId
-            )).unwrap()
+            const res = (
+                await ServerRequest.post<BK>('/api/bucket/get', this.bucketId)
+            ).unwrap();
 
             return Bucket.retrieve(res);
         });
@@ -140,23 +139,26 @@ export class BalanceCorrection extends Cache<BalanceCorrectionEvents> {
         return attemptAsync(async () => {
             const bucket = (await this.getBucket()).unwrap();
             const balance = (await bucket.getBalance(this.date - 1)).unwrap(); // get balance before correction
-            return new Transaction({
-                id: Random.uuid(),
-                date: this.date,
-                amount: Math.abs(this.balance - balance), // pos/neg is determined by type
-                bucketId: this.bucketId,
-                description: 'Balance correction',
-                status: 'completed',
-                subtypeId: '',
-                taxDeductible: 0,
-                type: this.balance > balance ? 'deposit' : 'withdrawal',
-                archived: 0,
-                picture: null,
-                transfer: 0
-            },{
-                save: false,
-                type: 'balance-correction'
-            })
+            return new Transaction(
+                {
+                    id: Random.uuid(),
+                    date: this.date,
+                    amount: Math.abs(this.balance - balance), // pos/neg is determined by type
+                    bucketId: this.bucketId,
+                    description: 'Balance correction',
+                    status: 'completed',
+                    subtypeId: '',
+                    taxDeductible: 0,
+                    type: this.balance > balance ? 'deposit' : 'withdrawal',
+                    archived: 0,
+                    picture: null,
+                    transfer: 0
+                },
+                {
+                    save: false,
+                    type: 'balance-correction'
+                }
+            );
         });
     }
 }

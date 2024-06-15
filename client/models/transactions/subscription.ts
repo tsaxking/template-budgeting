@@ -218,7 +218,10 @@ export class Subscription extends Cache<SubscriptionEvents> {
                     picture: this.picture,
                     transfer: 0
                 },
-                false
+                {
+                    save: false,
+                    type: 'subscription'
+                }
             );
         });
     }

@@ -94,6 +94,14 @@ export class Transaction extends Cache {
         });
     }
 
+    public static fromType(id: string) {
+        return attemptAsync(async () => {
+            const data = await DB.all('transactions/from-type', { typeId: id });
+            if (data.isErr()) throw data.error;
+            return data.value.map(d => new Transaction(d));
+        });
+    }
+
     public id: string;
     public amount: number;
     public type: string;

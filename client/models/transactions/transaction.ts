@@ -45,33 +45,61 @@ export class Transaction extends Cache<TransactionEvents> {
         this.emitter.emit(event, data);
     }
 
+    public static fromType(id: string, from: number, to: number) {
+        return attemptAsync(async () => {
+            return (
+                await ServerRequest.post<T[]>(
+                    '/api/types/get-type-transactions',
+                    {
+                        id,
+                        from: +from,
+                        to: +to
+                    }
+                )
+            )
+                .unwrap()
+                .map(Transaction.retrieve);
+        });
+    }
+
+    public static fromSubType(id: string, from: number, to: number) {
+        return attemptAsync(async () => {
+            return (
+                await ServerRequest.post<T[]>(
+                    '/api/types/get-subtype-transactions',
+                    {
+                        id,
+                        from,
+                        to
+                    }
+                )
+            )
+                .unwrap()
+                .map(Transaction.retrieve);
+        });
+    }
+
     public static search(
         buckets: string[], // bucket ids
         from: number,
         to: number
     ) {
         return attemptAsync(async () => {
-            const current = Array.from(Transaction.cache.values());
-
-            const res = await ServerRequest.post<T[]>(
-                '/api/transactions/search',
-                {
-                    buckets,
-                    from,
-                    to
-                },
-                {
-                    cached: false
-                }
-            );
-
-            if (res.isErr()) throw res.error;
-
-            return res.value.map(t => {
-                const exists = current.find(c => c.id === t.id);
-                if (exists) return exists;
-                else return Transaction.retrieve(t);
-            });
+            return (
+                await ServerRequest.post<T[]>(
+                    '/api/transactions/search',
+                    {
+                        buckets,
+                        from,
+                        to
+                    },
+                    {
+                        cached: false
+                    }
+                )
+            )
+                .unwrap()
+                .map(Transaction.retrieve);
         });
     }
 
@@ -115,7 +143,7 @@ export class Transaction extends Cache<TransactionEvents> {
         data: T,
         public readonly metadata: {
             save: boolean;
-            type: 'real' | 'subscription' | 'balance-correction'
+            type: 'real' | 'subscription' | 'balance-correction';
         }
     ) {
         super();
@@ -140,7 +168,8 @@ export class Transaction extends Cache<TransactionEvents> {
     }
 
     async update(data: Partial<T>) {
-        if (!this.metadata.save) throw new Error('Cannot update unsaved transaction');
+        if (!this.metadata.save)
+            throw new Error('Cannot update unsaved transaction');
         return ServerRequest.post('/api/transactions/update', {
             id: this.id,
             amount: data.amount || this.amount,
@@ -155,7 +184,8 @@ export class Transaction extends Cache<TransactionEvents> {
     }
 
     async setArchive(archived: boolean) {
-        if (!this.metadata.save) throw new Error('Cannot archive unsaved transaction');
+        if (!this.metadata.save)
+            throw new Error('Cannot archive unsaved transaction');
         return ServerRequest.post('/api/transactions/set-archive-status', {
             id: this.id,
             archived

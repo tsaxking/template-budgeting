@@ -88,13 +88,6 @@ Bucket.on('new', b => {
     </button>
 </div>
 
-<style>
-.button-selector {
-    width: 100vw;
-    overflow-x: auto;
-}
-</style>
-
 <!-- <MultiSelector
     options={buckets.map(b => b.name)}
     values={buckets.map(b => b.id)}
@@ -105,3 +98,10 @@ Bucket.on('new', b => {
     <div class="material-icons">add</div>
     New Bucket
 </button> -->
+
+<style>
+.button-selector {
+    width: 100vw;
+    overflow-x: auto;
+}
+</style>
