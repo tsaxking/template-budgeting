@@ -1,6 +1,6 @@
 <script lang="ts">
 import { Transaction } from '../../../models/transactions/transaction';
-import { resolveAll } from '../../../../shared/check';
+import { attemptAsync, resolveAll } from '../../../../shared/check';
 import { Bucket } from '../../../models/transactions/bucket';
 import { Line } from 'svelte-chartjs';
 import { onMount } from 'svelte';
@@ -16,93 +16,100 @@ let withdrawals: number[] = [];
 let deposits: number[] = [];
 
 let dates: Date[] = [];
+
 const mount = async (buckets: Bucket[]) => {
-    // TODO: this is a mess, I want this to be more performant
-    const [correctionsResult, transactionsResult] = await Promise.all([
-        resolveAll(
-            await Promise.all(
-                buckets.map(b => b.getBalanceCorrections(from, to))
-            )
-        ),
-        Bucket.transactionsFromBuckets(buckets, from, to, false) // don't include transfers
-    ]);
+    dates = segment(new Date(from), new Date(to));
 
-    if (correctionsResult.isErr())
-        return console.error(correctionsResult.error);
-    if (transactionsResult.isErr())
-        return console.error(transactionsResult.error);
+    const bRes = resolveAll(
+        await Promise.all(
+            buckets.map(b => {
+                return attemptAsync(async () => {
+                    const [sRes, tRes, cRes] = await Promise.all([
+                        b.getBalance(from),
+                        b.getTransactions(from, to, false),
+                        b.getBalanceCorrections(from, to)
+                    ]);
+                    const start = sRes.unwrap();
+                    const data = [...tRes.unwrap(), ...cRes.unwrap()];
 
-    const correctionTransactions = resolveAll(
-        await Promise.all(correctionsResult.value.flat().map(c => c.build()))
+                    return dates.map((date, i) => {
+                        const all = data.filter(d => d.date <= date.getTime());
+                        const balance = all.reduce((acc, d) => {
+                            if (d instanceof Transaction) {
+                                if (d.amount < 0) {
+                                    return acc - d.amount;
+                                } else {
+                                    return acc;
+                                }
+                            } else {
+                                return d.balance;
+                            }
+                        }, start);
+
+                        let filtered = all;
+                        if (i > 0) {
+                            filtered = all.filter(
+                                d => d.date > dates[i - 1].getTime()
+                            );
+                        }
+
+                        const withdrawals = filtered.reduce((acc, d) => {
+                            if (
+                                d instanceof Transaction &&
+                                d.type === 'withdrawal'
+                            ) {
+                                return acc - d.amount;
+                            } else {
+                                return acc;
+                            }
+                        }, 0);
+
+                        const deposits = filtered.reduce((acc, d) => {
+                            if (
+                                d instanceof Transaction &&
+                                d.type === 'deposit'
+                            ) {
+                                return acc + d.amount;
+                            } else {
+                                return acc;
+                            }
+                        }, 0);
+
+                        return {
+                            balance,
+                            withdrawals,
+                            deposits
+                        };
+                    });
+                });
+            })
+        )
     );
-    if (correctionTransactions.isErr())
-        return console.error(correctionTransactions.error);
-    const transactions = transactionsResult.value;
 
-    const data = [...correctionTransactions.value, ...transactions].sort(
-        (a, b) => +a.date - +b.date
+    if (bRes.isErr()) return console.error(bRes.error);
+    balance = bRes.value.reduce(
+        (acc, b) => {
+            return acc.map((v, i) => v + b[i].balance);
+        },
+        dates.map(() => 0)
     );
 
-    dates = segment(
-        data.map(d => new Date(+d.date)),
-        20
+    withdrawals = bRes.value.reduce(
+        (acc, b) => {
+            return acc.map((v, i) => v + b[i].withdrawals);
+        },
+        dates.map(() => 0)
     );
 
-    balance = [];
-    withdrawals = [];
-    deposits = [];
-
-    for (const [i, d] of dates.entries()) {
-        let transactions: Transaction[] = [];
-        const upTo = data.filter(t => t.date <= d.getTime());
-        if (i == 0) {
-            transactions = data.filter(
-                t => t.date <= d.getTime() && t.date > from
-            );
-        } else {
-            transactions = data.filter(
-                t => t.date <= d.getTime() && t.date > dates[i - 1].getTime()
-            );
-        }
-
-        balance.push(
-            upTo.reduce((acc, cur) => {
-                acc += cur.type === 'withdrawal' ? -cur.amount : cur.amount;
-                return acc;
-            }, 0)
-        );
-
-        withdrawals.push(
-            transactions.reduce((acc, cur) => {
-                if (cur.metadata.type === 'balance-correction') return acc;
-                if (cur.type === 'withdrawal') {
-                    acc += -cur.amount;
-                }
-                return acc;
-            }, 0)
-        );
-
-        deposits.push(
-            transactions.reduce((acc, cur) => {
-                if (cur.metadata.type === 'balance-correction') return acc;
-                if (cur.type === 'deposit') {
-                    acc += cur.amount;
-                }
-                return acc;
-            }, 0)
-        );
-    }
+    deposits = bRes.value.reduce(
+        (acc, b) => {
+            return acc.map((v, i) => v + b[i].deposits);
+        },
+        dates.map(() => 0)
+    );
 };
 
-onMount(() => {
-    mount(buckets);
-    return () => {
-        balance = [];
-        dates = [];
-    };
-});
-
-$: if (to && from) mount(buckets);
+$: mount(buckets);
 
 Transaction.on('new', () => mount(buckets));
 Transaction.on('update', () => mount(buckets));
