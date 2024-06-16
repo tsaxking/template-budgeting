@@ -18,26 +18,105 @@ let deposits: number[] = [];
 let dates: Date[] = [];
 
 const mount = async (buckets: Bucket[]) => {
-    const dates = segment([new Date(from), new Date(to)]);
+    dates = segment(new Date(from), new Date(to));
 
-    const balances = resolveAll(await Promise.all(buckets.map(b => {
-        return attemptAsync(async () => {
-            const [tRes, cRes] = await Promise.all([
-                b.getTransactions(from, to, false),
-                b.getBalanceCorrections(from, to)
-            ]);
-            const transactions = tRes.unwrap();
-            const corrections = cRes.unwrap();
-        });
-    })))
+    const bRes = resolveAll(
+        await Promise.all(
+            buckets.map(b => {
+                return attemptAsync(async () => {
+                    const [sRes, tRes, cRes] = await Promise.all([
+                        b.getBalance(from),
+                        b.getTransactions(from, to, false),
+                        b.getBalanceCorrections(from, to)
+                    ]);
+                    const start = sRes.unwrap();
+                    const data = [...tRes.unwrap(), ...cRes.unwrap()];
+
+                    return dates.map((date, i) => {
+                        const all = data.filter(d => d.date <= date.getTime());
+                        const balance = all.reduce((acc, d) => {
+                            if (d instanceof Transaction) {
+                                if (d.amount < 0) {
+                                    return acc - d.amount;
+                                } else {
+                                    return acc;
+                                }
+                            } else {
+                                return d.balance;
+                            }
+                        }, start);
+
+                        let filtered = all;
+                        if (i > 0) {
+                            filtered = all.filter(
+                                d => d.date > dates[i - 1].getTime()
+                            );
+                        }
+
+                        const withdrawals = filtered.reduce((acc, d) => {
+                            if (
+                                d instanceof Transaction &&
+                                d.type === 'withdrawal'
+                            ) {
+                                return acc - d.amount;
+                            } else {
+                                return acc;
+                            }
+                        }, 0);
+
+                        const deposits = filtered.reduce((acc, d) => {
+                            if (
+                                d instanceof Transaction &&
+                                d.type === 'deposit'
+                            ) {
+                                return acc + d.amount;
+                            } else {
+                                return acc;
+                            }
+                        }, 0);
+
+                        return {
+                            balance,
+                            withdrawals,
+                            deposits
+                        };
+                    });
+                });
+            })
+        )
+    );
+
+    if (bRes.isErr()) return console.error(bRes.error);
+    balance = bRes.value.reduce(
+        (acc, b) => {
+            return acc.map((v, i) => v + b[i].balance);
+        },
+        dates.map(() => 0)
+    );
+
+    withdrawals = bRes.value.reduce(
+        (acc, b) => {
+            return acc.map((v, i) => v + b[i].withdrawals);
+        },
+        dates.map(() => 0)
+    );
+
+    deposits = bRes.value.reduce(
+        (acc, b) => {
+            return acc.map((v, i) => v + b[i].deposits);
+        },
+        dates.map(() => 0)
+    );
 };
 
-// Transaction.on('new', () => mount(buckets));
-// Transaction.on('update', () => mount(buckets));
-// Transaction.on('archive', () => mount(buckets));
-// BalanceCorrection.on('new', () => mount(buckets));
-// BalanceCorrection.on('update', () => mount(buckets));
-// BalanceCorrection.on('archive', () => mount(buckets));
+$: mount(buckets);
+
+Transaction.on('new', () => mount(buckets));
+Transaction.on('update', () => mount(buckets));
+Transaction.on('archive', () => mount(buckets));
+BalanceCorrection.on('new', () => mount(buckets));
+BalanceCorrection.on('update', () => mount(buckets));
+BalanceCorrection.on('archive', () => mount(buckets));
 </script>
 
 <Line

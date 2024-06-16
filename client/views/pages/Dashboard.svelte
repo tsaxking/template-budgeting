@@ -85,11 +85,8 @@ onMount(() => {
     fromDate.setHours(0, 0, 0, 0);
     const [fm, fd, fy] = fromDate.toLocaleDateString().split('/');
     fromStr = `${fy}-${fm.padStart(2, '0')}-${fd.padStart(2, '0')}`;
-    const toDate = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate() + 1
-    );
+    const toDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    toDate.setHours(23, 59, 59, 999);
     const [tm, td, ty] = toDate.toLocaleDateString().split('/');
     toStr = `${ty}-${tm.padStart(2, '0')}-${td.padStart(2, '0')}`;
 
@@ -144,36 +141,60 @@ Bucket.on('update', reset);
         </div>
     </div>
     <div class="row mb-3">
-        <DashboardCard title="Balance Basics" expandable="{true}">
+        <DashboardCard
+            title="Balance Basics"
+            expandable="{true}"
+            id="balance-basics"
+        >
             <BalanceBasics />
         </DashboardCard>
-        <DashboardCard title="Balance/Time" expandable="{true}">
+        <DashboardCard
+            title="Balance/Time"
+            expandable="{true}"
+            id="balance-time"
+        >
             <TransactionChart {from} {to} {buckets} />
         </DashboardCard>
-        <DashboardCard title="Total Expenses" expandable="{true}">
+        <DashboardCard
+            title="Total Expenses"
+            expandable="{true}"
+            id="total-expenses"
+        >
             <TransactionBarChart {buckets} {from} {to} />
         </DashboardCard>
-        <DashboardCard title="Types/Time" expandable="{true}">
+        <DashboardCard title="Types/Time" expandable="{true}" id="types-time">
             <TypesLineChart {buckets} {from} {to} />
         </DashboardCard>
-        <!-- <DashboardCard title="Spending Chart" expandable="{true}">
+        <!-- <DashboardCard title="Spending Chart" expandable="{true}" id="spending-chart">
             <SpendingChart {from} {to} />
         </DashboardCard> -->
         {#each buckets as bucket}
-            <DashboardCard title="{bucket.name}" expandable="{true}">
+            <DashboardCard
+                title="{bucket.name}"
+                expandable="{true}"
+                id="bucket-{bucket.name}"
+            >
                 <BucketBasics {bucket} {to} />
             </DashboardCard>
         {/each}
-        <DashboardCard title="Transactions" expandable="{true}">
+        <DashboardCard
+            title="Transactions"
+            expandable="{true}"
+            id="transactions-table"
+        >
             <TransactionTable {from} {to} {buckets} />
         </DashboardCard>
-        <DashboardCard title="Subscriptions" expandable="{true}">
+        <DashboardCard
+            title="Subscriptions"
+            expandable="{true}"
+            id="subscriptions"
+        >
             <SubscriptionTable {buckets} {from} {to} />
         </DashboardCard>
-        <DashboardCard title="Miles Table" expandable="{true}">
+        <DashboardCard title="Miles Table" expandable="{true}" id="miles-table">
             <MilesTable {from} {to} />
         </DashboardCard>
-        <DashboardCard title="Miles Chart" expandable="{true}">
+        <DashboardCard title="Miles Chart" expandable="{true}" id="miles-chart">
             <MilesLineChart {from} {to} />
         </DashboardCard>
     </div>
