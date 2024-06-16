@@ -1,3 +1,5 @@
+import { $Math } from './math';
+
 /**
  * Start time of the application
  * @date 10/12/2023 - 1:50:41 PM
@@ -202,32 +204,109 @@ export const changeTimezone = (to: Timezone) => (date: Date) => {
     return new Date(utc + 3600000 * offset);
 };
 
-export const segment = (dates: Date[], segments?: number): Date[] => {
-    dates = dates.slice(); // copy the array
-    dates.sort((a, b) => a.getTime() - b.getTime());
-    const min = dates[0];
-    const max = dates[dates.length - 1];
-    if (!min || !max) return []; // no dates
-    const range = max.getTime() - min.getTime();
+export const segment = (from: Date, to: Date, segments?: number): Date[] => {
+    if (from >= to) return [];
+    from = new Date(from);
+    to = new Date(to);
+    const range = to.getTime() - from.getTime();
     if (segments) {
-        return Array.from({ length: segments }).map((_, i) => {
-            const start = min.getTime() + (range / segments) * i;
+        return Array.from({ length: Math.round(segments) }).map((_, i) => {
+            const start = from.getTime() + (range / segments) * i;
             return new Date(start);
         });
     } else {
+        let r: number; // custom range
+        from.setSeconds(0);
+        from.setMilliseconds(0);
+        to.setSeconds(0);
+        to.setMilliseconds(0);
+
         switch (true) {
-            case range < 1000 * 60 * 60: // less than an hour
-                return segment(dates, 4); // 15 minute segments
-            case range < 1000 * 60 * 60 * 24: // less than a day
-                return segment(dates, 24); // 1 hour segments
-            case range < 1000 * 60 * 60 * 24 * 7: // less than a week
-                return segment(dates, 7); // 1 day segments
-            case range < 1000 * 60 * 60 * 24 * 30: // less than a month
-                return segment(dates, 30); // 1 week segments
-            case range < 1000 * 60 * 60 * 24 * 365: // less than a year
-                return segment(dates, 12); // 1 month segments
-            default:
-                return segment(dates, 5); // 1 year segments
+            case range < 1000 * 60 * 60: // less than an hour => 15 minute segments
+                from.setMinutes(0);
+                to.setMinutes(to.getMinutes() + 1);
+                r = to.getTime() - from.getTime();
+                return Array.from({ length: r / (1000 * 60 * 15) }).map((_, i) => {
+                    const d = new Date(from.getTime() + (1000 * 60 * 15) * i);
+                    d.setSeconds(0);
+                    d.setMilliseconds(0);
+                    return d;
+                });
+            case range < 1000 * 60 * 60 * 24: // less than a day => 1 hour segments
+                from.setMinutes(0);
+                to.setMinutes(0);
+                to.setHours(to.getHours() + 1);
+                r = to.getTime() - from.getTime();
+                return Array.from({ length: r / (1000 * 60 * 60) }).map((_, i) => {
+                    const d = new Date(from.getTime() + (1000 * 60 * 60) * i);
+                    d.setMinutes(0);
+                    d.setSeconds(0);
+                    d.setMilliseconds(0);
+                    return d;
+                });
+            case range < 1000 * 60 * 60 * 24 * 7: // less than a week => 12 hour segments
+                from.setMinutes(0);
+                from.setHours(0);
+                to.setMinutes(0);
+                to.setHours(12 + Math.floor((to.getHours() - 12) / 12) * 12); // round to nearest 12 hours
+                r = to.getTime() - from.getTime();
+                return Array.from({ length: r / (1000 * 60 * 60 * 12) }).map((_, i) => {
+                    const d = new Date(from.getTime() + (1000 * 60 * 60 * 12) * i);
+                    d.setMinutes(0);
+                    d.setSeconds(0);
+                    d.setMilliseconds(0);
+                    return d;
+                });
+            case range < 1000 * 60 * 60 * 24 * 30: // less than a month => 1 day segments
+                from.setMinutes(0);
+                from.setHours(0);
+                from.setDate(1);
+                to.setMinutes(0);
+                to.setHours(0);
+                to.setDate(to.getDate() + 1);
+                r = to.getTime() - from.getTime();
+                return Array.from({ length: r / (1000 * 60 * 60 * 24) }).map((_, i) => {
+                    const d = new Date(from.getTime() + (1000 * 60 * 60 * 24) * i);
+                    d.setMinutes(0);
+                    d.setSeconds(0);
+                    d.setMilliseconds(0);
+                    return d;
+                });
+            case range < (1000 * 60 * 60 * 24 * 365) / 2: // less than 6 months => 1 week segments
+                from.setMinutes(0);
+                from.setHours(0);
+                from.setDate(1);
+                to.setMinutes(0);
+                to.setHours(0);
+                to.setDate(
+                    to.getDate() + 7 + Math.floor((to.getDate() - 1) / 7) * 7
+                );
+                r = to.getTime() - from.getTime();
+                return Array.from({ length: r / (1000 * 60 * 60 * 24 * 7) }).map((_, i) => {
+                    const d = new Date(from.getTime() + (1000 * 60 * 60 * 24 * 7) * i);
+                    d.setMinutes(0);
+                    d.setSeconds(0);
+                    d.setMilliseconds(0);
+                    return d;
+                });
+            default: // more than 6 months => 1 month segments
+                from.setMinutes(0);
+                from.setHours(0);
+                from.setDate(1);
+                from.setMonth(from.getMonth() + 1);
+                to.setMinutes(0);
+                to.setHours(0);
+                to.setDate(1);
+                to.setMonth(to.getMonth() + 3);
+                r = to.getTime() - from.getTime();
+                return Array.from({ length: r / (1000 * 60 * 60 * 24 * 30) }).map((_, i) => {
+                    const d = new Date(from.getTime() + (1000 * 60 * 60 * 24 * 30) * i);
+                    d.setMinutes(0);
+                    d.setSeconds(0);
+                    d.setMilliseconds(0);
+                    d.setDate(1);
+                    return d;
+                });
         }
     }
 };

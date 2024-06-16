@@ -13,9 +13,8 @@ const reset = async () => {
     if (res.isErr()) return console.log(res.error);
 
     const miles = res.value.filter(m => m.date >= from && m.date <= to);
-    const dates = segment(
-        miles.map(m => new Date(m.date)),
-    );
+    const d = miles.map(m => new Date(m.date)).sort((a, b) => a.getTime() - b.getTime());
+    const dates = segment(d[0], d[d.length - 1]);
     labels = dates.map(date);
 
     data = dates.map((d, i) => {
