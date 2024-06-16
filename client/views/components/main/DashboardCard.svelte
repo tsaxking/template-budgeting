@@ -31,40 +31,44 @@ Settings.on('set', ([key, value]) => {
 </script>
 
 {#if !minimized}
-    <div class="col-xl-4 col-md-6">
-        <div class="card dashboard-card {expanded ? 'expanded' : ''}">
-            <div class="card-header">
-                <div class="d-flex justify-content-between">
-                    {#if minimizable}
-                        <button
-                            class="btn m-0 p-0"
-                            on:click="{() => (minimized = !minimized)}"
-                        >
-                            <i class="material-icons">
-                                {minimized ? 'expand_more' : 'expand_less'}
-                            </i>
-                        </button>
-                    {/if}
-                    <div>
-                        <h5 class="card-title">{title}</h5>
-                        <h6 class="card-subtitle mb-2 text-muted">
-                            {subtitle}
-                        </h6>
+    <div class="col-xl-4 col-md-6 p-3">
+        <div class="dashboard-card {expanded ? 'expanded' : ''}">
+            <div class="card h-100 w-100">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between">
+                        {#if minimizable}
+                            <button
+                                class="btn m-0 p-0"
+                                on:click="{() => (minimized = !minimized)}"
+                            >
+                                <i class="material-icons">
+                                    {minimized ? 'expand_more' : 'expand_less'}
+                                </i>
+                            </button>
+                        {/if}
+                        <div>
+                            <h5 class="card-title">{title}</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">
+                                {subtitle}
+                            </h6>
+                        </div>
+                        {#if expandable}
+                            <button
+                                class="btn m-0 p-0"
+                                on:click="{() => (expanded = !expanded)}"
+                            >
+                                <i class="material-icons">
+                                    {expanded
+                                        ? 'fullscreen_exit'
+                                        : 'fullscreen'}
+                                </i>
+                            </button>
+                        {/if}
                     </div>
-                    {#if expandable}
-                        <button
-                            class="btn m-0 p-0"
-                            on:click="{() => (expanded = !expanded)}"
-                        >
-                            <i class="material-icons">
-                                {expanded ? 'fullscreen_exit' : 'fullscreen'}
-                            </i>
-                        </button>
-                    {/if}
                 </div>
-            </div>
-            <div class="card-body {scroll ? 'scroll-y' : ''} no-scroll-x">
-                <slot />
+                <div class="card-body {scroll ? 'scroll-y' : ''} no-scroll-x">
+                    <slot />
+                </div>
             </div>
         </div>
     </div>
@@ -89,6 +93,6 @@ Settings.on('set', ([key, value]) => {
     width: 100vw !important;
     height: 100vh !important;
     transform: translate(-50%, -50%);
-    margin: 2em;
+    padding: 2em;
 }
 </style>
