@@ -42,7 +42,7 @@ export class Cache<data = unknown> {
      * @readonly
      * @type {Map<string, any>}
      */
-    readonly $cache = new Map<string, unknown>();
+    readonly cache = new Map<string, unknown>();
     /**
      * Event emitter for cache object updates (passed in as a generic)
      * @date 10/12/2023 - 1:04:42 PM
@@ -122,6 +122,6 @@ export class Cache<data = unknown> {
      */
     public destroy(): void {
         this.$emitter.destroy();
-        this.$cache.clear();
+        this.cache.clear();
     }
 }

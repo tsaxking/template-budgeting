@@ -1,0 +1,1 @@
+SELECT * FROM Transactions WHERE bucketId = :bucketId AND archived = 0;

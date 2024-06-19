@@ -5,6 +5,7 @@ export let navItems: string[] = [];
 import { Account } from '../../../models/account';
 import { Modal } from '../../../utilities/modals';
 import Settings from '../../pages/Settings.svelte';
+import { onMount } from 'svelte';
 
 export let active: string = '';
 
@@ -75,7 +76,7 @@ const fns = {
         </div>
     </div>
 
-    <div class="d-inline-flex p-0">
+    <!-- <div class="d-inline-flex p-0">
         <a
             class="nav-link dropdown-toggle me-3"
             href="#navbarDropdown"
@@ -119,14 +120,14 @@ const fns = {
                 {:else}
                     <li><hr class="dropdown-divider" /></li>
                 {/if}
-            {/each}
+            {/each} -->
 
-            <!-- <li><a href="/institution/new" class="dropdown-item">Create Institution <span class="material-icons">home</span></a></li> -->
-            <!-- <li><a class="dropdown-item" href="/my-account">My Account</a></li> -->
-            <!-- <li>
+    <!-- <li><a href="/institution/new" class="dropdown-item">Create Institution <span class="material-icons">home</span></a></li> -->
+    <!-- <li><a class="dropdown-item" href="/my-account">My Account</a></li> -->
+    <!-- <li>
             <hr class="dropdown-divider">
         </li> -->
-            <li class="p-1">
+    <!-- <li class="p-1">
                 <a class="dropdown-item" href="/account/sign-out">Sign Out</a>
             </li>
         </ul>
@@ -140,5 +141,5 @@ const fns = {
         >
             <i class="bi bi-box-arrow-up-left"></i>
         </button>
-    </div>
+    </div> -->
 </nav>

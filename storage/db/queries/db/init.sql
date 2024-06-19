@@ -102,3 +102,75 @@ INSERT INTO Version (
     0,
     0
 );
+
+
+
+-- App tables
+
+CREATE TABLE IF NOT EXISTS Transactions (
+    id TEXT PRIMARY KEY,
+    amount INTEGER NOT NULL, -- in cents
+    type TEXT NOT NULL, -- 'withdrawal', 'deposit'
+    status TEXT NOT NULL, -- 'pending', 'completed', 'failed'
+    date BIGINT NOT NULL, -- timestamp
+    bucketId TEXT NOT NULL,
+    description TEXT NOT NULL,
+    subtypeId TEXT NOT NULL, -- used to identify the subtype of the transaction
+    taxDeductible INTEGER NOT NULL DEFAULT 0, -- 0 or 1
+    archived INTEGER NOT NULL DEFAULT 0, -- 0 or 1
+    picture TEXT
+);
+
+CREATE TABLE IF NOT EXISTS Buckets (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    created BIGINT NOT NULL, -- timestamp
+    archived INTEGER NOT NULL DEFAULT 0, -- 0 or 1
+    type TEXT NOT NULL -- 'debit', 'credit', 'savings'
+);
+
+CREATE TABLE IF NOT EXISTS BalanceCorrection (
+    id TEXT PRIMARY KEY,
+    date BIGINT NOT NULL, -- timestamp
+    balance INTEGER NOT NULL, -- in cents
+    bucketId TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS Miles (
+    id TEXT PRIMARY KEY,
+    amount INTEGER NOT NULL, -- in miles
+    date BIGINT NOT NULL, -- timestamp
+    archived INTEGER NOT NULL DEFAULT 0 -- 0 or 1
+);
+
+CREATE TABLE IF NOT EXISTS Subscriptions (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    startDate BIGINT NOT NULL, -- timestamp
+    endDate BIGINT, -- timestamp
+    interval INTEGER NOT NULL, -- in ms
+    bucketId TEXT NOT NULL,
+    subtypeId TEXT NOT NULL, -- used to identify the subtype of the subscription
+    description TEXT NOT NULL,
+    picture TEXT,
+    taxDeductible INTEGER NOT NULL DEFAULT 0, -- 0 or 1
+    amount INTEGER NOT NULL, -- in cents
+    archived INTEGER NOT NULL DEFAULT 0 -- 0 or 1
+);
+
+CREATE TABLE IF NOT EXISTS TransactionTypes (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    dateCreated BIGINT NOT NULL, -- timestamp
+    dateModified BIGINT NOT NULL -- timestamp
+);
+
+CREATE TABLE IF NOT EXISTS Subtypes (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    dateCreated BIGINT NOT NULL, -- timestamp
+    dateModified BIGINT NOT NULL, -- timestamp
+    type TEXT NOT NULL, -- 'withdrawal', 'deposit'
+    typeId TEXT NOT NULL -- used to identify the type of the subtype
+);
