@@ -168,11 +168,7 @@ export class Res {
      */
     sendStatus(id: StatusId, data?: unknown, redirect?: string) {
         return attempt(() => {
-            const s = Status.from(
-                id,
-                this.req,
-                JSON.stringify(bigIntEncode(data))
-            );
+            const s = Status.from(id, this.req, data);
 
             s.redirect = redirect || s.redirect || '';
             s.send(this);

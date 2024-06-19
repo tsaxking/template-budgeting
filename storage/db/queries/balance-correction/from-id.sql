@@ -1,0 +1,1 @@
+SELECT * FROM BalanceCorrection WHERE id = :id;

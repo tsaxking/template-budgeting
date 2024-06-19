@@ -1,0 +1,1 @@
+SELECT * FROM buckets WHERE id = :id;

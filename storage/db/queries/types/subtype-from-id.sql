@@ -1,0 +1,1 @@
+SELECT * FROM TransactionSubTypes WHERE id = :id;
