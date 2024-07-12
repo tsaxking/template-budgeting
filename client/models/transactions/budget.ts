@@ -171,7 +171,7 @@ export class Budget extends Cache<BudgetEvents> {
             const transactions = (
                 await this.getTransactions(from, to)
             ).unwrap();
-            let max = this.amount; // increases if there is income in the subtype
+            let max = +this.amount; // increases if there is income in the subtype
             let total = 0;
             for (let i = 0; i < transactions.length; i++) {
                 if (transactions[i].type === 'deposit')
