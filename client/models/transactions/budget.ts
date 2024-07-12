@@ -1,8 +1,10 @@
-import { attemptAsync } from '../../../shared/check';
+import { attemptAsync, resolveAll } from '../../../shared/check';
 import { EventEmitter } from '../../../shared/event-emitter';
 import { ServerRequest } from '../../utilities/requests';
 import { Cache } from '../cache';
-import { Budgets } from '../../../shared/db-types-extended';
+import { Budgets as B, BudgetInterval } from '../../../server/utilities/tables';
+import { Subtype as S } from '../../../shared/db-types-extended';
+import { Subtype } from './subtype';
 import { socket } from '../../utilities/socket';
 
 type BudgetEvents = {
@@ -43,14 +45,21 @@ export class Budget extends Cache<BudgetEvents> {
         this.emitter.emit(event, data);
     }
 
-    public static async new(data: Budgets) {
-        return ServerRequest.post('/api/budgets/new', data);
+    public static async new(
+        data: Omit<B, 'id' | 'created' | 'archived'>,
+        subtypes: Subtype[]
+    ) {
+        return ServerRequest.post('/api/budgets/new', {
+            ...data,
+            subtypes: subtypes.map(s => s.id)
+        });
     }
 
     public static async all() {
         return attemptAsync(async () => {
-            return (await ServerRequest.post<Budgets[]>('/api/budgets/all'))
+            return (await ServerRequest.post<B[]>('/api/budgets/all'))
                 .unwrap()
+                .filter(b => !b.archived)
                 .map(Budget.retrieve);
         });
     }
@@ -67,7 +76,7 @@ export class Budget extends Cache<BudgetEvents> {
         });
     }
 
-    public static retrieve(data: Budgets) {
+    public static retrieve(data: B) {
         const existing = Budget.cache.get(data.id);
         if (existing) {
             return existing;
@@ -78,19 +87,153 @@ export class Budget extends Cache<BudgetEvents> {
     public readonly id: string;
     public name: string;
     public amount: number;
-    public archived: 0 | 1;
+    public archived: boolean;
     public readonly created: number;
     public description: string;
+    public interval: BudgetInterval;
 
-    constructor(data: Budgets) {
+    constructor(data: B) {
         super();
+        Budget.cache.set(data.id, this);
+
         this.id = data.id;
         this.name = data.name;
-        this.amount = data.amount;
-        this.archived = data.archived;
-        this.created = data.created;
         this.description = data.description;
+        this.amount = data.amount;
+        this.interval = data.interval;
+        this.created = data.created;
+        this.archived = data.archived;
+    }
 
-        if (!Budget.cache.has(this.id)) Budget.cache.set(this.id, this);
+    update(data: Partial<Omit<B, 'id' | 'created' | 'archived'>>) {
+        return ServerRequest.post('/api/budgets/update', {
+            id: this.id,
+            ...data
+        });
+    }
+
+    setArchive(archive: boolean) {
+        return ServerRequest.post('/api/budgets/delete', {
+            id: this.id,
+            archive
+        });
+    }
+
+    getSubtypes() {
+        return attemptAsync(async () => {
+            const subtypes = (
+                await ServerRequest.post<S[]>('/api/budgets/get-subtypes', {
+                    id: this.id
+                })
+            ).unwrap();
+
+            return subtypes.map(d => Subtype.retrieve(d));
+        });
+    }
+
+    addSubtype(subtype: Subtype) {
+        return attemptAsync(async () => {
+            const subtypes = (await this.getSubtypes()).unwrap();
+            if (subtypes.find(s => s.id === subtype.id)) return;
+            await ServerRequest.post('/api/budgets/add-subtype', {
+                budgetId: this.id,
+                subtypeId: subtype.id
+            });
+        });
+    }
+
+    removeSubtype(subtype: Subtype) {
+        return attemptAsync(async () => {
+            await ServerRequest.post('/api/budgets/remove-subtype', {
+                budgetId: this.id,
+                subtypeId: subtype.id
+            });
+        });
+    }
+
+    getTransactions(from: number, to: number) {
+        return attemptAsync(async () => {
+            const subtypes = (await this.getSubtypes()).unwrap();
+            return resolveAll(
+                await Promise.all(
+                    subtypes.map(s => s.getTransactions(from, to))
+                )
+            )
+                .unwrap()
+                .flat();
+        });
+    }
+
+    getBudget(monthIndex: number, year: number) {
+        return attemptAsync(async () => {
+            const from = new Date(year, monthIndex, 1).getTime();
+            const to = new Date(year, monthIndex + 1, 0).getTime();
+            const transactions = (
+                await this.getTransactions(from, to)
+            ).unwrap();
+            let max = this.amount; // increases if there is income in the subtype
+            let total = 0;
+            for (let i = 0; i < transactions.length; i++) {
+                if (transactions[i].type === 'deposit')
+                    max += transactions[i].amount;
+                else total += transactions[i].amount;
+            }
+
+            return {
+                max,
+                total
+            };
+        });
     }
 }
+
+
+socket.on('budget:updated', (data: B) => {
+    const budget = Budget.cache.get(data.id);
+    if (budget) {
+        budget.name = data.name;
+        budget.amount = data.amount;
+        budget.description = data.description;
+        budget.interval = data.interval;
+        budget.archived = data.archived;
+        budget.emit('update', undefined);
+        Budget.emit('update', budget);
+    }
+});
+
+socket.on('budget:new', (data: B) => {
+    const budget = Budget.retrieve(data);
+    Budget.emit('new', budget);
+});
+
+socket.on('budget:archive', (id: string) => {
+    const budget = Budget.cache.get(id);
+    if (budget) {
+        budget.archived = true;
+        budget.emit('update', undefined);
+        Budget.emit('archive', budget);
+    }
+});
+
+socket.on('budget:unarchive', (id: string) => {
+    const budget = Budget.cache.get(id);
+    if (budget) {
+        budget.archived = false;
+        budget.emit('update', undefined);
+        Budget.emit('update', budget);
+    }
+});
+
+socket.on('budget:subtype-added', (id: string) => {
+    const budget = Budget.cache.get(id);
+    if (budget) {
+        budget.emit('update', undefined);
+    }
+});
+
+socket.on('budget:subtype-removed', (id: string) => {
+    const budget = Budget.cache.get(id);
+    if (budget) {
+        budget.emit('update', undefined);
+    }
+});

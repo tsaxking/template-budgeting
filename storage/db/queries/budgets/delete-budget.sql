@@ -1,0 +1,1 @@
+DELETE FROM Budgets WHERE id = :id;

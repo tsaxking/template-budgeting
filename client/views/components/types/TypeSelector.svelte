@@ -11,7 +11,7 @@ Type.on('new', t => {
 
 const d = createEventDispatcher();
 
-export let value: Type | undefined;
+export let value: Type | undefined = undefined;
 let selected: string | undefined = value?.id || '';
 $: {
     value = value ? value : types.find(type => type.id === selected);
