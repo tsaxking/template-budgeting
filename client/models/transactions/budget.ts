@@ -175,8 +175,8 @@ export class Budget extends Cache<BudgetEvents> {
             let total = 0;
             for (let i = 0; i < transactions.length; i++) {
                 if (transactions[i].type === 'deposit')
-                    max += transactions[i].amount;
-                else total += transactions[i].amount;
+                    max += +transactions[i].amount;
+                else total += +transactions[i].amount;
             }
 
             return {
