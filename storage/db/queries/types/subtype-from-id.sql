@@ -1,1 +1,1 @@
-SELECT * FROM TransactionSubTypes WHERE id = :id;
+SELECT * FROM Subtypes WHERE id = :id;
