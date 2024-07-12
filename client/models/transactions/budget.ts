@@ -99,7 +99,7 @@ export class Budget extends Cache<BudgetEvents> {
         this.id = data.id;
         this.name = data.name;
         this.description = data.description;
-        this.amount = data.amount;
+        this.amount = +data.amount;
         this.interval = data.interval;
         this.created = data.created;
         this.archived = data.archived;
