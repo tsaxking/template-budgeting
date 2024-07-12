@@ -158,3 +158,24 @@ router.post<{
         res.json(transactions.value);
     }
 );
+
+router.post<{
+    id: string;
+    from: number;
+    to: number;
+}>('/get-subtype-transactions', validate({
+    id: 'string',
+    from: 'number',
+    to: 'number'
+}), async (req, res) => {
+    const { id, from, to } = req.body;
+    const subtype = await Subtype.fromId(id);
+    if (subtype.isErr()) return res.sendStatus('unknown:error', subtype.error);
+    if (!subtype.value)
+        return res.sendStatus('unknown:error', { error: 'subtype-not-found' });
+
+    const transactions = await subtype.value.getTransactions(from, to);
+    if (transactions.isErr())
+        return res.sendStatus('unknown:error', transactions.error);
+    res.json(transactions.value);
+});

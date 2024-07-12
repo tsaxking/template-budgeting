@@ -281,7 +281,7 @@ export type Queries = {
         [Select_transactions_withdrawals],
         Transactions
     ];
-    'transactions/all': [[]];
+    'transactions/all': [[], Transactions];
     'transactions/from-type': [[{ typeId: string }], Transactions];
     'types/all-subtypes': [[Select_types_all_subtypes], Subtypes];
     'types/all-types': [[Select_types_all_types], TransactionTypes];

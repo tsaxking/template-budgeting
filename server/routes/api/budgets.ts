@@ -1,3 +1,4 @@
+import { resolveAll } from '../../../shared/check';
 import { validate } from '../../middleware/data-type';
 import { Route } from '../../structure/app/app';
 import { Budget } from '../../structure/cache/budget';
@@ -10,18 +11,21 @@ router.post<{
     description: string;
     amount: number;
     interval: 'daily' | 'weekly' | 'monthly' | 'yearly';
+    subtypes: string[];
 }>(
     '/new',
     validate({
         name: 'string',
         description: 'string',
         amount: 'number',
-        interval: ['daily', 'weekly', 'monthly', 'yearly']
+        interval: ['daily', 'weekly', 'monthly', 'yearly'],
+        subtypes: (v: unknown) =>
+            Array.isArray(v) && v.every(s => typeof s === 'string')
     }),
     async (req, res) => {
-        const { name, description, amount, interval } = req.body;
+        const { name, description, amount, interval, subtypes } = req.body;
 
-        (
+        const b = (
             await Budget.new({
                 name,
                 description,
@@ -30,7 +34,13 @@ router.post<{
             })
         ).unwrap();
 
+        resolveAll(
+            await Promise.all(subtypes.map(s => b.addSubtype(s)))
+        ).unwrap();
+
         res.sendStatus('budget:created');
+
+        req.io.emit('budget:new', b);
     }
 );
 
@@ -61,6 +71,8 @@ router.post<{
         (await budget.update(data)).unwrap();
 
         res.sendStatus('budget:updated');
+
+        req.io.emit('budget:updated', budget);
     }
 );
 
@@ -76,6 +88,8 @@ router.post<{
         if (!b) return res.sendStatus('budget:not-found');
         (await b.delete()).unwrap();
         res.sendStatus('budget:deleted');
+
+        req.io.emit('budget:deleted', b);
     }
 );
 
@@ -115,6 +129,8 @@ router.post<{
         (await b.addSubtype(req.body.subtypeId)).unwrap();
 
         res.sendStatus('budget:subtype-added');
+
+        req.io.emit('budget:subtype-added', b.id);
     }
 );
 
@@ -137,5 +153,7 @@ router.post<{
         (await b.removeSubtype(req.body.subtypeId)).unwrap();
 
         res.sendStatus('budget:subtype-removed');
+
+        req.io.emit('budget:subtype-removed', b.id);
     }
 );
