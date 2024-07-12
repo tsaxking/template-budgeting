@@ -1,13 +1,13 @@
 type B = {
     [key: string]: number;
-}
+};
 
 const monthlyExpenses: B = {
     rent: 650,
     food: 200,
     utilities: 50,
     gas: 60
-}
+};
 
 const monthlyIncome: B = {
     alizaLessons: 120,
@@ -16,9 +16,9 @@ const monthlyIncome: B = {
     wyattLessons: 120,
     tarasKidLessons: 80,
     elevate: 2000,
-    gigs: 500,
+    gigs: 500
     // boiseJazz: 200
-}
+};
 
 const debts: B = {
     parentLoan: 15000,
@@ -26,18 +26,18 @@ const debts: B = {
     erVisit: -500,
     planeTicket: -300,
     healthcare: 230
-}
+};
 
 const sellOrExpectedIncome: B = {
     jblSRX815: 900 * 2,
     jblEON615: 300 * 2,
     SQ5: 3000,
     behringer5in: 75 * 2,
-    mac2000Lights: 175*4,
+    mac2000Lights: 175 * 4,
     armada: 1000,
-    meridianHS: 50,
+    meridianHS: 50
     // capitalHS: 500
-}
+};
 
 const toBuy: B = {
     jblSRX818s: 1000 * 2,
@@ -46,13 +46,14 @@ const toBuy: B = {
     micStands: 190,
     mics: 849,
     nl4Cable500ft: 380,
-    nl4Connectors: 25 * 4,
+    nl4Connectors: 25 * 4
     // qscK8s: 1549,
     // '4K TV': 800 * 2,
-}
+};
 
 const total = (b: B): number => Object.values(b).reduce((a, c) => a + c, 0);
-const log = (name: string, number: number) => console.log((name + ":").padEnd(20), number);
+const log = (name: string, number: number) =>
+    console.log((name + ':').padEnd(20), number);
 
 const haveNow = 3500;
 const netMonthly = total(monthlyIncome) - total(monthlyExpenses);
