@@ -12,6 +12,10 @@ import type { BudgetInterval } from '../../../../server/utilities/tables';
 import { Transaction } from '../../../models/transactions/transaction';
 
 const now = new Date();
+
+let total = 0;
+let max = 0;
+
 let budgets: {
     max: number;
     total: number;
@@ -33,6 +37,8 @@ const init = async () => {
                     const percent = Math.round(
                         (budget.total / budget.max) * 100
                     );
+                    total += budget.total;
+                    max += budget.max;
                     return {
                         ...budget,
                         percent,
@@ -178,6 +184,10 @@ Transaction.on('archive', init);
 </script>
 
 <div class="container">
+    <h4>
+        You are {cost(Math.abs(max - total))} {max > total ? 'under' : 'over'} budget
+    </h4>
+
     {#each budgets as budget, i}
         <div class="row mb-3">
             <h5>{budget.budget.name}</h5>
