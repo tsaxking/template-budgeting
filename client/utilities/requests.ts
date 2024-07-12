@@ -848,11 +848,10 @@ export class ServerRequest<T = unknown> {
                     this.duration = Date.now() - start;
                     this.response = data;
 
-                    if ((data as StatusJson)?.redirect) {
-                        if (typeof (data as StatusJson).sleep !== 'number')
-                            (data as StatusJson).sleep = 1000;
-                        await sleep((data as StatusJson).sleep as number);
-                        location.href = (data as StatusJson).redirect as string;
+                    const d = data as StatusJson;
+                    if (d?.redirect) {
+                        await sleep(d.sleep || 1000);
+                        location.href = d.redirect as string;
                     }
 
                     if (

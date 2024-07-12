@@ -115,6 +115,21 @@ import { Update_types_update_subtype } from './tables';
 import { Update_types_update_type } from './tables';
 import { Delete_balance_correction_delete } from './tables';
 import { Select_balance_correction_from_id } from './tables';
+import { Budgets } from './tables';
+import { BudgetSubtypes } from './tables';
+import { Goals } from './tables';
+import { BudgetParsing } from './tables';
+import { Select_budgets_budget_from_id } from './tables';
+import { Select_budgets_budget_subtypes_from_budget } from './tables';
+import { Delete_budgets_delete_budget_subtype } from './tables';
+import { Delete_budgets_delete_budget } from './tables';
+import { Insert_budgets_new_budget_subtype } from './tables';
+import { Insert_budgets_new_budget } from './tables';
+import { Update_budgets_update_budget } from './tables';
+import { Update_db_versions______ } from './tables';
+import { Select_loans_all } from './tables';
+import { Select_transactions_all } from './tables';
+import { Select_types_type_from_id } from './tables';
 
 export type Queries = {
     'permissions/all': [[Select_permissions_all], Permissions];
@@ -218,14 +233,7 @@ export type Queries = {
     'buckets/new': [[Insert_buckets_new], unknown];
     'buckets/set-archive': [[Update_buckets_set_archive], unknown];
     'buckets/update': [[Update_buckets_update], unknown];
-    'buckets/from-id': [
-        [
-            {
-                id: string;
-            }
-        ],
-        Buckets
-    ];
+    'buckets/from-id': [[{ id: string }], Buckets];
     'miles/active': [[Select_miles_active], Miles];
     'miles/archived': [[Select_miles_archived], Miles];
     'miles/from-id': [[Select_miles_from_id], Miles];
@@ -273,15 +281,8 @@ export type Queries = {
         [Select_transactions_withdrawals],
         Transactions
     ];
-    'transactions/all': [[], Transactions];
-    'transactions/from-type': [
-        [
-            {
-                typeId: string;
-            }
-        ],
-        Transactions
-    ];
+    'transactions/all': [[]];
+    'transactions/from-type': [[{ typeId: string }], Transactions];
     'types/all-subtypes': [[Select_types_all_subtypes], Subtypes];
     'types/all-types': [[Select_types_all_types], TransactionTypes];
     'types/new-subtype': [[Insert_types_new_subtype], unknown];
@@ -296,4 +297,28 @@ export type Queries = {
         [Select_balance_correction_from_id],
         BalanceCorrection
     ];
+    'budgets/budget-from-id': [[Select_budgets_budget_from_id], Budgets];
+    'budgets/budget-subtypes-from-budget': [
+        [Select_budgets_budget_subtypes_from_budget],
+        Subtypes
+    ];
+    'budgets/delete-budget-subtype': [
+        [Delete_budgets_delete_budget_subtype],
+        unknown
+    ];
+    'budgets/delete-budget': [[Delete_budgets_delete_budget], unknown];
+    'budgets/new-budget-subtype': [
+        [Insert_budgets_new_budget_subtype],
+        unknown
+    ];
+    'budgets/new-budget': [[Insert_budgets_new_budget], unknown];
+    'budgets/update-budget': [[Update_budgets_update_budget], unknown];
+    'budgets/all': [[], Budgets];
+    'db/versions/1-4-5': [[Update_db_versions______], unknown];
+    // 'loans/all': [
+    //         [
+    //             Select_loans_all
+    //         ],
+    //         Loans
+    //     ];
 };
