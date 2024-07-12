@@ -69,7 +69,7 @@ export type StatusMessage = {
     code: StatusCode;
     instructions: string;
     redirect?: string;
-    sleep?: number;
+    sleep?: string;
 };
 
 export const messages: {
@@ -372,6 +372,48 @@ export const messages: {
     },
     'buckets:updated': {
         message: 'Bucket update successful',
+        color: 'success',
+        code: 200,
+        instructions: ''
+    },
+    'budget:created': {
+        message: 'Budget has been created',
+        color: 'success',
+        code: 200,
+        instructions: ''
+    },
+    'budget:deleted': {
+        message: 'Budget deleted',
+        color: 'success',
+        code: 200,
+        instructions: ''
+    },
+    'budget:not-found': {
+        message: 'Budget was not found',
+        color: 'danger',
+        code: 404,
+        instructions: ''
+    },
+    'budget:subtype-added': {
+        message: 'Added subtype to budget',
+        color: 'success',
+        code: 201,
+        instructions: ''
+    },
+    'budget:subtype-not-found': {
+        message: 'Subtype was not found',
+        color: 'danger',
+        code: 404,
+        instructions: ''
+    },
+    'budget:subtype-removed': {
+        message: 'Removed subtype from budget',
+        color: 'success',
+        code: 200,
+        instructions: ''
+    },
+    'budget:updated': {
+        message: 'Budget updated',
         color: 'success',
         code: 200,
         instructions: ''
@@ -903,6 +945,22 @@ export type StatusId =
     | 'account:username-taken'
     | 'account:verified'
     | 'admin:invalid-key'
+    | 'balance-correction:created'
+    | 'balance-correction:deleted'
+    | 'balance-correction:updated'
+    | 'buckets:archived'
+    | 'buckets:created'
+    | 'buckets:invalid-id'
+    | 'buckets:invalid-type'
+    | 'buckets:restored'
+    | 'buckets:updated'
+    | 'budget:created'
+    | 'budget:deleted'
+    | 'budget:not-found'
+    | 'budget:subtype-added'
+    | 'budget:subtype-not-found'
+    | 'budget:subtype-removed'
+    | 'budget:updated'
     | 'files:invalid'
     | 'files:invalid-extension'
     | 'files:no-files'
@@ -926,6 +984,11 @@ export type StatusId =
     | 'member:update-bio'
     | 'member:update-resume'
     | 'member:update-title'
+    | 'miles:archived'
+    | 'miles:created'
+    | 'miles:invalid-id'
+    | 'miles:restored'
+    | 'miles:updated'
     | 'page:not-found'
     | 'permissions:added'
     | 'permissions:error'
@@ -957,28 +1020,13 @@ export type StatusId =
     | 'skills:not-found'
     | 'skills:removed'
     | 'spam:detected'
-    | 'test:fail'
-    | 'test:success'
-    | 'unknown:error'
-    | 'balance-correction:created'
-    | 'balance-correction:deleted'
-    | 'balance-correction:updated'
-    | 'buckets:archived'
-    | 'buckets:created'
-    | 'buckets:invalid-id'
-    | 'buckets:invalid-type'
-    | 'buckets:restored'
-    | 'buckets:updated'
-    | 'miles:archived'
-    | 'miles:created'
-    | 'miles:invalid-id'
-    | 'miles:restored'
-    | 'miles:updated'
     | 'subscriptions:archived'
     | 'subscriptions:created'
     | 'subscriptions:invalid-id'
     | 'subscriptions:restored'
     | 'subscriptions:updated'
+    | 'test:fail'
+    | 'test:success'
     | 'transaction-types:created'
     | 'transaction-types:invalid-type'
     | 'transaction-types:subtype-created'
@@ -1037,6 +1085,25 @@ export type AccountStatusId =
 
 export type AdminStatusId = 'invalid-key';
 
+export type BalanceCorrectionStatusId = 'created' | 'deleted' | 'updated';
+
+export type BucketsStatusId =
+    | 'archived'
+    | 'created'
+    | 'invalid-id'
+    | 'invalid-type'
+    | 'restored'
+    | 'updated';
+
+export type BudgetStatusId =
+    | 'created'
+    | 'deleted'
+    | 'not-found'
+    | 'subtype-added'
+    | 'subtype-removed'
+    | 'updated'
+    | 'subtype-not-found';
+
 export type FilesStatusId =
     | 'invalid'
     | 'invalid-extension'
@@ -1063,15 +1130,6 @@ export type MemberStatusId =
     | 'update-bio'
     | 'update-resume'
     | 'update-title';
-export type BalancecorrectionStatusId = 'created' | 'deleted' | 'updated';
-
-export type BucketsStatusId =
-    | 'archived'
-    | 'created'
-    | 'invalid-id'
-    | 'invalid-type'
-    | 'restored'
-    | 'updated';
 
 export type MilesStatusId =
     | 'archived'
@@ -1133,7 +1191,7 @@ export type SubscriptionsStatusId =
 
 export type TestStatusId = 'fail' | 'success';
 
-export type TransactiontypesStatusId =
+export type TransactionTypesStatusId =
     | 'created'
     | 'invalid-type'
     | 'subtype-created'
@@ -1144,10 +1202,10 @@ export type TransactiontypesStatusId =
 export type TransactionsStatusId =
     | 'archived'
     | 'created'
+    | 'invalid-id'
     | 'invalid-type'
     | 'picture-updated'
     | 'restored'
-    | 'updated'
-    | 'invalid-id';
+    | 'updated';
 
 export type UnknownStatusId = 'error';

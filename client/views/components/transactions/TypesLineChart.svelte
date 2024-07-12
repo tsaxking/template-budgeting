@@ -51,7 +51,9 @@ const reset = async (
     const subtypes = typeInfos
         .map(t => t.subtype)
         .filter((t, i, a) => a.findIndex(a => a.id === t.id) === i);
-    const d = transactions.map(t => new Date(+t.date)).sort((a, b) => a.getTime() - b.getTime());
+    const d = transactions
+        .map(t => new Date(+t.date))
+        .sort((a, b) => a.getTime() - b.getTime());
     const dateArr = segment(d[0], d[d.length - 1]);
 
     dates = dateArr; // x-axis

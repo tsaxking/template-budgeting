@@ -119,7 +119,7 @@ export type Update_sessions_update = {
     ip: string | undefined;
     prevUrl: string | undefined;
     id: string;
-    customData: string;
+    customData: undefined;
 };
 
 export type Insert_sessions_new = {
@@ -349,7 +349,7 @@ export type Delete_db_delete_version = undefined;
 
 export type Transactions = {
     id: string;
-    amount: number;
+    amount: string | undefined;
     type: string;
     status: string;
     date: number;
@@ -359,7 +359,7 @@ export type Transactions = {
     taxDeductible: number;
     archived: number;
     picture: string | undefined;
-    transfer: 0 | 1;
+    transfer: string | undefined;
 };
 
 export type Buckets = {
@@ -374,7 +374,7 @@ export type Buckets = {
 export type BalanceCorrection = {
     id: string;
     date: number;
-    balance: number;
+    balance: string | undefined;
     bucketId: string;
 };
 
@@ -391,15 +391,15 @@ export type Subscriptions = {
     name: string;
     startDate: number;
     endDate: number | undefined;
-    interval: 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly';
+    interval: string | undefined;
     bucketId: string;
     subtypeId: string;
     description: string;
     picture: string | undefined;
     taxDeductible: number;
-    amount: number;
+    amount: string | undefined;
     archived: number;
-    type: 'deposit' | 'withdrawal';
+    type: string | undefined;
 };
 
 export type TransactionTypes = {
@@ -423,12 +423,12 @@ export type Select_balance_correction_all = undefined;
 export type Insert_balance_correction_new = {
     id: string;
     date: number;
-    balance: number;
+    balance: string | undefined;
     bucketId: string;
 };
 
 export type Update_balance_correction_update = {
-    balance: number;
+    balance: string | undefined;
     date: number;
     bucketId: string;
     id: string;
@@ -504,14 +504,14 @@ export type Insert_subscriptions_new = {
     name: string;
     startDate: number;
     endDate: number | undefined;
-    interval: 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly';
+    interval: string | undefined;
     bucketId: string;
     subtypeId: string;
     description: string;
     picture: string | undefined;
     taxDeductible: number;
-    amount: number;
-    type: 'deposit' | 'withdrawal';
+    amount: string | undefined;
+    type: string | undefined;
 };
 
 export type Update_subscriptions_set_archive = {
@@ -523,14 +523,15 @@ export type Update_subscriptions_update = {
     name: string;
     startDate: number;
     endDate: number | undefined;
-    interval: 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly';
+    interval: string | undefined;
     bucketId: string;
     subtypeId: string;
     description: string;
     picture: string | undefined;
     taxDeductible: number;
-    amount: number;
+    amount: string | undefined;
     id: string;
+    type: string | undefined;
 };
 
 export type Select_transactions_archived = undefined;
@@ -563,7 +564,7 @@ export type Select_transactions_from_tax_deductible = {
 
 export type Insert_transactions_new = {
     id: string;
-    amount: number;
+    amount: string | undefined;
     type: string;
     status: string;
     date: number;
@@ -571,7 +572,7 @@ export type Insert_transactions_new = {
     description: string;
     subtypeId: string;
     taxDeductible: number;
-    transfer: 0 | 1;
+    transfer: string | undefined;
 };
 
 export type Update_transactions_set_archive = {
@@ -585,7 +586,7 @@ export type Update_transactions_update_picture = {
 };
 
 export type Update_transactions_update = {
-    amount: number;
+    amount: string | undefined;
     type: string;
     status: string;
     date: number;
@@ -594,7 +595,7 @@ export type Update_transactions_update = {
     subtypeId: string;
     taxDeductible: number;
     id: string;
-    transfer: 0 | 1;
+    transfer: string | undefined;
 };
 
 export type Select_transactions_withdrawals = undefined;
@@ -644,5 +645,92 @@ export type Delete_balance_correction_delete = {
 };
 
 export type Select_balance_correction_from_id = {
+    id: string;
+};
+
+export type Budgets = {
+    id: string;
+    name: string;
+    amount: number;
+    archived: boolean;
+    created: number;
+    description: string;
+    interval: 'daily' | 'weekly' | 'monthly' | 'yearly';
+};
+
+export type BudgetSubtypes = {
+    subtypeId: string;
+    budgetId: string;
+};
+
+export type Goals = {
+    id: string;
+    name: string;
+    amount: number;
+    archived: boolean;
+    created: number;
+    description: string;
+    budgetId: string | undefined;
+};
+
+export type BudgetParsing = {
+    id: string;
+    budgetId: string;
+    description: string;
+    date: string;
+    createdAt: string;
+    updatedAt: string;
+    amount: string | undefined;
+};
+
+export type Select_budgets_budget_from_id = {
+    id: string;
+};
+
+export type Select_budgets_budget_subtypes_from_budget = {
+    budgetId: string;
+};
+
+export type Delete_budgets_delete_budget_subtype = {
+    budgetId: string;
+    subtypeId: string;
+};
+
+export type Delete_budgets_delete_budget = {
+    id: string;
+};
+
+export type Insert_budgets_new_budget_subtype = {
+    subtypeId: string;
+    budgetId: string;
+};
+
+export type Insert_budgets_new_budget = {
+    id: string;
+    name: string;
+    description: string;
+    amount: number;
+    interval: 'daily' | 'weekly' | 'monthly' | 'yearly';
+    created: number;
+    archived: boolean;
+};
+
+export type Update_budgets_update_budget = {
+    name: string;
+    description: string;
+    amount: number;
+    id: string;
+    interval: 'daily' | 'weekly' | 'monthly' | 'yearly';
+    created: number;
+    archived: boolean;
+};
+
+export type Update_db_versions______ = undefined;
+
+export type Select_loans_all = undefined;
+
+export type Select_transactions_all = undefined;
+
+export type Select_types_type_from_id = {
     id: string;
 };
