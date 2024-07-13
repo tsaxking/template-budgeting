@@ -669,11 +669,13 @@ export type BudgetSubtypes = {
 export type Goals = {
     id: string;
     name: string;
-    amount: number;
-    archived: boolean;
-    created: number;
     description: string;
-    budgetId: string | undefined;
+    amount: number;
+    interval: BudgetInterval;
+    rank: number;
+    startDate: number;
+    created: number;
+    archived: boolean;
 };
 
 export type BudgetParsing = {
