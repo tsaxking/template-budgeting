@@ -103,6 +103,28 @@ export class Transaction extends Cache<TransactionEvents> {
         });
     }
 
+    public static parse(transactions: Transaction[]) {
+        let income = 0;
+        let expenses = 0;
+        let taxDeductible = 0;
+        for (let i = 0; i < transactions.length; i++) {
+            const t = transactions[i];
+            if (t.type === 'deposit') {
+                income += t.amount;
+                if (t.taxDeductible) taxDeductible += t.amount;
+            } else {
+                expenses += t.amount;
+            }
+        }
+
+        return {
+            income,
+            expenses,
+            taxDeductible,
+            net: income - expenses
+        };
+    }
+
     public static new(data: {
         amount: number;
         type: 'withdrawal' | 'deposit';
