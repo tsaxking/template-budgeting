@@ -865,7 +865,7 @@ export type Queries = {
         [
             
         ],
-        
+        Budgets
     ];
 'db/versions/1-4-5': [
         [
@@ -895,13 +895,13 @@ export type Queries = {
         [
             Select_goals_get_bucket_goals
         ],
-        BucketGoals
+        Buckets
     ];
 'goals/get-transaction-goals': [
         [
             Select_goals_get_transaction_goals
         ],
-        TransactionGoals
+        Transactions
     ];
 'goals/new-bucket-goals': [
         [
