@@ -1,0 +1,1 @@
+SELECT * FROM BucketGoals WHERE goalId = :goalId;

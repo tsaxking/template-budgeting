@@ -1,0 +1,1 @@
+DELETE FROM TransactionGoals WHERE goalId = :goalId AND transactionId = :transactionId;
