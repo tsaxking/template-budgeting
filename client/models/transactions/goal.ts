@@ -2,9 +2,11 @@ import { attemptAsync } from '../../../shared/check';
 import { EventEmitter } from '../../../shared/event-emitter';
 import { ServerRequest } from '../../utilities/requests';
 import { Cache } from '../cache';
-import { Goals } from '../../../shared/db-types-extended';
-import { socket } from '../../utilities/socket';
-import { Budget } from './budget';
+import { BudgetInterval } from '../../../server/utilities/tables';
+import { Goals } from '../../../server/utilities/tables';
+import { Bucket } from './bucket';
+import { Transaction } from './transaction';
+import { Transaction as T, Bucket as B } from '../../../shared/db-types-extended';
 
 type GoalEvents = {
     update: undefined;
@@ -44,67 +46,96 @@ export class Goal extends Cache<GoalEvents> {
 
     public static async new(data: {
         name: string;
-        amount: number;
         description: string;
-        budgetId: string | null;
+        amount: number;
+        interval: BudgetInterval;
+        rank: number;
+        startDate: number;
     }) {
-        return ServerRequest.post('/api/goals/new', data);
+        ServerRequest.post('/api/goals/new', data);
     }
 
     public static async all() {
         return attemptAsync(async () => {
-            // if (Goal.cache.size)
-            //     return Array.from(Goal.cache.values());
-
-            const res = await ServerRequest.post<Goals[]>('/api/goals/all');
+            const res = await ServerRequest.post<{
+                goal: Goals,
+                transactions: T[],
+                buckets: B[],
+            }[]>('/api/goals/all');
             if (res.isErr()) throw res.error;
-            return res.value.map(Goal.retrieve);
+            return res.value
+            .sort((a, b) => b.goal.rank - a.goal.rank)
+            .map(d => {
+                return Goal.retrieve(
+                    d.goal,
+                    // d.buckets,
+                    // d.transactions,
+                )
+            });
         });
     }
 
-    public static retrieve(data: Goals) {
-        const existing = Goal.cache.get(data.id);
+    public static retrieve(goal: Goals, 
+        // buckets: B[], 
+        // transactions: T[]
+    ) {
+        const existing = Goal.cache.get(goal.id);
         if (existing) {
             return existing;
         }
-        return new Goal(data);
+        // const t = transactions.map(Transaction.retrieve);
+        // const b = buckets.map(Bucket.retrieve);
+
+        return new Goal(goal, 
+            // b, 
+            // t
+        );
     }
+
 
     public readonly id: string;
     public name: string;
-    public amount: number;
-    public archived: 0 | 1;
-    public readonly created: number;
     public description: string;
-    public budgetId: string | null;
+    public amount: number;
+    public interval: BudgetInterval;
+    public rank: number;
+    public startDate: number;
+    public readonly created: number;
+    public archived: boolean;
+    // public readonly buckets: Bucket[];
+    // public readonly transactions: Transaction[];
+    public type: 'fixed' | 'percent';
 
-    constructor(data: Goals) {
+    constructor(
+        data: Goals, 
+        // buckets: Bucket[], 
+        // transactions: Transaction[]
+    ) {
         super();
         this.id = data.id;
         this.name = data.name;
-        this.amount = data.amount;
-        this.archived = data.archived;
-        this.created = data.created;
         this.description = data.description;
-        this.budgetId = data.budgetId;
+        this.amount = +data.amount;
+        this.interval = data.interval;
+        this.rank = +data.rank;
+        this.startDate = data.startDate;
+        this.created = data.created;
+        this.archived = data.archived;
+        // this.buckets = buckets;
+        // this.transactions = transactions;
+        this.type = data.type;
 
         if (!Goal.cache.has(this.id)) Goal.cache.set(this.id, this);
     }
 
-    async getBudget() {
-        return attemptAsync(async () => {
-            if (!this.budgetId) return;
-            const data = await Budget.get(this.budgetId);
-            if (data.isErr()) throw data.error;
-            return data.value;
-        });
-    }
-
     async update(data: {
         name: string;
-        amount: number;
         description: string;
-        budgetId?: string;
+        amount: number;
+        interval: BudgetInterval;
+        rank: number;
+        startDate: number;
+        archived: boolean;
     }) {
         return ServerRequest.post('/api/goals/update', {
             ...data,
@@ -112,10 +143,31 @@ export class Goal extends Cache<GoalEvents> {
         });
     }
 
-    async setArchived(archived: boolean) {
-        return ServerRequest.post('/api/goals/archive', {
-            id: this.id,
-            archived: archived ? 1 : 0
-        });
-    }
+    // addBucket(bucket: Bucket) {
+    //     return ServerRequest.post('/api/goals/add-bucket', {
+    //         goalId: this.id,
+    //         bucketId: bucket.id
+    //     });
+    // }
+
+    // removeBucket(bucket: Bucket) {
+    //     return ServerRequest.post('/api/goals/remove-bucket', {
+    //         goalId: this.id,
+    //         bucketId: bucket.id,
+    //     });
+    // }
+
+    // addTransaction(transaction: Transaction) {
+    //     return ServerRequest.post('/api/goals/add-transaction', {
+    //         goalId: this.id,
+    //         transactionId: transaction.id,
+    //     });
+    // }
+
+    // removeTransaction(transaction: Transaction) {
+    //     return ServerRequest.post('/api/goals/remove-transaction', {
+    //         goalId: this.id,
+    //         transactionId: transaction.id,
+    //     });
+    // }
 }

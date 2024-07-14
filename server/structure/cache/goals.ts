@@ -48,6 +48,7 @@ export class Goal extends Cache {
     public startDate: number;
     public readonly created: number;
     public archived: boolean;
+    public type: 'fixed' | 'percent';
     constructor(data: G) {
         super();
         this.id = data.id;
@@ -59,6 +60,7 @@ export class Goal extends Cache {
         this.startDate = data.startDate;
         this.created = data.created;
         this.archived = data.archived
+        this.type = data.type;
     }
 
     update(data: Partial<Omit<G, 'id' | 'created'>>) {
