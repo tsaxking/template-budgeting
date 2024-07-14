@@ -227,11 +227,9 @@ export class Bucket extends Cache<BucketEvents> {
 
             const data = resolveAll(await Promise.all(
                 months.map(async m => {
-                    const next = new Date(m.getTime());
-                    next.setMonth(next.getMonth() + 1);
-                    const prev = new Date(m.getTime());
-                    prev.setMonth(prev.getMonth() - 1);
                     return attemptAsync(async () => {
+                        const next = new Date(m.getTime());
+                        next.setMonth(next.getMonth() + 1);
                         const transactions = allTransactions
                             .filter(t => t.date >= m.getTime() && t.date < next.getTime());
 
