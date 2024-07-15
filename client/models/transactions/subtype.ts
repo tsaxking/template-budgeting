@@ -57,7 +57,11 @@ export class Subtype extends Cache<SubtypeEvents> {
             // if (Subtype.cache.size) return Array.from(Subtype.cache.values());
 
             const res = await ServerRequest.post<S[]>(
-                '/api/types/get-subtypes'
+                '/api/types/get-subtypes',
+                undefined,
+                {
+                    cached: true,
+                }
             );
             if (res.isErr()) throw res.error;
 
