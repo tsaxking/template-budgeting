@@ -138,7 +138,7 @@ export class Email {
                         //         resolve(info);
                         //     }
                         // },
-                    );
+                    ).catch(console.error);
                 });
             }
 

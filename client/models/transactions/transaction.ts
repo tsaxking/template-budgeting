@@ -64,6 +64,7 @@ export class Transaction extends Cache<TransactionEvents> {
 
     public static fromSubType(id: string, from: number, to: number) {
         return attemptAsync(async () => {
+            return [];
             return (
                 await ServerRequest.post<T[]>(
                     '/api/types/get-subtype-transactions',

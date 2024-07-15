@@ -669,11 +669,15 @@ export type BudgetSubtypes = {
 export type Goals = {
     id: string;
     name: string;
-    amount: number;
-    archived: boolean;
-    created: number;
     description: string;
-    budgetId: string | undefined;
+    amount: number;
+    interval: BudgetInterval;
+    rank: number;
+    startDate: number;
+    created: number;
+    archived: boolean;
+    type: 'percent' | 'fixed';
+    target: number;
 };
 
 export type BudgetParsing = {
@@ -736,4 +740,83 @@ export type Select_transactions_all = undefined;
 
 export type Select_types_type_from_id = {
     id: string;
+};
+
+export type TransactionGoals = {
+    goalId: string;
+    transactionId: string;
+};
+
+export type Select_budgets_all = undefined;
+
+export type Select_goals_all = undefined;
+
+export type Select_goals_from_id = {
+    id: string;
+};
+
+export type Select_goals_get_bucket_goals = {
+    goalId: string;
+};
+
+export type Select_goals_get_transaction_goals = {
+    goalId: string;
+};
+
+export type Insert_goals_new_bucket_goals = {
+    goalId: string;
+    bucketId: string;
+};
+
+export type Insert_goals_new_transaction_goal = {
+    goalId: string;
+    transactionId: string;
+};
+
+export type Insert_goals_new = {
+    id: string;
+    name: string;
+    description: string;
+    amount: number;
+    interval: BudgetInterval;
+    rank: number;
+    startDate: number;
+    created: number;
+    archived: boolean;
+    type: 'percent' | 'fixed';
+    target: number;
+};
+
+export type Delete_goals_remove_bucket_goals = {
+    goalId: string;
+    bucketId: string;
+};
+
+export type Delete_goals_remove_transaction_goal = {
+    goalId: string;
+    transactionId: string;
+};
+
+export type Update_goals_update = {
+    name: string;
+    description: string;
+    amount: number;
+    interval: BudgetInterval;
+    rank: number;
+    startDate: number;
+    created: number;
+    archived: boolean;
+    id: string;
+    type: 'percent' | 'fixed';
+    target: number;
+};
+
+export type Select_types_subtype_from_id = {
+    id: string;
+};
+
+
+export type BucketGoals = {
+    goalId: string;
+    bucketId: string;
 };
