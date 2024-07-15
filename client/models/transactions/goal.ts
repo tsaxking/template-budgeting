@@ -51,7 +51,10 @@ export class Goal extends Cache<GoalEvents> {
         interval: BudgetInterval;
         rank: number;
         startDate: number;
+        target: number;
+        type: 'percent' | 'fixed';
     }) {
+        if (!data.target) data.target = 0;
         ServerRequest.post('/api/goals/new', data);
     }
 
@@ -64,7 +67,7 @@ export class Goal extends Cache<GoalEvents> {
             }[]>('/api/goals/all');
             if (res.isErr()) throw res.error;
             return res.value
-            .sort((a, b) => b.goal.rank - a.goal.rank)
+            .sort((a, b) => a.goal.rank - b.goal.rank)
             .map(d => {
                 return Goal.retrieve(
                     d.goal,
@@ -99,6 +102,7 @@ export class Goal extends Cache<GoalEvents> {
     public amount: number;
     public interval: BudgetInterval;
     public rank: number;
+    public target: number;
     public startDate: number;
     public readonly created: number;
     public archived: boolean;
@@ -118,12 +122,13 @@ export class Goal extends Cache<GoalEvents> {
         this.amount = +data.amount;
         this.interval = data.interval;
         this.rank = +data.rank;
-        this.startDate = data.startDate;
-        this.created = data.created;
-        this.archived = data.archived;
+        this.startDate = +data.startDate;
+        this.created = +data.created;
+        this.archived = !!data.archived;
         // this.buckets = buckets;
         // this.transactions = transactions;
         this.type = data.type;
+        this.target = +data.target;
 
         if (!Goal.cache.has(this.id)) Goal.cache.set(this.id, this);
     }
@@ -135,8 +140,11 @@ export class Goal extends Cache<GoalEvents> {
         interval: BudgetInterval;
         rank: number;
         startDate: number;
+        target: number;
+        type: 'percent' | 'fixed';
         archived: boolean;
     }) {
+        if (!data.target) data.target = 0;
         return ServerRequest.post('/api/goals/update', {
             ...data,
             id: this.id

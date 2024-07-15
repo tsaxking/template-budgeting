@@ -12,6 +12,7 @@ router.post<{
     interval: BudgetInterval;
     rank: number;
     startDate: number;
+    target: number;
     type: 'percent' | 'fixed';
 }>('/new',validate({
     name: 'string',
@@ -21,14 +22,18 @@ router.post<{
     rank: 'number',
     startDate: 'number',
     type: ['percent', 'fixed'],
+    target: 'number',
 }), async (req, res) => {
     const goal = (await Goal.new(req.body)).unwrap();
+
+    console.log('CREATED:', goal);
 
     res.sendStatus('goal:created');
     req.io.emit('goal:created', goal);
 });
 
 router.post('/all', async (req, res) => {
+    console.log('retrieving goals...');
     const goals = (await Goal.all()).unwrap();
     const rendered = resolveAll(await Promise.all(goals.map(g => {
         return attemptAsync(async () => {
@@ -45,6 +50,8 @@ router.post('/all', async (req, res) => {
         });
     })));
 
+    console.log('Loaded goals:', goals);
+
     if (rendered.isErr()) return res.sendStatus('unknown:error');
 
     res.json(rendered.value);
@@ -59,6 +66,7 @@ router.post<{
     rank: number;
     startDate: number;
     type: 'percent' | 'fixed',
+    target: number;
 }>('/update', validate({
     id: 'string', 
     name: 'string',
@@ -67,9 +75,10 @@ router.post<{
     interval: ['daily', 'weekly', 'monthly', 'yearly'],
     rank: 'number',
     startDate: 'number',
-    type: ['percent', 'fixed']
+    type: ['percent', 'fixed'],
+    target: 'number',
 }),async (req, res) => {
-    const { id, name, description, amount, interval, rank, startDate, type } = req.body;
+    const { id, name, description, amount, interval, rank, startDate, type, target } = req.body;
     const goal = (await Goal.fromId(id)).unwrap();
     if (!goal) return res.sendStatus('goal:not-found');
 
@@ -81,6 +90,7 @@ router.post<{
         rank,
         startDate,
         type,
+        target,
     })).unwrap();
 
     res.sendStatus('goal:updated');
