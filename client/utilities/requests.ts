@@ -788,7 +788,7 @@ export class ServerRequest<T = unknown> {
             const start = Date.now();
             this.sent = true;
 
-            if (this.options?.cached) {
+            if (cached) {
                 const reqs = ServerRequest.all.filter(r => r.url == this.url);
                 const req = reqs[reqs.length - 1];
                 if (req) {
