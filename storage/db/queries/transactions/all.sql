@@ -1,1 +1,1 @@
-SELECT * FROM Transactions;
+SELECT * FROM Transactions WHERE archived = 0;
