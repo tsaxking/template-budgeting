@@ -204,8 +204,6 @@ export class Bucket extends Cache<BucketEvents> {
             const goals = goalsRes.unwrap();
             const budgets = budgetsRes.unwrap();
 
-            console.log('GOALS:', goals);
-
             // TODO: implement goals with buckets
             const buckets = bucketRes.unwrap();
 

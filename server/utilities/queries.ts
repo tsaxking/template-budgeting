@@ -745,7 +745,7 @@ export type Queries = {
         [
             
         ],
-        
+        Transactions
     ];
 'transactions/from-type': [
         [

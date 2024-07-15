@@ -2,6 +2,7 @@ import { Route } from '../../structure/app/app';
 import { validate } from '../../middleware/data-type';
 import { Type } from '../../structure/cache/types';
 import { Subtype } from '../../structure/cache/subtypes';
+import { attemptAsync, resolveAll } from '../../../shared/check';
 
 export const router = new Route();
 
@@ -160,22 +161,21 @@ router.post<{
 );
 
 router.post<{
-    id: string;
+    ids: string[];
     from: number;
     to: number;
 }>('/get-subtype-transactions', validate({
-    id: 'string',
+    ids: (val: unknown) => Array.isArray(val) && val.every(v => typeof v === 'string'),
     from: 'number',
     to: 'number'
 }), async (req, res) => {
-    const { id, from, to } = req.body;
-    const subtype = await Subtype.fromId(id);
-    if (subtype.isErr()) return res.sendStatus('unknown:error', subtype.error);
-    if (!subtype.value)
-        return res.sendStatus('unknown:error', { error: 'subtype-not-found' });
+    const { ids, from, to } = req.body;
+    const subtypes = resolveAll(
+        await Promise.all(ids.map(id => Subtype.fromId(id))
+    )).unwrap();
+    const transactions = resolveAll(await Promise.all(subtypes.map(s => attemptAsync(async () => {
+        return s ? (await s.getTransactions(from, to)).unwrap() : [];
+    })))).unwrap();
 
-    const transactions = await subtype.value.getTransactions(from, to);
-    if (transactions.isErr())
-        return res.sendStatus('unknown:error', transactions.error);
-    res.json(transactions.value);
+    res.json(transactions);
 });
