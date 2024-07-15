@@ -164,7 +164,12 @@ export class Bucket extends Cache<BucketEvents> {
             //         return buckets.filter(b => !b.archived);
             // }
 
-            const res = await ServerRequest.post<B[]>('/api/buckets/all');
+            const res = await ServerRequest.post<B[]>('/api/buckets/all',
+                undefined,
+                {
+                    cached: true,
+                }
+            );
             if (res.isErr()) throw res.error;
 
             const buckets = res.value.map(Bucket.retrieve);

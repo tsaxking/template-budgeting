@@ -69,7 +69,12 @@ export class Goal extends Cache<GoalEvents> {
                     transactions: T[];
                     buckets: B[];
                 }[]
-            >('/api/goals/all');
+            >('/api/goals/all',
+                undefined,
+                {
+                    cached: true,
+                }
+            );
             if (res.isErr()) throw res.error;
             return res.value
                 .sort((a, b) => a.goal.rank - b.goal.rank)

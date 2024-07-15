@@ -61,7 +61,11 @@ export class Budget extends Cache<BudgetEvents> {
 
     public static async all() {
         return attemptAsync(async () => {
-            return (await ServerRequest.post<B[]>('/api/budgets/all'))
+            return (await ServerRequest.post<B[]>('/api/budgets/all', undefined,
+                {
+                    cached: true,
+                }
+            ))
                 .unwrap()
                 .filter(b => !b.archived)
                 .map(Budget.retrieve);
