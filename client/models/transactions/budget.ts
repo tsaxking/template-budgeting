@@ -128,7 +128,9 @@ export class Budget extends Cache<BudgetEvents> {
             const subtypes = (
                 await ServerRequest.post<S[]>('/api/budgets/get-subtypes', {
                     id: this.id
-                })
+        }, {
+            cached: true,
+        })
             ).unwrap();
 
             return subtypes.map(d => Subtype.retrieve(d));
