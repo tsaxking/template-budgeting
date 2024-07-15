@@ -80,7 +80,11 @@ export class Transaction extends Cache<TransactionEvents> {
     public static all() {
         return attemptAsync(async () => {
             if (Transaction.cache.size) return [...Transaction.cache.values()];
-            return (await ServerRequest.post<T[]>('/api/transactions/all'))
+            return (await ServerRequest.post<T[]>('/api/transactions/all', undefined,
+                {
+                    cached: true,
+                }
+            ))
                 .unwrap()
                 .map(t => new Transaction(t, { save: true, type: 'real' }));
         });
