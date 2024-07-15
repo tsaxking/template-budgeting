@@ -1,0 +1,1 @@
+DELETE FROM BucketGoals WHERE goalId = :goalId AND bucketId = :bucketId;

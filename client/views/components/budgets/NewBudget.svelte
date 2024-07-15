@@ -97,10 +97,10 @@ const selectSubtype = () => {
             <div class="form-group" id="new-budget-{id}-interval">
                 <label for="new-budget-{id}-interval">Interval</label>
                 <select class="form-control" bind:value="{interval}">
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
+                    <option value="daily" disabled>Daily</option>
+                    <option value="weekly" disabled>Weekly</option>
                     <option value="monthly">Monthly</option>
-                    <option value="yearly">Yearly</option>
+                    <option value="yearly" disabled>Yearly</option>
                 </select>
             </div>
         </div>
