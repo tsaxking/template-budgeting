@@ -157,8 +157,10 @@ export class Budget extends Cache<BudgetEvents> {
 
     getTransactions(from: number, to: number) {
         return attemptAsync(async () => {
+            const cache = this.cache.get('transactions');
+            if (cache) return cache as Transaction[];
             const subtypes = (await this.getSubtypes()).unwrap();
-            return (
+            const transactions = (
                 await ServerRequest.post<T[][]>(
                     '/api/types/get-subtype-transactions',
                     {
@@ -171,6 +173,8 @@ export class Budget extends Cache<BudgetEvents> {
                 .unwrap()
                 .map(s => s.map(Transaction.retrieve))
                 .flat();
+            this.cache.set('transactions', transactions);
+            return transactions;
         });
     }
 
