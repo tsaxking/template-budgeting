@@ -677,6 +677,7 @@ export type Goals = {
     created: number;
     archived: boolean;
     type: 'percent' | 'fixed';
+    target: number;
 };
 
 export type BudgetParsing = {
@@ -783,6 +784,7 @@ export type Insert_goals_new = {
     created: number;
     archived: boolean;
     type: 'percent' | 'fixed';
+    target: number;
 };
 
 export type Delete_goals_remove_bucket_goals = {
@@ -806,6 +808,7 @@ export type Update_goals_update = {
     archived: boolean;
     id: string;
     type: 'percent' | 'fixed';
+    target: number;
 };
 
 export type Select_types_subtype_from_id = {

@@ -7,7 +7,9 @@ INSERT INTO Goals (
     rank,
     startDate,
     created,
-    archived
+    archived,
+    type,
+    target
 ) VALUES (
     :id,
     :name,
@@ -17,5 +19,7 @@ INSERT INTO Goals (
     :rank,
     :startDate,
     :created,
-    :archived
+    :archived,
+    :type,
+    :target
 );

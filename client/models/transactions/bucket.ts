@@ -204,6 +204,8 @@ export class Bucket extends Cache<BucketEvents> {
             const goals = goalsRes.unwrap();
             const budgets = budgetsRes.unwrap();
 
+            console.log('GOALS:', goals);
+
             // TODO: implement goals with buckets
             const buckets = bucketRes.unwrap();
 
@@ -259,7 +261,7 @@ export class Bucket extends Cache<BucketEvents> {
                                     return 0; // don't save, it will go negative
                                 }
                             } else {
-                                const amount = using * g.amount; // percent
+                                const amount = using * g.amount / 100; // percent
                                 left = using - amount;
                                 return amount;
                             }
@@ -289,9 +291,12 @@ export class Bucket extends Cache<BucketEvents> {
                 }
             });
 
+            const disposable = data.reduce((acc, d) => acc + d.leftover, 0);
+
             return {
                 data,
                 saved,
+                disposable,
             };
         });
     }

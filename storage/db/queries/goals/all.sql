@@ -1,1 +1,1 @@
-SELECT * FROM Goals WHERE archived = 0;
+SELECT * FROM Goals;
