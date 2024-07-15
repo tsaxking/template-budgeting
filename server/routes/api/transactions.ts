@@ -1,40 +1,14 @@
 import { validate } from '../../middleware/data-type';
 import { Route } from '../../structure/app/app';
 import { fileStream } from '../../middleware/stream';
-import { resolveAll } from '../../../shared/check';
 import { Transaction } from '../../structure/cache/transactions';
 
 export const router = new Route();
 
-router.post<{
-    buckets: string[];
-    from: number;
-    to: number;
-}>(
-    '/search',
-    validate({
-        buckets: (v: unknown[]) =>
-            Array.isArray(v) && v.every(i => typeof i === 'string'),
-        from: 'number',
-        to: 'number'
-    }),
-    async (req, res) => {
-        const { buckets, from, to } = req.body;
-
-        const transactions = await resolveAll(
-            await Promise.all(buckets.map(b => Transaction.fromBucket(b)))
-        );
-
-        if (transactions.isErr())
-            return res.sendStatus('unknown:error', transactions.error);
-
-        const filtered = transactions.value.flat().filter(t => {
-            return +t.date >= +from && +t.date <= +to;
-        });
-
-        res.json(filtered);
-    }
-);
+router.post('/all', async (_req, res) => {
+    const transactions = (await Transaction.all()).unwrap();
+    res.json(transactions);
+});
 
 router.post<{
     amount: number;

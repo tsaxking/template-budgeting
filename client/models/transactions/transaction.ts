@@ -47,36 +47,20 @@ export class Transaction extends Cache<TransactionEvents> {
 
     public static fromType(id: string, from: number, to: number) {
         return attemptAsync(async () => {
-            return (
-                await ServerRequest.post<T[]>(
-                    '/api/types/get-type-transactions',
-                    {
-                        id,
-                        from: +from,
-                        to: +to
-                    }
-                )
-            )
-                .unwrap()
-                .map(Transaction.retrieve);
+            const subtypes = (await Subtype.all()).unwrap();
+            const all = (await Transaction.all()).unwrap();
+            return all
+                .filter(t => subtypes.find(s => s.id === t.subtypeId)?.typeId === id)
+                .filter(t => t.date >= from && t.date <= to);
         });
     }
 
     public static fromSubType(ids: string[], from: number, to: number) {
         return attemptAsync(async () => {
-            // return [];
-            return (
-                await ServerRequest.post<T[]>(
-                    '/api/types/get-subtype-transactions',
-                    {
-                        ids,
-                        from,
-                        to
-                    }
-                )
-            )
-                .unwrap()
-                .map(Transaction.retrieve);
+            const all = (await Transaction.all()).unwrap();
+            return all
+                .filter(t => ids.includes(t.subtypeId))
+                .filter(t => t.date >= from && t.date <= to);
         });
     }
 
@@ -86,21 +70,19 @@ export class Transaction extends Cache<TransactionEvents> {
         to: number
     ) {
         return attemptAsync(async () => {
-            return (
-                await ServerRequest.post<T[]>(
-                    '/api/transactions/search',
-                    {
-                        buckets,
-                        from,
-                        to
-                    },
-                    {
-                        cached: false
-                    }
-                )
-            )
+            const all = (await Transaction.all()).unwrap();
+            return all
+                .filter(t => buckets.includes(t.bucketId))
+                .filter(t => t.date >= from && t.date <= to);
+        });
+    }
+
+    public static all() {
+        return attemptAsync(async () => {
+            if (Transaction.cache.size) return [...Transaction.cache.values()];
+            return (await ServerRequest.post<T[]>('/api/transactions/all'))
                 .unwrap()
-                .map(Transaction.retrieve);
+                .map(t => new Transaction(t, { save: true, type: 'real' }));
         });
     }
 

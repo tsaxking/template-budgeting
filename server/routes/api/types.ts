@@ -164,31 +164,18 @@ router.post<{
     ids: string[];
     from: number;
     to: number;
-}>(
-    '/get-subtype-transactions',
-    validate({
-        ids: (val: unknown) =>
-            Array.isArray(val) && val.every(v => typeof v === 'string'),
-        from: 'number',
-        to: 'number'
-    }),
-    async (req, res) => {
-        const { ids, from, to } = req.body;
-        const subtypes = resolveAll(
-            await Promise.all(ids.map(id => Subtype.fromId(id)))
-        ).unwrap();
-        const transactions = resolveAll(
-            await Promise.all(
-                subtypes.map(s =>
-                    attemptAsync(async () => {
-                        return s
-                            ? (await s.getTransactions(from, to)).unwrap()
-                            : [];
-                    })
-                )
-            )
-        ).unwrap();
+}>('/get-subtype-transactions', validate({
+    ids: (val: unknown) => Array.isArray(val) && val.every(v => typeof v === 'string'),
+    from: 'number',
+    to: 'number'
+}), async (req, res) => {
+    const { ids, from, to } = req.body;
+    const subtypes = resolveAll(
+        await Promise.all(ids.map(id => Subtype.fromId(id))
+    )).unwrap();
+    const transactions = resolveAll(await Promise.all(subtypes.map(s => attemptAsync(async () => {
+        return s ? (await s.getTransactions(from, to)).unwrap() : [];
+    })))).unwrap();
 
-        res.json(transactions);
-    }
-);
+    res.json(transactions);
+});
