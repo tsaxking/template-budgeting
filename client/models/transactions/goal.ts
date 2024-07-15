@@ -21,6 +21,22 @@ type GlobalGoalEvents = {
     archive: Goal;
 };
 
+export type PseudoGoal = {
+    id: string;
+    name: string;
+    description: string;
+    amount: number;
+    interval: BudgetInterval;
+    rank: number;
+    startDate: number;
+    created: number;
+    archived: boolean;
+    type: 'fixed' | 'percent';
+    target: number;
+    accumulated: number;
+    goal: Goal;
+};
+
 export class Goal extends Cache<GoalEvents> {
     public static cache = new Map<string, Goal>();
 
@@ -80,30 +96,30 @@ export class Goal extends Cache<GoalEvents> {
                 .sort((a, b) => a.goal.rank - b.goal.rank)
                 .map(d => {
                     return Goal.retrieve(
-                        d.goal
+                        d.goal,
                         // d.buckets,
-                        // d.transactions,
+                        d.transactions,
                     );
                 });
         });
     }
 
     public static retrieve(
-        goal: Goals
+        goal: Goals,
         // buckets: B[],
-        // transactions: T[]
+        transactions: T[]
     ) {
         const existing = Goal.cache.get(goal.id);
         if (existing) {
             return existing;
         }
-        // const t = transactions.map(Transaction.retrieve);
+        const t = transactions.map(Transaction.retrieve);
         // const b = buckets.map(Bucket.retrieve);
 
         return new Goal(
-            goal
+            goal,
             // b,
-            // t
+            t
         );
     }
 
@@ -118,13 +134,13 @@ export class Goal extends Cache<GoalEvents> {
     public readonly created: number;
     public archived: boolean;
     // public readonly buckets: Bucket[];
-    // public readonly transactions: Transaction[];
+    public readonly transactions: Transaction[];
     public type: 'fixed' | 'percent';
 
     constructor(
-        data: Goals
+        data: Goals,
         // buckets: Bucket[],
-        // transactions: Transaction[]
+        transactions: Transaction[]
     ) {
         super();
         this.id = data.id;
@@ -137,7 +153,7 @@ export class Goal extends Cache<GoalEvents> {
         this.created = +data.created;
         this.archived = !!data.archived;
         // this.buckets = buckets;
-        // this.transactions = transactions;
+        this.transactions = transactions;
         this.type = data.type;
         this.target = +data.target;
 
@@ -176,17 +192,38 @@ export class Goal extends Cache<GoalEvents> {
     //     });
     // }
 
-    // addTransaction(transaction: Transaction) {
-    //     return ServerRequest.post('/api/goals/add-transaction', {
-    //         goalId: this.id,
-    //         transactionId: transaction.id,
-    //     });
-    // }
+    addTransaction(transaction: Transaction) {
+        return ServerRequest.post('/api/goals/add-transaction', {
+            goalId: this.id,
+            transactionId: transaction.id,
+        });
+    }
 
-    // removeTransaction(transaction: Transaction) {
-    //     return ServerRequest.post('/api/goals/remove-transaction', {
-    //         goalId: this.id,
-    //         transactionId: transaction.id,
-    //     });
-    // }
+    removeTransaction(transaction: Transaction) {
+        return ServerRequest.post('/api/goals/remove-transaction', {
+            goalId: this.id,
+            transactionId: transaction.id,
+        });
+    }
+
+    get pseudo() {
+        // this is a pseudo goal, used to represent the goal but be maluable without changing the actual goal
+        return {
+            ...this,
+            // rebind the data so that it can be changed
+            id: this.id,
+            name: this.name,
+            description: this.description,
+            amount: this.amount,
+            interval: this.interval,
+            rank: this.rank,
+            startDate: this.startDate,
+            created: this.created,
+            archived: this.archived,
+            type: this.type,
+            target: this.target,
+            accumulated: 0,
+            goal: this,
+        };
+    }
 }

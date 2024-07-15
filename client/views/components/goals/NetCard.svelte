@@ -3,7 +3,7 @@ import { onMount } from 'svelte';
 import { Bucket } from '../../../models/transactions/bucket';
 import { Budget } from '../../../models/transactions/budget';
 import { Transaction } from '../../../models/transactions/transaction';
-import { Goal } from '../../../models/transactions/goal';
+import { Goal, type PseudoGoal } from '../../../models/transactions/goal';
 import { cost } from '../../../../shared/text';
 import { Modal } from '../../../utilities/modals';
 import NewGoal from './NewGoal.svelte';
@@ -11,7 +11,7 @@ import { type BudgetInterval } from '../../../../server/utilities/tables';
 import EditGoal from './EditGoal.svelte';
 
 let data: {
-    goal: Goal;
+    goal: PseudoGoal;
     saved: number;
 }[] = [];
 let disposable = 0;
@@ -153,14 +153,34 @@ const create = () => {
 <div class="container-fluid">
     <div class="row">
         <h5>
-            Disposable: {cost(disposable)}
+            Disposable: <span class="text-success">
+                {cost(disposable)}
+            </span>
         </h5>
     </div>
     {#each data as { goal, saved }}
-        <div class="row mb-3">
-            <h5>
-                {goal.name}
-            </h5>
+    <hr>
+        <div class="row my-1">
+            <p>
+                {goal.name} (Rank: {goal.rank}) 
+                <br>
+                &nbsp;
+                <span class="text-muted">
+                    {#if goal.type === 'fixed'}
+                    <span class="text-success">{cost(disposable)}</span> {goal.interval}
+                {:else}
+                    {goal.amount}% {goal.interval}
+                {/if}
+                </span>
+            </p>
+            <p>
+                {goal.description}
+            </p>
+            <small class="text-muted">
+                {#if goal.target !== 0}
+                    <span class="text-success">{Math.round(saved/goal.target * 100)}%</span> {cost(saved)} / {cost(goal.target)}
+                {/if}
+            </small>
             <div class="col-10">
                 {#if goal.target !== 0}
                     <div
@@ -178,15 +198,17 @@ const create = () => {
                         "
                             style="width: {(saved / goal.target) * 100}%;"
                         >
-                            {cost(saved)} / {cost(goal.target)}
+                            
                         </div>
                     </div>
                 {:else}
-                    Saved: {cost(saved)} (no target)
+                    Saved: <span class="text-success">
+                        {cost(saved)}
+                    </span> (no target)
                 {/if}
             </div>
             <div class="col-2">
-                <button class="btn btn-primary" on:click="{() => edit(goal)}">
+                <button class="btn btn-primary" on:click="{() => edit(goal.goal)}">
                     <i class="material-icons">edit</i>
                 </button>
             </div>

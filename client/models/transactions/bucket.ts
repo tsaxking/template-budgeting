@@ -200,32 +200,24 @@ export class Bucket extends Cache<BucketEvents> {
 
     public static parseNet(toDate: Date) {
         return attemptAsync(async () => {
-            const [goalsRes, budgetsRes, bucketRes] = await Promise.all([
+            const allTransactions = (await Transaction.all()).unwrap();
+            const [goalsRes, budgetsRes] = await Promise.all([
                 Goal.all(),
-                Budget.all(),
-                Bucket.all()
+                Budget.all()
             ]);
 
-            const goals = goalsRes.unwrap();
+            const goals = goalsRes.unwrap().map(g => g.pseudo);
             const budgets = budgetsRes.unwrap();
-
-            // TODO: implement goals with buckets
-            const buckets = bucketRes.unwrap();
 
             const startDate = new Date(
                 goals.reduce((a, c) => {
                     if (c.startDate < a) return c.startDate;
                     return a;
-                }, 0)
+                }, toDate.getTime())
             );
 
-            const allTransactions = (
-                await Bucket.transactionsFromBuckets(
-                    buckets,
-                    startDate.getTime(),
-                    toDate.getTime()
-                )
-            ).unwrap();
+            const filteredTransactions = allTransactions
+                .filter(t => t.date >= startDate.getTime() && t.date <= toDate.getTime());
 
             const months = Array.from(
                 {
@@ -236,28 +228,36 @@ export class Bucket extends Cache<BucketEvents> {
                 (_, i) => new Date(startDate.getTime() + i * 2629746000)
             );
 
-            const data = resolveAll(
+            const budgetDataArray = resolveAll(
                 await Promise.all(
-                    months.map(async m => {
-                        return attemptAsync(async () => {
+                    months.map(m => attemptAsync(async () => {
+                        return resolveAll(
+                            await Promise.all(
+                                budgets.map(b => 
+                                    b.getBudget(
+                                        m.getMonth(),
+                                        m.getFullYear()
+                                    )
+                                )
+                            )
+                        ).unwrap();
+                    }))
+                )
+            ).unwrap();
+
+            let prev: number;
+
+            const data = 
+                    months.map((m, i) => {
                             const next = new Date(m.getTime());
                             next.setMonth(next.getMonth() + 1);
-                            const transactions = allTransactions.filter(
+                            const transactions = filteredTransactions.filter(
                                 t =>
                                     t.date >= m.getTime() &&
                                     t.date < next.getTime()
                             );
 
-                            const budgetData = resolveAll(
-                                await Promise.all(
-                                    budgets.map(b =>
-                                        b.getBudget(
-                                            m.getMonth(),
-                                            m.getFullYear()
-                                        )
-                                    )
-                                )
-                            ).unwrap();
+                            const budgetData = budgetDataArray[i];
 
                             const totalBudgetSpent = budgetData.reduce(
                                 (acc, b) => acc + b.total,
@@ -272,25 +272,45 @@ export class Bucket extends Cache<BucketEvents> {
                             const net = income - totalBudgetSpent;
                             const usable = net - expenses;
                             let using = usable;
+                            if (prev) using += prev;
                             let left = using;
                             let rank = 0;
 
                             const data = goals.map(g => {
+                                if (m.getTime() < g.startDate) return 0;
                                 if (g.rank !== rank) using = left;
                                 rank = g.rank;
-                                if (g.type === 'fixed') {
-                                    if (using - g.amount >= 0) {
-                                        left = using - g.amount;
-                                        return g.amount;
+
+                                const goalTransactions = g.transactions.filter(g => 
+                                    g.date >= m.getTime() && g.date < next.getTime()
+                                );
+
+                                for (let j = 0; j < goalTransactions.length; j++) {
+                                    const t = g.transactions[j];
+                                    if (t.type === 'deposit') {
+                                        left -= t.amount;
+                                        if (g.target) g.target += t.amount;
                                     } else {
-                                        return 0; // don't save, it will go negative
+                                        left += t.amount;
+                                        if (g.target) g.target -= t.amount;
                                     }
-                                } else {
-                                    const amount = (using * g.amount) / 100; // percent
-                                    left = using - amount;
-                                    return amount;
                                 }
+
+                                let amount: number;
+                                if (g.type === 'fixed') {
+                                    amount = g.amount;
+                                } else {
+                                    amount = (using * g.amount) / 100; // percent
+                                }
+
+                                if (left - amount < 0) amount = 0;
+                                if (g.accumulated + amount > g.target && g.target !== 0) amount = g.target - g.accumulated;
+                                g.accumulated += amount;
+                                left -= amount;
+                                return amount;
                             });
+
+                            prev = left;
 
                             return {
                                 date: m.getTime(),
@@ -305,9 +325,6 @@ export class Bucket extends Cache<BucketEvents> {
                                 leftover: left
                             };
                         });
-                    })
-                )
-            ).unwrap();
 
             const saved = goals.map((g, i) => {
                 const saved = data.reduce(

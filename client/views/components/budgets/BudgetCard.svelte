@@ -187,13 +187,21 @@ Transaction.on('archive', init);
 
 <div class="container">
     <h4>
-        You are {cost(Math.abs(max - total))}
-        {max > total ? 'under' : 'over'} budget
+        You are 
+        <span class="
+            text-{max >= total ? 'success' : 'danger'}
+        ">{cost(Math.abs(max - total))}</span>
+        {max >= total ? 'under' : 'over'} budget
     </h4>
 
     {#each budgets as budget, i}
-        <div class="row mb-3">
-            <h5>{budget.budget.name}</h5>
+        <div class="row my-1">
+            <p>
+                {budget.budget.name} (
+                    {budget.percent}% {cost(budget.total)} / {cost(
+                        budget.max
+                    )})
+            </p>
             <div class="col-10">
                 <div
                     class="progress"
@@ -210,9 +218,6 @@ Transaction.on('archive', init);
                     "
                         style="width: {budget.percent}%;"
                     >
-                        {budget.percent}% ({cost(budget.total)} / {cost(
-                            budget.max
-                        )})
                     </div>
                 </div>
             </div>
