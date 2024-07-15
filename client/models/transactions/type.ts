@@ -108,7 +108,7 @@ export class Type extends Cache<TypeEvents> {
     }
 
     getTransactions(from: number, to: number) {
-        return Transaction.fromType(this.id, from, to);
+        return Transaction.fromTypes([this.id], from, to);
     }
 }
 

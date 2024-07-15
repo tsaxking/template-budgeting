@@ -157,22 +157,8 @@ export class Budget extends Cache<BudgetEvents> {
 
     getTransactions(from: number, to: number) {
         return attemptAsync(async () => {
-            const cache = this.cache.get('transactions');
-            if (cache) return cache as Transaction[];
             const subtypes = (await this.getSubtypes()).unwrap();
-            const transactions = (
-                await ServerRequest.post<T[][]>(
-                    '/api/types/get-subtype-transactions',
-                    {
-                        ids: subtypes.map(s => s.id),
-                        from,
-                        to
-                    }
-                )
-            )
-                .unwrap()
-                .map(s => s.map(Transaction.retrieve))
-                .flat();
+            const transactions = (await Transaction.fromSubTypes(subtypes.map(s => s.id), from, to)).unwrap()
             this.cache.set('transactions', transactions);
             return transactions;
         });
