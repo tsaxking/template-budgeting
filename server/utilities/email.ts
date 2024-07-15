@@ -128,17 +128,19 @@ export class Email {
                 };
 
                 return new Promise(resolve => {
-                    transporter.sendMail(
-                        mailOptions
-                        // (err: Error, info: { response: string }) => {
-                        //     if (err) {
-                        //         console.error(err);
-                        //     } else {
-                        //         console.log('Email sent: ' + info.response);
-                        //         resolve(info);
-                        //     }
-                        // },
-                    ).catch(console.error);
+                    transporter
+                        .sendMail(
+                            mailOptions
+                            // (err: Error, info: { response: string }) => {
+                            //     if (err) {
+                            //         console.error(err);
+                            //     } else {
+                            //         console.log('Email sent: ' + info.response);
+                            //         resolve(info);
+                            //     }
+                            // },
+                        )
+                        .catch(console.error);
                 });
             }
 

@@ -815,7 +815,6 @@ export type Select_types_subtype_from_id = {
     id: string;
 };
 
-
 export type BucketGoals = {
     goalId: string;
     bucketId: string;

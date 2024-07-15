@@ -1,10 +1,10 @@
-import { Cache } from "./cache";
-import { Goals as G, BudgetInterval } from "../../utilities/tables";
-import { attemptAsync } from "../../../shared/check";
-import { DB } from "../../utilities/databases";
-import { uuid } from "../../utilities/uuid";
-import { Buckets } from "./bucket";
-import { Transaction } from "./transactions";
+import { Cache } from './cache';
+import { Goals as G, BudgetInterval } from '../../utilities/tables';
+import { attemptAsync } from '../../../shared/check';
+import { DB } from '../../utilities/databases';
+import { uuid } from '../../utilities/uuid';
+import { Buckets } from './bucket';
+import { Transaction } from './transactions';
 
 export class Goal extends Cache {
     public static all() {
@@ -16,9 +16,7 @@ export class Goal extends Cache {
 
     public static fromId(id: string) {
         return attemptAsync(async () => {
-            const data = (
-                await DB.get('goals/from-id', { id })
-            ).unwrap();
+            const data = (await DB.get('goals/from-id', { id })).unwrap();
             if (!data) return;
             return new Goal(data);
         });
@@ -37,7 +35,6 @@ export class Goal extends Cache {
             return new Goal({ id, created, archived: false, ...data });
         });
     }
-
 
     public readonly id: string;
     public name: string;
@@ -61,17 +58,19 @@ export class Goal extends Cache {
         this.rank = data.rank;
         this.startDate = data.startDate;
         this.created = data.created;
-        this.archived = data.archived
+        this.archived = data.archived;
         this.type = data.type;
         this.target = data.target;
     }
 
     update(data: Partial<Omit<G, 'id' | 'created'>>) {
         return attemptAsync(async () => {
-            (await DB.run('goals/update', {
-                ...this,
-                ...data,
-            })).unwrap();
+            (
+                await DB.run('goals/update', {
+                    ...this,
+                    ...data
+                })
+            ).unwrap();
             Object.assign(this, data);
         });
     }
@@ -80,57 +79,71 @@ export class Goal extends Cache {
         return attemptAsync(async () => {
             const bucket = (await Buckets.fromId(bucketId)).unwrap();
             if (!bucket) throw new Error('Bucket not found');
-            (await DB.run('goals/new-bucket-goals', {
-                goalId: this.id,
-                bucketId,
-            })).unwrap();
+            (
+                await DB.run('goals/new-bucket-goals', {
+                    goalId: this.id,
+                    bucketId
+                })
+            ).unwrap();
         });
     }
 
     removeBucket(bucketId: string) {
         return attemptAsync(async () => {
-            (await DB.run('goals/remove-bucket-goals', {
-                goalId: this.id,
-                bucketId,
-            })).unwrap();
+            (
+                await DB.run('goals/remove-bucket-goals', {
+                    goalId: this.id,
+                    bucketId
+                })
+            ).unwrap();
         });
     }
 
     getBuckets() {
         return attemptAsync(async () => {
-            const buckets = (await DB.all('goals/get-bucket-goals', {
-                goalId: this.id
-            })).unwrap();
+            const buckets = (
+                await DB.all('goals/get-bucket-goals', {
+                    goalId: this.id
+                })
+            ).unwrap();
             return buckets.map(b => new Buckets(b));
         });
     }
 
     addTransaction(transactionId: string) {
         return attemptAsync(async () => {
-            const transaction = (await Transaction.fromId(transactionId)).unwrap();
+            const transaction = (
+                await Transaction.fromId(transactionId)
+            ).unwrap();
             if (!transaction) throw new Error('Transaction not found');
             // this will throw an error if the transaction is already used since the transactionId is unique
-            (await DB.run('goals/new-transaction-goal', {
-                goalId: this.id,
-                transactionId,
-            })).unwrap();
+            (
+                await DB.run('goals/new-transaction-goal', {
+                    goalId: this.id,
+                    transactionId
+                })
+            ).unwrap();
         });
     }
 
     removeTransaction(transactionId: string) {
         return attemptAsync(async () => {
-            (await DB.run('goals/remove-transaction-goal', {
-                goalId: this.id,
-                transactionId,
-            })).unwrap();
+            (
+                await DB.run('goals/remove-transaction-goal', {
+                    goalId: this.id,
+                    transactionId
+                })
+            ).unwrap();
         });
     }
 
     getTransactions() {
         return attemptAsync(async () => {
-            const transactions = (await DB.all('goals/get-transaction-goals', {
-                goalId: this.id
-            })).unwrap();
+            const transactions = (
+                await DB.all('goals/get-transaction-goals', {
+                    goalId: this.id
+                })
+            ).unwrap();
             return transactions.map(t => new Transaction(t));
         });
     }
