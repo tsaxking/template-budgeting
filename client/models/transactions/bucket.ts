@@ -217,7 +217,8 @@ export class Bucket extends Cache<BucketEvents> {
             );
 
             const filteredTransactions = allTransactions
-                .filter(t => t.date >= startDate.getTime() && t.date <= toDate.getTime());
+                .filter(t => t.date >= startDate.getTime() && t.date <= toDate.getTime())
+                .filter(t => !t.transfer);
 
             const months = Array.from(
                 {
@@ -303,6 +304,7 @@ export class Bucket extends Cache<BucketEvents> {
                                     amount = (using * g.amount) / 100; // percent
                                 }
 
+                                if (amount < 0) amount = 0;
                                 if (left - amount < 0) amount = 0;
                                 if (g.accumulated + amount > g.target && g.target !== 0) amount = g.target - g.accumulated;
                                 g.accumulated += amount;
