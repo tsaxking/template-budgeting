@@ -9,6 +9,9 @@ import TypeSelector from '../types/TypeSelector.svelte';
 import SubtypeSelector from '../types/SubtypeSelector.svelte';
 import DateTimeInput from '../bootstrap/DateTimeInput.svelte';
 import { Random } from '../../../../shared/math';
+import { Goal } from '../../../models/transactions/goal';
+import { select } from '../../../utilities/notifications';
+
 const id = Random.uuid();
 
 export let transaction: Transaction;
@@ -62,6 +65,36 @@ const update = async () => {
     });
 
     d('transaction-updated');
+};
+
+const addToGoal = async () => {
+    const goals = await Goal.all();
+    if (goals.isErr()) return console.error(goals.error);
+
+    const index = await select(
+        'Select a goal',
+        goals.value.map(g => g.name)
+    );
+
+    const g = goals.value[index];
+    if (!g) return;
+
+    g.addTransaction(transaction);
+};
+
+const removeFromGoal = async () => {
+    const goals = await Goal.all();
+    if (goals.isErr()) return console.error(goals.error);
+
+    const index = await select(
+        'Select a goal',
+        goals.value.map(g => g.name)
+    );
+
+    const g = goals.value[index];
+    if (!g) return;
+
+    g.removeTransaction(transaction);
 };
 </script>
 
@@ -171,4 +204,10 @@ const update = async () => {
         </div>
     {/if}
     <button type="submit" class="btn btn-primary"> Update </button>
+    <button type="button" class="btn btn-secondary" on:click="{addToGoal}">
+        Add to Goal
+    </button>
+    <button type="button" class="btn btn-secondary" on:click="{removeFromGoal}">
+        Remove from Goal
+    </button>
 </form>

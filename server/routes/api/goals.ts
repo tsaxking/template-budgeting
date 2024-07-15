@@ -188,7 +188,7 @@ router.post<{
     goalId: string;
     transactionId: string;
 }>(
-    '/remove-bucket',
+    '/remove-transaction',
     validate({
         goalId: 'string',
         transactionId: 'string'
@@ -198,9 +198,10 @@ router.post<{
         const goal = (await Goal.fromId(goalId)).unwrap();
         if (!goal) return res.sendStatus('goal:not-found');
 
-        (await goal.addBucket(transactionId)).unwrap();
+        (await goal.removeTransaction(transactionId)).unwrap();
 
         res.sendStatus('goal:transaction-removed');
         req.io.emit('goal:transaction-removed', req.body);
     }
 );
+

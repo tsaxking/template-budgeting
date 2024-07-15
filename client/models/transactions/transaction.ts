@@ -7,6 +7,7 @@ import { socket } from '../../utilities/socket';
 import { Type } from './type';
 import { Subtype } from './subtype';
 import { Bucket } from './bucket';
+import { Goal } from './goal';
 
 type GlobalTransactionEvents = {
     new: Transaction;

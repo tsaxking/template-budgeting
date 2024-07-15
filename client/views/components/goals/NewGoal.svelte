@@ -19,7 +19,8 @@ $: d('change', {
     interval,
     rank,
     type,
-    startDate: new Date(startDate)
+    startDate: new Date(startDate),
+    target,
 });
 </script>
 
