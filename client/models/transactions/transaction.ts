@@ -165,11 +165,7 @@ export class Transaction extends Cache<TransactionEvents> {
         this.picture = data.picture;
         this.transfer = data.transfer;
 
-        if (metadata.save && !Transaction.cache.has(this.id)) {
-            Transaction.cache.set(this.id, this);
-        } else if (metadata.save) {
-            throw new Error('Transaction already exists');
-        }
+        if (metadata.save) Transaction.cache.set(this.id, this);
     }
 
     async update(data: Partial<T>) {
