@@ -51,7 +51,9 @@ export class Type extends Cache<TypeEvents> {
                 await ServerRequest.post<{
                     types: TransactionType[];
                     subtypes: Subtype[];
-                }>('/api/types/get-types')
+                }>('/api/types/get-types', undefined, {
+                    cached: true,
+                })
             )
                 .unwrap()
                 .types.map(Type.retrieve);
