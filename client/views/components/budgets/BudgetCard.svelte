@@ -83,7 +83,7 @@ const edit = (budget: Budget) => {
     let interval: BudgetInterval = 'monthly';
     let subtypes: Subtype[] = [];
 
-    e.$on('change', (e) => {
+    e.$on('change', e => {
         const { data, subtypes: s } = e.detail;
         name = data.name;
         amount = data.amount;
@@ -145,7 +145,7 @@ const newBudget = () => {
     let interval: BudgetInterval = 'monthly';
     let subtypes: Subtype[] = [];
 
-    e.$on('change', (e) => {
+    e.$on('change', e => {
         const { data, subtypes: s } = e.detail;
         name = data.name;
         amount = data.amount;
@@ -158,12 +158,15 @@ const newBudget = () => {
     submit.classList.add('btn', 'btn-primary');
     submit.innerText = 'Submit';
     submit.onclick = () => {
-        Budget.new({
-            name,
-            amount,
-            description,
-            interval,
-        }, subtypes);
+        Budget.new(
+            {
+                name,
+                amount,
+                description,
+                interval
+            },
+            subtypes
+        );
 
         m.hide();
         e.$destroy();
@@ -173,7 +176,6 @@ const newBudget = () => {
 
     m.show();
 };
-
 
 Budget.on('new', init);
 Budget.on('update', init);
@@ -185,7 +187,8 @@ Transaction.on('archive', init);
 
 <div class="container">
     <h4>
-        You are {cost(Math.abs(max - total))} {max > total ? 'under' : 'over'} budget
+        You are {cost(Math.abs(max - total))}
+        {max > total ? 'under' : 'over'} budget
     </h4>
 
     {#each budgets as budget, i}

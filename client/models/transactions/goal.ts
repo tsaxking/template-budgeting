@@ -6,7 +6,10 @@ import { BudgetInterval } from '../../../server/utilities/tables';
 import { Goals } from '../../../server/utilities/tables';
 import { Bucket } from './bucket';
 import { Transaction } from './transaction';
-import { Transaction as T, Bucket as B } from '../../../shared/db-types-extended';
+import {
+    Transaction as T,
+    Bucket as B
+} from '../../../shared/db-types-extended';
 
 type GoalEvents = {
     update: undefined;
@@ -60,26 +63,29 @@ export class Goal extends Cache<GoalEvents> {
 
     public static async all() {
         return attemptAsync(async () => {
-            const res = await ServerRequest.post<{
-                goal: Goals,
-                transactions: T[],
-                buckets: B[],
-            }[]>('/api/goals/all');
+            const res = await ServerRequest.post<
+                {
+                    goal: Goals;
+                    transactions: T[];
+                    buckets: B[];
+                }[]
+            >('/api/goals/all');
             if (res.isErr()) throw res.error;
             return res.value
-            .sort((a, b) => a.goal.rank - b.goal.rank)
-            .map(d => {
-                return Goal.retrieve(
-                    d.goal,
-                    // d.buckets,
-                    // d.transactions,
-                )
-            });
+                .sort((a, b) => a.goal.rank - b.goal.rank)
+                .map(d => {
+                    return Goal.retrieve(
+                        d.goal
+                        // d.buckets,
+                        // d.transactions,
+                    );
+                });
         });
     }
 
-    public static retrieve(goal: Goals, 
-        // buckets: B[], 
+    public static retrieve(
+        goal: Goals
+        // buckets: B[],
         // transactions: T[]
     ) {
         const existing = Goal.cache.get(goal.id);
@@ -89,12 +95,12 @@ export class Goal extends Cache<GoalEvents> {
         // const t = transactions.map(Transaction.retrieve);
         // const b = buckets.map(Bucket.retrieve);
 
-        return new Goal(goal, 
-            // b, 
+        return new Goal(
+            goal
+            // b,
             // t
         );
     }
-
 
     public readonly id: string;
     public name: string;
@@ -111,8 +117,8 @@ export class Goal extends Cache<GoalEvents> {
     public type: 'fixed' | 'percent';
 
     constructor(
-        data: Goals, 
-        // buckets: Bucket[], 
+        data: Goals
+        // buckets: Bucket[],
         // transactions: Transaction[]
     ) {
         super();

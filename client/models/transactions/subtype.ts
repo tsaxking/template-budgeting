@@ -118,10 +118,6 @@ export class Subtype extends Cache<SubtypeEvents> {
             return types.value.find(t => t.id === this.typeId);
         });
     }
-
-    getTransactions(from: number, to: number) {
-        return Transaction.fromSubType(this.id, from, to);
-    }
 }
 
 socket.on('transaction-types:subtype-created', (data: S) => {

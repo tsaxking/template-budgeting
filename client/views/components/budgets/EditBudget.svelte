@@ -64,7 +64,6 @@ const init = async () => {
 onMount(() => {
     init();
 });
-
 </script>
 
 <div class="container">

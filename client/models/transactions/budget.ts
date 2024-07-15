@@ -3,7 +3,10 @@ import { EventEmitter } from '../../../shared/event-emitter';
 import { ServerRequest } from '../../utilities/requests';
 import { Cache } from '../cache';
 import { Budgets as B, BudgetInterval } from '../../../server/utilities/tables';
-import { Subtype as S, Transaction as T} from '../../../shared/db-types-extended';
+import {
+    Subtype as S,
+    Transaction as T
+} from '../../../shared/db-types-extended';
 import { Transaction } from './transaction';
 import { Subtype } from './subtype';
 import { socket } from '../../utilities/socket';
@@ -155,13 +158,19 @@ export class Budget extends Cache<BudgetEvents> {
     getTransactions(from: number, to: number) {
         return attemptAsync(async () => {
             const subtypes = (await this.getSubtypes()).unwrap();
-            return (await ServerRequest.post<T[]>('/api/types/get-subtype-transactions', {
-                ids: subtypes.map(s => s.id),
-                from,
-                to
-            }))
-            .unwrap()
-            .map(Transaction.retrieve);
+            return (
+                await ServerRequest.post<T[][]>(
+                    '/api/types/get-subtype-transactions',
+                    {
+                        ids: subtypes.map(s => s.id),
+                        from,
+                        to
+                    }
+                )
+            )
+                .unwrap()
+                .map(s => s.map(Transaction.retrieve))
+                .flat();
         });
     }
 
@@ -187,7 +196,6 @@ export class Budget extends Cache<BudgetEvents> {
         });
     }
 }
-
 
 socket.on('budget:updated', (data: B) => {
     const budget = Budget.cache.get(data.id);

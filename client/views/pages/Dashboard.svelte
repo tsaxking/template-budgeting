@@ -153,13 +153,9 @@ Bucket.on('update', reset);
         <DashboardCard title="Budgets" expandable="{true}" id="budgets">
             <BudgetCard />
         </DashboardCard>
-        <DashboardCard 
-            title="Goals"
-            expandable="{true}"
-            id="goals"
-        >
-        <NetCard />
-    </DashboardCard>
+        <DashboardCard title="Goals" expandable="{true}" id="goals">
+            <NetCard />
+        </DashboardCard>
         <DashboardCard
             title="Balance/Time"
             expandable="{true}"
