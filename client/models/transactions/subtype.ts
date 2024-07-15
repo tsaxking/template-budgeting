@@ -120,7 +120,7 @@ export class Subtype extends Cache<SubtypeEvents> {
     }
 
     getTransactions(from: number, to: number) {
-        return Transaction.fromSubType([this.id], from, to);
+        return Transaction.fromSubTypes([this.id], from, to);
     }
 }
 

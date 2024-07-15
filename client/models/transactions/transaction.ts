@@ -45,17 +45,17 @@ export class Transaction extends Cache<TransactionEvents> {
         this.emitter.emit(event, data);
     }
 
-    public static fromType(id: string, from: number, to: number) {
+    public static fromTypes(ids: string[], from: number, to: number) {
         return attemptAsync(async () => {
             const subtypes = (await Subtype.all()).unwrap();
             const all = (await Transaction.all()).unwrap();
             return all
-                .filter(t => subtypes.find(s => s.id === t.subtypeId)?.typeId === id)
+                .filter(t => ids.includes(subtypes.find(s => s.id === t.subtypeId)?.typeId || ''))
                 .filter(t => t.date >= from && t.date <= to);
         });
     }
 
-    public static fromSubType(ids: string[], from: number, to: number) {
+    public static fromSubTypes(ids: string[], from: number, to: number) {
         return attemptAsync(async () => {
             const all = (await Transaction.all()).unwrap();
             return all
