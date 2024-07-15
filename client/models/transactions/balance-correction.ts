@@ -61,7 +61,11 @@ export class BalanceCorrection extends Cache<BalanceCorrectionEvents> {
             //     return Array.from(BalanceCorrection.cache.values());
 
             const res = await ServerRequest.post<B[]>(
-                '/api/balance-correction/all'
+                '/api/balance-correction/all',
+                undefined,
+                {
+                    cached: true,
+                }
             );
             if (res.isErr()) throw res.error;
 

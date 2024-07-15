@@ -52,7 +52,9 @@ export class Subscription extends Cache<SubscriptionEvents> {
             // const cache = Array.from(Subscription.cache.values());
             // if (cache.length) return cache.filter(s => !s.archived);
 
-            const res = await ServerRequest.post<S[]>('/api/subscriptions/all');
+            const res = await ServerRequest.post<S[]>('/api/subscriptions/all', undefined, {
+                cached: true,
+            });
 
             if (res.isErr()) throw res.error;
             return res.value.map(Subscription.retrieve);
