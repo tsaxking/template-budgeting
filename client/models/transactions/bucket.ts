@@ -10,6 +10,7 @@ import { BalanceCorrection } from './balance-correction';
 import { Subscription } from './subscription';
 import { Budget } from './budget';
 import { Goal } from './goal';
+import { capitalize } from '../../../shared/text';
 
 type GlobalBucketEvents = {
     new: Bucket;
@@ -248,8 +249,11 @@ export class Bucket extends Cache<BucketEvents> {
 
             let prev: number;
 
+            const log = (name: string, data: unknown) => console.log(capitalize(name + ':'), data);
+
             const data = 
                     months.map((m, i) => {
+                        log('month', m);
                             const next = new Date(m.getTime());
                             next.setMonth(next.getMonth() + 1);
                             const transactions = filteredTransactions.filter(
@@ -264,23 +268,54 @@ export class Bucket extends Cache<BucketEvents> {
                                 (acc, b) => acc + b.total,
                                 0
                             );
+
+                            log('totalBudgetSpent', totalBudgetSpent);
+
                             const transactionData =
                                 Transaction.parse(transactions);
                             const income = transactionData.income;
                             const expenses =
                                 transactionData.expenses - totalBudgetSpent;
 
+                            log('transactionData', transactionData);
+                            log('expenses', expenses);
+
                             const net = income - totalBudgetSpent;
+                            log('net', net);
                             const usable = net - expenses;
+                            log('usable', usable);
                             let using = usable;
                             if (prev) using += prev;
+
+                            const allGoalTransactions = goals.map(g => g.transactions).flat();
+
+                            
+                            for (let j = 0; j < allGoalTransactions.length; j++) {
+                                const t = allGoalTransactions[j];
+                                if (t.date >= m.getTime() && t.date < next.getTime()) {
+                                    if (t.type === 'deposit') {
+                                        log('deposit', t.amount);
+                                        using -= t.amount;
+                                    } else {
+                                        log('withdrawal', t.amount);
+                                        using += t.amount;
+                                    }
+                                }
+                            }
+
                             let left = using;
                             let rank = 0;
+
+                            log('using', using);
+                            log('prev', prev);
 
                             const data = goals.map(g => {
                                 if (m.getTime() < g.startDate) return 0;
                                 if (g.rank !== rank) using = left;
                                 rank = g.rank;
+                                log('rank', rank);
+                                log('left', left);
+                                log('using', using);
 
                                 const goalTransactions = g.transactions.filter(g => 
                                     g.date >= m.getTime() && g.date < next.getTime()
@@ -289,30 +324,40 @@ export class Bucket extends Cache<BucketEvents> {
                                 for (let j = 0; j < goalTransactions.length; j++) {
                                     const t = g.transactions[j];
                                     if (t.type === 'deposit') {
-                                        left -= t.amount;
+                                        log('deposit', t.amount);
+                                        // left -= t.amount;
                                         if (g.target) g.target += t.amount;
                                     } else {
-                                        left += t.amount;
+                                        log('withdarwal', t.amount);
+                                        // left += t.amount;
                                         if (g.target) g.target -= t.amount;
                                     }
                                 }
 
                                 let amount: number;
                                 if (g.type === 'fixed') {
+                                    log('fixed', g.amount);
                                     amount = g.amount;
                                 } else {
+                                    log('percent', g.amount);
                                     amount = (using * g.amount) / 100; // percent
                                 }
+
+                                log('amount1', amount);
 
                                 if (amount < 0) amount = 0;
                                 if (left - amount < 0) amount = 0;
                                 if (g.accumulated + amount > g.target && g.target !== 0) amount = g.target - g.accumulated;
+                                log('amount2', amount);
                                 g.accumulated += amount;
+                                log('g.accumulated', g.accumulated);
                                 left -= amount;
+                                log('left', left);
                                 return amount;
                             });
 
                             prev = left;
+                            log('prev', prev);
 
                             return {
                                 date: m.getTime(),
