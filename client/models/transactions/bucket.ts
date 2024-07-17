@@ -204,10 +204,11 @@ export class Bucket extends Cache<BucketEvents> {
             const log = (name: string, data: unknown) => console.log(capitalize(name + ':'), data);
 
             const allTransactions = (await Transaction.all()).unwrap();
-            const [goalsRes, budgetsRes, balanceRes] = await Promise.all([
+            const [goalsRes, budgetsRes, balanceRes, subscriptions] = await Promise.all([
                 Goal.all(),
                 Budget.all(),
                 Bucket.getTotalBalance(toDate.getTime()),
+                Subscription.all(),
             ]);
 
             const totalBalance = balanceRes.unwrap();
@@ -224,7 +225,9 @@ export class Bucket extends Cache<BucketEvents> {
             const startBalance = (await Bucket.getTotalBalance(startDate.getTime())).unwrap();
             log('startBalance', startBalance);
 
-            const filteredTransactions = allTransactions
+            const filteredTransactions = [...allTransactions,
+                ...subscriptions.unwrap().map(s => s.build(startDate.getTime(), toDate.getTime())).flat()
+            ]
                 .filter(t => t.date >= startDate.getTime() && t.date <= toDate.getTime());
 
             const months = Array.from(
