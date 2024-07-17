@@ -17,7 +17,11 @@ let data: {
 let disposable = 0;
 
 const init = async () => {
-    const info = await Bucket.parseNet(new Date());
+    const now = new Date();
+    now.setDate(0);
+    now.setHours(0, 0, 0, 0);
+    now.setMonth(now.getMonth() + 1);
+    const info = await Bucket.parseNet(now);
     if (info.isErr()) return console.error(info.error);
     data = info.value.saved;
     disposable = info.value.disposable;

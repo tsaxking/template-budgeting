@@ -201,7 +201,7 @@ export class Bucket extends Cache<BucketEvents> {
 
     public static parseNet(toDate: Date) {
         return attemptAsync(async () => {
-            const log = (name: string, data: unknown) => {};
+            const log = (name: string, data: unknown) => {}; // console.log(capitalize(name) + ':', data);
 
             const allTransactions = (await Transaction.all()).unwrap();
             const [goalsRes, budgetsRes, balanceRes, subscriptions] = await Promise.all([
@@ -232,7 +232,7 @@ export class Bucket extends Cache<BucketEvents> {
 
             const months = Array.from(
                 {
-                    length: toDate.getFullYear() * 12 + toDate.getMonth() - startDate.getFullYear() * 12 - startDate.getMonth()
+                    length: toDate.getFullYear() * 12 + toDate.getMonth() - startDate.getFullYear() * 12 - startDate.getMonth() - 1
                 },
                 (_, i) => {
                     const d = new Date(startDate.getTime());
