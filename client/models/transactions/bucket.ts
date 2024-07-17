@@ -369,7 +369,7 @@ export class Bucket extends Cache<BucketEvents> {
                                     goal: g,
                                     saved: data[i] // saved in this month, not overall
                                 })),
-                                leftover: left
+                                leftover: prev
                             };
                         });
 
@@ -384,12 +384,10 @@ export class Bucket extends Cache<BucketEvents> {
                 };
             });
 
-            const disposable = data.reduce((acc, d) => acc + d.leftover, 0);
-
             return {
                 data,
                 saved,
-                disposable
+                disposable: data[data.length - 1].leftover
             };
         });
     }
