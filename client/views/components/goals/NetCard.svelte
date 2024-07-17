@@ -13,6 +13,7 @@ import EditGoal from './EditGoal.svelte';
 let data: {
     goal: PseudoGoal;
     saved: number;
+    endDate: number;
 }[] = [];
 let disposable = 0;
 
@@ -162,7 +163,7 @@ const create = () => {
             </span>
         </h5>
     </div>
-    {#each data as { goal, saved }}
+    {#each data as { goal, saved, endDate }}
     <hr>
         <div class="row my-1">
             <p>
@@ -181,8 +182,12 @@ const create = () => {
                 {goal.description}
             </p>
             <small class="text-muted">
+                Start Date: {new Date(goal.startDate).toLocaleDateString()}
+                <br>
                 {#if goal.target !== 0}
                     <span class="text-success">{Math.round(saved/goal.target * 100)}%</span> {cost(saved)} / {cost(goal.target)}
+                    <br>
+                    Projected End Date: {new Date(endDate).toLocaleDateString()}
                 {/if}
             </small>
             <div class="col-10">
