@@ -232,7 +232,7 @@ export class Bucket extends Cache<BucketEvents> {
 
             const months = Array.from(
                 {
-                    length: toDate.getFullYear() * 12 + toDate.getMonth() - startDate.getFullYear() * 12 - startDate.getMonth() - 1
+                    length: toDate.getFullYear() * 12 + toDate.getMonth() - startDate.getFullYear() * 12 - startDate.getMonth()
                 },
                 (_, i) => {
                     const d = new Date(startDate.getTime());
