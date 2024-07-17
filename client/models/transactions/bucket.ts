@@ -218,8 +218,7 @@ export class Bucket extends Cache<BucketEvents> {
             );
 
             const filteredTransactions = allTransactions
-                .filter(t => t.date >= startDate.getTime() && t.date <= toDate.getTime())
-                .filter(t => !t.transfer);
+                .filter(t => t.date >= startDate.getTime() && t.date <= toDate.getTime());
 
             const months = Array.from(
                 {
