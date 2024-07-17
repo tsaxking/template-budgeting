@@ -201,12 +201,16 @@ export class Bucket extends Cache<BucketEvents> {
 
     public static parseNet(toDate: Date) {
         return attemptAsync(async () => {
+            const log = (name: string, data: unknown) => console.log(capitalize(name + ':'), data);
+
             const allTransactions = (await Transaction.all()).unwrap();
-            const [goalsRes, budgetsRes] = await Promise.all([
+            const [goalsRes, budgetsRes, balanceRes] = await Promise.all([
                 Goal.all(),
-                Budget.all()
+                Budget.all(),
+                Bucket.getTotalBalance(toDate.getTime()),
             ]);
 
+            const totalBalance = balanceRes.unwrap();
             const goals = goalsRes.unwrap().map(g => g.pseudo);
             const budgets = budgetsRes.unwrap();
 
@@ -217,16 +221,23 @@ export class Bucket extends Cache<BucketEvents> {
                 }, toDate.getTime())
             );
 
+            const startBalance = (await Bucket.getTotalBalance(startDate.getTime())).unwrap();
+            log('startBalance', startBalance);
+
             const filteredTransactions = allTransactions
                 .filter(t => t.date >= startDate.getTime() && t.date <= toDate.getTime());
 
             const months = Array.from(
                 {
-                    length: Math.ceil(
-                        (toDate.getTime() - startDate.getTime()) / 2629746000
-                    )
+                    length: toDate.getFullYear() * 12 + toDate.getMonth() - startDate.getFullYear() * 12 - startDate.getMonth() - 1
                 },
-                (_, i) => new Date(startDate.getTime() + i * 2629746000)
+                (_, i) => {
+                    const d = new Date(startDate.getTime());
+                    d.setMonth(d.getMonth() + i + 1);
+                    d.setDate(1);
+                    d.setHours(0, 0, 0, 0);
+                    return d;
+                }
             );
 
             const budgetDataArray = resolveAll(
@@ -246,9 +257,8 @@ export class Bucket extends Cache<BucketEvents> {
                 )
             ).unwrap();
 
-            let prev: number;
+            let prev = startBalance;
 
-            const log = (name: string, data: unknown) => console.log(capitalize(name + ':'), data);
 
             const data = 
                     months.map((m, i) => {
@@ -288,7 +298,6 @@ export class Bucket extends Cache<BucketEvents> {
 
                             const allGoalTransactions = goals.map(g => g.transactions).flat();
 
-                            
                             for (let j = 0; j < allGoalTransactions.length; j++) {
                                 const t = allGoalTransactions[j];
                                 if (t.date >= m.getTime() && t.date < next.getTime()) {
@@ -383,10 +392,16 @@ export class Bucket extends Cache<BucketEvents> {
                 };
             });
 
+            const totalSaved = saved.reduce((acc, s) => acc + s.saved, 0);
+            log('totalSaved', totalSaved);
+            log('totalBalance', totalBalance);
+            const disposable = totalBalance - totalSaved + data[data.length - 1].leftover;
+            log('disposable', disposable);
+
             return {
                 data,
                 saved,
-                disposable: data[data.length - 1].leftover
+                disposable,
             };
         });
     }
