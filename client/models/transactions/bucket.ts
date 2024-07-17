@@ -395,7 +395,8 @@ export class Bucket extends Cache<BucketEvents> {
             const totalSaved = saved.reduce((acc, s) => acc + s.saved, 0);
             log('totalSaved', totalSaved);
             log('totalBalance', totalBalance);
-            const disposable = totalBalance - totalSaved + data[data.length - 1].leftover;
+            // leftover is ignored because, in theory, it should be included in the total balance
+            const disposable = totalBalance - totalSaved;// + data[data.length - 1].leftover;
             log('disposable', disposable);
 
             return {
