@@ -272,7 +272,11 @@ export class Bucket extends Cache<BucketEvents> {
                                 t =>
                                     t.date >= m.getTime() &&
                                     t.date < next.getTime()
-                            );
+                            )
+                            .sort((a, b) => a.date - b.date)
+                            .filter(t => !t.transfer)
+                            ;
+                            console.log(transactions);
 
                             const budgetData = budgetDataArray[i];
 

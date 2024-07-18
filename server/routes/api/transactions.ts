@@ -111,7 +111,7 @@ router.post<{
             description,
             subtypeId,
             taxDeductible: +taxDeductible,
-            transfer: 0
+            transfer: t.value.transfer,
         });
 
         if (r.isErr()) return res.sendStatus('unknown:error', r.error);
