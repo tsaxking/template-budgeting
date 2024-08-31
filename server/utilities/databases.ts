@@ -511,7 +511,7 @@ export class Backup extends Version {
             return backups
                 .map(Backup.from)
                 .filter(b => b.isOk())
-                .map(b =>b.unwrap())
+                .map(b => b.unwrap())
                 .filter(b => b.gitBranch === version.gitBranch);
         });
     }
